@@ -1,0 +1,120 @@
+// Smart categorisation via Groq (free, OpenAI-compatible API). Runs as a second pass
+// after keyword rules: sends each leftover transaction with its location/trip context
+// and lets the model pick a category (or propose a new one). Sets categorySource='llm',
+// so manual edits are never touched and rules stay authoritative for what they match.
+import { prisma } from "../lib/db.js";
+
+const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
+const MODEL = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
+const BATCH = 25;
+
+const SYSTEM = `You categorise bank/PayPal transactions for a German student who lives in their home city.
+Assign each transaction to exactly ONE category from the provided "categories" list.
+Guidelines:
+- Categorise essentials by merchant type even while travelling: a supermarket is always "Groceries", a pharmacy "Health", a drugstore "Drogerie".
+- "onTrip": true means it happened on a trip away from the home cities (their home cities). On a trip, leisure/tourism spending (cafés, bars, restaurants, attractions, ski lifts, hotels, local transport, fuel) is usually "Travel". Long-distance rail (Deutsche Bahn/DB), flights and coaches are always "Travel".
+- Transfers between own accounts, PayPal top-ups and investments are "Transfer".
+- amount is negative for money spent, positive for money received.
+- If no listed category fits well, propose a SHORT new category name (1-2 English words) and set isNew=true.
+Return ONLY JSON: {"results":[{"id":"<id>","category":"<name>","isNew":<bool>,"confidence":<0..1>}]}`;
+
+type LlmResult = { id: string; category: string; isNew?: boolean; confidence?: number };
+
+async function callGroq(key: string, categories: string[], batch: unknown[]): Promise<LlmResult[]> {
+  const res = await fetch(GROQ_URL, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: MODEL,
+      temperature: 0,
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: SYSTEM },
+        { role: "user", content: JSON.stringify({ categories, transactions: batch }) },
+      ],
+    }),
+  });
+  if (res.status === 429) {
+    await new Promise((r) => setTimeout(r, 6000));
+    return callGroq(key, categories, batch);
+  }
+  if (!res.ok) throw new Error(`Groq ${res.status}: ${await res.text()}`);
+  const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+  const content = data.choices?.[0]?.message?.content ?? "{}";
+  return (JSON.parse(content).results ?? []) as LlmResult[];
+}
+
+export async function categorizeWithLLM(opts: { all?: boolean } = {}): Promise<void> {
+  const key = process.env.GROQ_API_KEY;
+  if (!key) throw new Error("GROQ_API_KEY missing in .env (free key at console.groq.com)");
+
+  const categories = await prisma.category.findMany({ orderBy: { name: "asc" } });
+  const catByName = new Map(categories.map((c) => [c.name.toLowerCase(), c]));
+  const catNames = categories.map((c) => c.name);
+
+  const todo = await prisma.transaction.findMany({
+    where: opts.all ? { categorySource: { not: "manual" } } : { categorized: false },
+    select: {
+      id: true, description: true, counterparty: true, amount: true,
+      bookingDate: true, city: true, country: true, trip: true,
+    },
+    orderBy: { bookingDate: "desc" },
+  });
+  if (todo.length === 0) {
+    console.log("Nothing to categorise.");
+    return;
+  }
+
+  console.log(`Categorising ${todo.length} transactions with ${MODEL}...`);
+  const created = new Set<string>();
+  const tally = new Map<string, number>();
+  let done = 0;
+
+  for (let i = 0; i < todo.length; i += BATCH) {
+    const slice = todo.slice(i, i + BATCH);
+    const ids = new Set(slice.map((t) => t.id));
+    const batch = slice.map((t) => ({
+      id: t.id,
+      description: t.description.slice(0, 120),
+      counterparty: t.counterparty,
+      amount: Number(t.amount),
+      date: t.bookingDate.toISOString().slice(0, 10),
+      city: t.city,
+      country: t.country,
+      onTrip: Boolean(t.trip),
+      trip: t.trip,
+    }));
+
+    let results: LlmResult[];
+    try {
+      results = await callGroq(key, catNames, batch);
+    } catch (e) {
+      console.error(`\nBatch ${i}-${i + slice.length} failed: ${(e as Error).message}`);
+      continue;
+    }
+
+    for (const r of results) {
+      if (!r.id || !r.category || !ids.has(r.id)) continue; // ignore hallucinated ids
+      let cat = catByName.get(r.category.toLowerCase());
+      if (!cat) {
+        cat = await prisma.category.create({ data: { name: r.category, color: "#a3a3a3", icon: "🏷️" } });
+        catByName.set(cat.name.toLowerCase(), cat);
+        created.add(cat.name);
+      }
+      await prisma.transaction
+        .update({ where: { id: r.id }, data: { categoryId: cat.id, categorized: true, categorySource: "llm" } })
+        .catch(() => {});
+      tally.set(cat.name, (tally.get(cat.name) ?? 0) + 1);
+      done++;
+    }
+    process.stdout.write(`\r  ${Math.min(i + BATCH, todo.length)}/${todo.length}`);
+    await new Promise((r) => setTimeout(r, 500));
+  }
+
+  console.log(`\nDone. Categorised ${done}/${todo.length}.`);
+  console.log("Assignments:");
+  for (const [name, n] of [...tally.entries()].sort((a, b) => b[1] - a[1])) {
+    console.log(`  ${n.toString().padStart(3)}  ${name}${created.has(name) ? "  (NEW)" : ""}`);
+  }
+  if (created.size) console.log(`\nNew categories created: ${[...created].join(", ")} — rename/merge any you don't like.`);
+}

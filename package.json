@@ -12,7 +12,11 @@
     "reset:data": "tsx scripts/reset-data.ts",
     "import": "tsx src/import/run.ts",
     "categorize": "tsx scripts/categorize.ts",
+    "enrich": "tsx src/enrich/run.ts",
+    "ai": "tsx scripts/ai.ts",
+    "recat": "tsx scripts/recat.ts",
     "summary": "tsx scripts/summary.ts",
+    "show": "tsx scripts/show.ts",
     "uncat": "tsx scripts/uncategorised.ts",
     "typecheck": "tsc --noEmit"
   },

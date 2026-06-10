@@ -44,6 +44,7 @@ model Transaction {
   recurring      Boolean   @default(false) // tagged by recurring-payment detection (a view, not a 2nd category)
   city           String?
   country        String?
+  trip           String? // label of the trip this transaction belongs to (null = at home)
   raw            Json
   createdAt      DateTime  @default(now())
 
