@@ -73,6 +73,7 @@ async function ingest(parsed: ParsedFile): Promise<{ added: number; total: numbe
         bookingDate: t.bookingDate,
         valueDate: t.valueDate ?? null,
         amount: t.amount,
+        balance: t.balance ?? null,
         currency: t.currency,
         description: t.description,
         counterparty: t.counterparty ?? null,

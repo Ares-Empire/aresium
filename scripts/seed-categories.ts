@@ -6,7 +6,7 @@
 import "dotenv/config";
 import { prisma } from "../src/lib/db.js";
 
-type Cat = { name: string; color: string; icon: string; exclude?: boolean; patterns: string[] };
+type Cat = { name: string; color: string; icon: string; exclude?: boolean; priority?: number; patterns: string[] };
 
 const CATEGORIES: Cat[] = [
   { name: "Groceries", color: "#22c55e", icon: "🛒", patterns: ["rewe", "edeka", "aldi", "lidl", "penny", "netto ", "kaufland", "tegut", "hit 0", "hit fil", "interspar", "eurospar", "spar dankt", "spar markt", "denns", "dennree", "famila", "norma", "nahkauf", "e-center", "e center", "globus sb"] },
@@ -26,10 +26,12 @@ const CATEGORIES: Cat[] = [
   { name: "Development", color: "#0ea5e9", icon: "🧑‍💻", patterns: ["anthropic", "claude.ai", "openai", "chatgpt", "hetzner", "github", "vercel", "namecheap", "digitalocean", "cloudflare", "supabase", "railway.app", "cursor "] },
   { name: "Trash", color: "#71717a", icon: "🗑️", patterns: ["onlyfans", "fanvue", "ccbill", "coppervex", "roblox", "fotoservice"] },
   { name: "Memberships", color: "#f59e0b", icon: "🤝", patterns: ["die linke", "mitgliedsbeitrag", "parteibeitrag", "spende", "greenpeace", "amnesty", "gewerkschaft"] },
-  { name: "Basis", color: "#16a34a", icon: "👨‍👩‍👧", patterns: ["kindergeld"] },
-  { name: "Tax", color: "#78716c", icon: "🧾", patterns: ["steuerverwaltung", "finanzamt", "einkommenst", "steuererstattung"] },
-  { name: "Income", color: "#84cc16", icon: "💰", patterns: ["gehalt", "lohn", "stipendium", "bafög", "bafoeg", "erfrischungsgeld", "honorar"] },
-  { name: "Transfer", color: "#94a3b8", icon: "🔁", exclude: true, patterns: ["paypal europe", "paypal (europe", "patrik breeck", "union investment", "uniondepot", "bankgutschrift auf paypal", "von nutzer eingeleitete abbuchung", "umbuchung", "eigenübertrag", "sparplan", "tagesgeld"] },
+  // priority 5: "who" (identity) rules beat "what" (merchant keyword) rules,
+  // e.g. money from a parent with "Miete und Unterhalt" is Basis, not Rent.
+  { name: "Basis", color: "#16a34a", icon: "👨‍👩‍👧", priority: 5, patterns: ["kindergeld"] },
+  { name: "Tax", color: "#78716c", icon: "🧾", priority: 5, patterns: ["steuerverwaltung", "finanzamt", "einkommenst", "steuererstattung"] },
+  { name: "Income", color: "#84cc16", icon: "💰", priority: 5, patterns: ["gehalt", "lohn", "stipendium", "bafög", "bafoeg", "erfrischungsgeld", "honorar"] },
+  { name: "Transfer", color: "#94a3b8", icon: "🔁", exclude: true, priority: 5, patterns: ["paypal europe", "paypal (europe", "patrik breeck", "union investment", "uniondepot", "bankgutschrift auf paypal", "von nutzer eingeleitete abbuchung", "umbuchung", "eigenübertrag", "sparplan", "tagesgeld"] },
 ];
 
 async function main() {
@@ -45,7 +47,7 @@ async function main() {
       data: { name: c.name, color: c.color, icon: c.icon, excludeFromTotals: c.exclude ?? false },
     });
     await prisma.categoryRule.createMany({
-      data: c.patterns.map((pattern) => ({ categoryId: cat.id, pattern })),
+      data: c.patterns.map((pattern) => ({ categoryId: cat.id, pattern, priority: c.priority ?? 0 })),
     });
   }
 

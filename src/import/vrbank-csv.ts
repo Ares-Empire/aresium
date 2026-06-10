@@ -24,6 +24,7 @@ const COLS = {
   amount: ["Betrag", "Umsatz", "Betrag (EUR)"],
   currency: ["Waehrung", "Währung"],
   sign: ["Soll/Haben", "S/H", "Soll-/Haben", "Soll-/Habenkennzeichen"],
+  balance: ["Saldo nach Buchung", "Saldo"],
 };
 
 // VR exports are usually ";"-delimited, but tolerate "," just in case.
@@ -74,6 +75,7 @@ export function parseVrBankCsv(content: string): ParsedFile {
     const valueRaw = pick(row, COLS.value);
     const purpose = pick(row, COLS.purpose) || pick(row, COLS.bookingText) || "(no description)";
     const counterparty = pick(row, COLS.name) || null;
+    const balanceRaw = pick(row, COLS.balance);
 
     const externalId = createHash("sha1")
       .update(`${bookingDate.toISOString()}|${amount}|${purpose}|${counterparty ?? ""}`)
@@ -85,6 +87,7 @@ export function parseVrBankCsv(content: string): ParsedFile {
       bookingDate,
       valueDate: valueRaw ? parseDateFlexible(valueRaw) : null,
       amount,
+      balance: balanceRaw ? parseAmount(balanceRaw) : null,
       currency: ccy,
       description: purpose,
       counterparty,

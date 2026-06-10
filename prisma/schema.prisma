@@ -34,6 +34,7 @@ model Transaction {
   bookingDate  DateTime
   valueDate    DateTime?
   amount       Decimal   @db.Decimal(14, 2) // negative = money out, positive = money in
+  balance      Decimal?  @db.Decimal(14, 2) // running account balance after this txn (bank only, "Saldo nach Buchung")
   currency     String    @default("EUR")
   description  String
   counterparty String?

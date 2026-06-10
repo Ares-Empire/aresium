@@ -3,6 +3,7 @@ export type NormalizedTxn = {
   bookingDate: Date;
   valueDate?: Date | null;
   amount: string; // signed decimal string; negative = money out
+  balance?: string | null; // running balance after this txn (bank only)
   currency: string;
   description: string;
   counterparty?: string | null;
