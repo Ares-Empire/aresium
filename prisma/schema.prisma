@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Source {
+  bank
+  paypal
+}
+
+model Account {
+  id           String        @id @default(cuid())
+  source       Source
+  externalId   String // bank: IBAN, paypal: "paypal-default"
+  name         String
+  iban         String?
+  currency     String        @default("EUR")
+  transactions Transaction[]
+  createdAt    DateTime      @default(now())
+
+  @@unique([source, externalId])
+}
+
+model Transaction {
+  id           String    @id @default(cuid())
+  account      Account   @relation(fields: [accountId], references: [id])
+  accountId    String
+  source       Source
+  externalId   String // stable id from the export; hashed fallback when none provided
+  bookingDate  DateTime
+  valueDate    DateTime?
+  amount       Decimal   @db.Decimal(14, 2) // negative = money out, positive = money in
+  currency     String    @default("EUR")
+  description  String
+  counterparty String?
+  category     Category? @relation(fields: [categoryId], references: [id])
+  categoryId   String?
+  categorized  Boolean   @default(false)
+  raw          Json
+  createdAt    DateTime  @default(now())
+
+  @@unique([source, externalId])
+  @@index([bookingDate])
+  @@index([categoryId])
+}
+
+model Category {
+  id           String         @id @default(cuid())
+  name         String         @unique
+  color        String         @default("#64748b")
+  icon         String?
+  rules        CategoryRule[]
+  transactions Transaction[]
+}
+
+model CategoryRule {
+  id         String   @id @default(cuid())
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId String
+  pattern    String // case-insensitive substring matched against description + counterparty
+  priority   Int      @default(0)
+}
