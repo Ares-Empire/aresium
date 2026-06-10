@@ -18,7 +18,7 @@ export async function categorizeAll(): Promise<void> {
     if (rule) {
       await prisma.transaction.update({
         where: { id: tx.id },
-        data: { categoryId: rule.categoryId, categorized: true },
+        data: { categoryId: rule.categoryId, categorized: true, categorySource: "rule" },
       });
       matched++;
     }

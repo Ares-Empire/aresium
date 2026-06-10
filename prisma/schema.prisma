@@ -37,11 +37,15 @@ model Transaction {
   currency     String    @default("EUR")
   description  String
   counterparty String?
-  category     Category? @relation(fields: [categoryId], references: [id])
-  categoryId   String?
-  categorized  Boolean   @default(false)
-  raw          Json
-  createdAt    DateTime  @default(now())
+  category       Category? @relation(fields: [categoryId], references: [id])
+  categoryId     String?
+  categorized    Boolean   @default(false)
+  categorySource String? // rule | llm | manual — manual/llm are never overwritten by rules
+  recurring      Boolean   @default(false) // tagged by recurring-payment detection (a view, not a 2nd category)
+  city           String?
+  country        String?
+  raw            Json
+  createdAt      DateTime  @default(now())
 
   @@unique([source, externalId])
   @@index([bookingDate])
@@ -49,12 +53,13 @@ model Transaction {
 }
 
 model Category {
-  id           String         @id @default(cuid())
-  name         String         @unique
-  color        String         @default("#64748b")
-  icon         String?
-  rules        CategoryRule[]
-  transactions Transaction[]
+  id                String         @id @default(cuid())
+  name              String         @unique
+  color             String         @default("#64748b")
+  icon              String?
+  excludeFromTotals Boolean        @default(false) // transfers/investments: stored but kept out of spending/income graphs
+  rules             CategoryRule[]
+  transactions      Transaction[]
 }
 
 model CategoryRule {

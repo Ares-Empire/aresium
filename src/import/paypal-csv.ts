@@ -1,5 +1,9 @@
 // Parser for PayPal's "Aktivitäten herunterladen" CSV export (EN + DE locales).
-// If the export has unexpected headers, it throws and prints what it found.
+//
+// PayPal explodes each purchase into several rows (authorisation → hold → reversal →
+// capture). We keep only rows that actually moved the balance and drop the rest, so
+// nothing double-counts. Bank-funding rows are kept but land in the excluded
+// "Transfer" category (they mirror the "PAYPAL EUROPE" debits on the bank side).
 import { parse } from "csv-parse/sync";
 import { parseAmount, parseDateFlexible, pick } from "./util.js";
 import type { NormalizedTxn, ParsedFile } from "./types.js";
@@ -12,8 +16,18 @@ const COLS = {
   net: ["Net", "Netto"],
   gross: ["Gross", "Brutto"],
   id: ["Transaction ID", "Transaktionscode", "Transaktions-ID"],
+  impact: ["Auswirkung auf Guthaben", "Balance Impact"],
   from: ["From Email Address", "Absender E-Mail-Adresse"],
 };
+
+// Rows that net to zero or never moved money — drop them entirely.
+const SKIP_TYPES = new Set([
+  "Einbehaltung für offene Autorisierung",
+  "Rückbuchung allgemeiner Einbehaltung",
+  "General Authorization",
+  "Reserve Hold",
+  "Reserve Release",
+]);
 
 export function parsePaypalCsv(content: string): ParsedFile {
   const rows = parse(content, {
@@ -42,16 +56,23 @@ export function parsePaypalCsv(content: string): ParsedFile {
   for (const row of rows) {
     const id = pick(row, COLS.id);
     if (!id) continue;
+
+    const impact = pick(row, COLS.impact) ?? "";
+    const type = pick(row, COLS.type) || "PayPal";
+    // Memo rows (authorisations, money requests) never moved the balance; holds net to zero.
+    if (impact === "Memo" || impact === "Memo Item") continue;
+    if (SKIP_TYPES.has(type)) continue;
+
     const ccy = pick(row, COLS.currency) || "EUR";
     currency = ccy;
     const name = pick(row, COLS.name) || "";
-    const type = pick(row, COLS.type) || "PayPal";
     transactions.push({
       externalId: id,
       bookingDate: parseDateFlexible(pick(row, COLS.date) ?? ""),
       amount: parseAmount(pick(row, COLS.net) ?? pick(row, COLS.gross) ?? "0"),
       currency: ccy,
-      description: [type, name].filter(Boolean).join(" · ") || "PayPal transaction",
+      // Merchant name drives categorisation; fall back to the PayPal type (e.g. funding rows).
+      description: name || type,
       counterparty: name || pick(row, COLS.from) || null,
       raw: row,
     });

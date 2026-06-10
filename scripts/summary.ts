@@ -1,46 +1,53 @@
-// Quick terminal overview of what's in the database — a stopgap until the web dashboard.
-// Run: npm run summary
+// Terminal overview — separates real spending/income from excluded transfers,
+// so the no-double-count setup is visible. Run: npm run summary
 import "dotenv/config";
 import { prisma } from "../src/lib/db.js";
 
-const total = await prisma.transaction.count();
-if (total === 0) {
-  console.log("No transactions yet. Drop exports in imports/ and run `npm run import`.");
+const txns = await prisma.transaction.findMany({ include: { category: true } });
+if (txns.length === 0) {
+  console.log("No transactions yet. Run `npm run import`.");
   await prisma.$disconnect();
   process.exit(0);
 }
 
-const range = await prisma.transaction.aggregate({
-  _min: { bookingDate: true },
-  _max: { bookingDate: true },
-});
-const accounts = await prisma.account.findMany({
-  include: { _count: { select: { transactions: true } } },
-});
+const excluded = (t: (typeof txns)[number]) => t.category?.excludeFromTotals ?? false;
+const amt = (t: (typeof txns)[number]) => Number(t.amount);
+
+const dates = txns.map((t) => t.bookingDate).sort((a, b) => a.getTime() - b.getTime());
+const spending = txns.filter((t) => !excluded(t) && amt(t) < 0).reduce((s, t) => s + amt(t), 0);
+const income = txns.filter((t) => !excluded(t) && amt(t) > 0).reduce((s, t) => s + amt(t), 0);
+const transfers = txns.filter(excluded).reduce((s, t) => s + amt(t), 0);
 
 console.log(
-  `\n${total} transactions  |  ${range._min.bookingDate?.toISOString().slice(0, 10)} → ${range._max.bookingDate
-    ?.toISOString()
+  `\n${txns.length} transactions  |  ${dates[0].toISOString().slice(0, 10)} → ${dates[dates.length - 1]
+    .toISOString()
     .slice(0, 10)}\n`,
 );
-console.log("Accounts:");
-for (const a of accounts) console.log(`  ${a.name.padEnd(22)} ${a._count.transactions}`);
+console.log(`  Income    ${income.toFixed(2).padStart(12)} EUR`);
+console.log(`  Spending  ${spending.toFixed(2).padStart(12)} EUR`);
+console.log(`  Net       ${(income + spending).toFixed(2).padStart(12)} EUR`);
+console.log(`  (excluded transfers: ${transfers.toFixed(2)} EUR — kept out of the above)`);
 
-const cats = await prisma.category.findMany({ include: { transactions: true } });
-const rows = cats
-  .map((c) => ({
-    name: `${c.icon ?? ""} ${c.name}`,
-    sum: c.transactions.reduce((s, t) => s + Number(t.amount), 0),
-    n: c.transactions.length,
-  }))
-  .filter((r) => r.n > 0)
-  .sort((a, b) => a.sum - b.sum);
+// Per-category, excluded ones listed separately.
+const byCat = new Map<string, { sum: number; n: number; excl: boolean }>();
+for (const t of txns) {
+  const key = t.category ? `${t.category.icon ?? ""} ${t.category.name}` : "— uncategorised";
+  const e = byCat.get(key) || { sum: 0, n: 0, excl: excluded(t) };
+  e.sum += amt(t);
+  e.n += 1;
+  byCat.set(key, e);
+}
+const rows = [...byCat.entries()].map(([name, v]) => ({ name, ...v }));
 
-console.log("\nBy category (sum of signed amounts):");
-for (const r of rows) {
+console.log("\nSpending/income categories:");
+for (const r of rows.filter((r) => !r.excl).sort((a, b) => a.sum - b.sum)) {
+  console.log(`  ${r.name.padEnd(22)} ${r.sum.toFixed(2).padStart(12)} EUR  (${r.n})`);
+}
+console.log("\nExcluded (transfers/investments):");
+for (const r of rows.filter((r) => r.excl).sort((a, b) => a.sum - b.sum)) {
   console.log(`  ${r.name.padEnd(22)} ${r.sum.toFixed(2).padStart(12)} EUR  (${r.n})`);
 }
 
-const uncat = await prisma.transaction.count({ where: { categorized: false } });
-console.log(`\nUncategorised: ${uncat} (add rules in scripts/seed-categories.ts, re-run npm run seed + import)`);
+const uncat = txns.filter((t) => !t.categorized).length;
+console.log(`\nUncategorised: ${uncat} of ${txns.length} (${Math.round((uncat / txns.length) * 100)}%)`);
 await prisma.$disconnect();
