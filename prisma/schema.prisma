@@ -73,3 +73,19 @@ model CategoryRule {
   pattern    String // case-insensitive substring matched against description + counterparty
   priority   Int      @default(0)
 }
+
+// Append-only log of manual category changes. The learning signal: the LLM pass
+// reads these (grouped by merchant) as authoritative ground-truth examples, so it
+// stops repeating corrected mistakes on the next run. Never auto-mutates data.
+model CategoryCorrection {
+  id            String   @id @default(cuid())
+  transactionId String // which transaction was moved (no FK: this is an audit log)
+  merchant      String // counterparty || description snapshot — the learning key
+  fromCategory  String? // previous category name (null = was uncategorised)
+  toCategory    String // new category name
+  fromSource    String? // rule | llm | manual — what had assigned the old category
+  createdAt     DateTime @default(now())
+
+  @@index([merchant])
+  @@index([transactionId])
+}

@@ -9,13 +9,16 @@ const THEME_COLORS = {
 };
 
 // ---- screen builders: each returns chart props + panel descriptor ----
+const INC = "#34E27A"; // income green
+
 function buildScreen(state, colors) {
-  const { screen, monthKey, cat } = state;
+  const { screen, monthKey, cat, income } = state;
   const mo = monthKey ? D.months.find((m) => m.key === monthKey) : null;
   const dayLabels = (m) => Array.from({ length: m.days }, (_, i) => String(i + 1));
   const monthLabels = D.months.map((m) => m.short);
 
   if (screen === "overview") {
+    // Graph lives on the wall; the right side is the Expenses/Income tabs.
     return {
       title: "Overview", subtitle: `${D.months[0].label} – ${D.months[D.months.length - 1].label}`,
       chart: {
@@ -23,52 +26,60 @@ function buildScreen(state, colors) {
         xLabels: monthLabels,
         series: [
           { key: "exp", label: "Expenses", color: colors.exp, points: D.overviewMonthExpense },
+          { key: "inc", label: "Income", color: INC, points: D.overviewMonthIncome },
           { key: "bal", label: "Balance", color: colors.bal, points: D.overviewMonthBalance },
         ],
       },
       legend: true,
-      panel: { kind: "categories", kicker: "Categories", title: "By spend", rows: D.categoryTotalsAll() },
+      panel: { dual: true, kicker: "By category",
+        expenseRows: D.categoryTotalsAll(), incomeRows: D.incomeTotalsAll() },
     };
   }
   if (screen === "month") {
     return {
-      title: mo.label, subtitle: "Daily expenses & balance",
+      title: mo.label, subtitle: "Daily expenses, income & balance",
       chart: {
         animKey: "month-" + monthKey, clickable: false, xLabel: "Day", yLabel: "EUR",
         xLabels: dayLabels(mo),
         series: [
           { key: "exp", label: "Expenses", color: colors.exp, points: D.dayExpenseSeries(monthKey) },
+          { key: "inc", label: "Income", color: INC, points: D.incomeDaySeries(monthKey) },
           { key: "bal", label: "Balance", color: colors.bal, points: D.dayBalanceSeries(monthKey) },
         ],
       },
       legend: true,
-      panel: { kind: "categories", kicker: mo.label, title: "Categories", rows: D.categoryTotalsMonth(monthKey) },
+      panel: { dual: true, kicker: mo.label,
+        expenseRows: D.categoryTotalsMonth(monthKey), incomeRows: D.incomeTotalsMonth(monthKey) },
     };
   }
   if (screen === "category") {
-    const c = D.catByName[cat];
+    // A single category: just its own line + Balance for context (never the other side).
+    const c = income ? D.incomeBucketMeta(cat) : D.catByName[cat];
     return {
-      title: `${cat} over time`, subtitle: "Monthly spend", icon: c.icon, iconColor: c.color,
+      title: `${cat} over time`, subtitle: income ? "Monthly income & balance" : "Monthly spend & balance", icon: c.icon, iconColor: c.color,
       chart: {
-        animKey: "cat-" + cat, clickable: true, xLabel: "Month", yLabel: "EUR",
+        animKey: (income ? "inccat-" : "cat-") + cat, clickable: true, xLabel: "Month", yLabel: "EUR",
         xLabels: monthLabels,
-        series: [{ key: "exp", label: cat, color: c.color, points: D.categoryMonthSeries(cat) }],
+        series: [
+          { key: income ? "inc" : "exp", label: cat, color: c.color, points: income ? D.incomeBucketMonthSeries(cat) : D.categoryMonthSeries(cat) },
+          { key: "bal", label: "Balance", color: colors.bal, points: D.overviewMonthBalance },
+        ],
       },
-      legend: false,
-      panel: { kind: "months", kicker: cat, title: "By month", cat: c, months: D.categoryMonthList(cat) },
+      legend: true,
+      panel: { kind: "months", kicker: cat, title: "By month", cat: c, income, months: income ? D.incomeBucketMonthList(cat) : D.categoryMonthList(cat) },
     };
   }
   // categoryMonth
-  const c = D.catByName[cat];
+  const c = income ? D.incomeBucketMeta(cat) : D.catByName[cat];
   return {
     title: `${cat}`, subtitle: `${mo.label} · daily`, icon: c.icon, iconColor: c.color,
     chart: {
-      animKey: "catmonth-" + cat + "-" + monthKey, clickable: false, xLabel: "Day", yLabel: "EUR",
+      animKey: (income ? "inccatmonth-" : "catmonth-") + cat + "-" + monthKey, clickable: false, xLabel: "Day", yLabel: "EUR",
       xLabels: dayLabels(mo),
-      series: [{ key: "exp", label: cat, color: c.color, fill: true, points: D.categoryDaySeries(cat, monthKey) }],
+      series: [{ key: income ? "inc" : "exp", label: cat, color: c.color, fill: true, points: income ? D.incomeBucketDaySeries(cat, monthKey) : D.categoryDaySeries(cat, monthKey) }],
     },
     legend: false,
-    panel: { kind: "txns", kicker: `${cat} · ${mo.label}`, title: "Transactions", cat: c, txns: D.categoryMonthTransactions(cat, monthKey) },
+    panel: { kind: "txns", kicker: `${cat} · ${mo.label}`, title: "Transactions", cat: c, txns: income ? D.incomeBucketMonthTransactions(cat, monthKey) : D.categoryMonthTransactions(cat, monthKey) },
   };
 }
 
@@ -79,7 +90,7 @@ function crumbsFor(state) {
   if (state.screen === "category") out.push({ label: state.cat });
   if (state.screen === "categoryMonth") {
     if (state.from === "category") {
-      out.push({ label: state.cat, to: { screen: "category", cat: state.cat } });
+      out.push({ label: state.cat, to: { screen: "category", cat: state.cat, income: state.income } });
       out.push({ label: mo.label });
     } else {
       out.push({ label: mo.label, to: { screen: "month", monthKey: state.monthKey } });
@@ -89,26 +100,43 @@ function crumbsFor(state) {
   return out;
 }
 
-function Legend({ colors }) {
+function Legend({ series }) {
   return (
     <div className="legend">
-      <span className="legend-item"><span className="dot" style={{ background: colors.exp }} />Expenses</span>
-      <span className="legend-item"><span className="dot" style={{ background: colors.bal }} />Balance</span>
+      {series.map((s) => (
+        <span key={s.key} className="legend-item"><span className="dot" style={{ background: s.color }} />{s.label}</span>
+      ))}
     </div>
   );
 }
 
-function SidePanel({ view, dir, pickCategory, pickMonth }) {
+// Single panel for the drill screens (months list, or transactions).
+function SidePanel({ view, dir, pickMonth, openTxn }) {
   const [shown, setShown] = useS(false);
   useE(() => { const id = setTimeout(() => setShown(true), 20); return () => clearTimeout(id); }, []);
   const p = view.panel;
   return (
     <div className={`panel ${dir > 0 ? "fwd" : "back"} ${shown ? "in" : ""}`}>
-      <PanelHeader kicker={p.kicker} title={p.title}
-        total={p.kind === "categories" ? p.rows.reduce((s, r) => s + r.total, 0) : null} />
-      {p.kind === "categories" && <CategoryListPanel rows={p.rows} onPick={pickCategory} />}
+      <PanelHeader kicker={p.kicker} title={p.title} total={null} />
       {p.kind === "months" && <MonthListPanel cat={p.cat} months={p.months} onPick={pickMonth} />}
-      {p.kind === "txns" && <TransactionsPanel cat={p.cat} txns={p.txns} />}
+      {p.kind === "txns" && <TransactionsPanel cat={p.cat} txns={p.txns} onOpen={openTxn} />}
+    </div>
+  );
+}
+
+// One side list with its own header + total — used twice (Expenses, Income) on the
+// overview/month screens so both are visible at once.
+function SideListPanel({ title, cap, rows, onPick, dir }) {
+  const [shown, setShown] = useS(false);
+  useE(() => { const id = setTimeout(() => setShown(true), 20); return () => clearTimeout(id); }, []);
+  const total = rows.reduce((s, r) => s + r.total, 0);
+  return (
+    <div className={`panel ${dir > 0 ? "fwd" : "back"} ${shown ? "in" : ""}`}>
+      <div className="panel-head">
+        <div className="panel-title">{title}</div>
+        <div className="panel-total">{window.fmtMoney(total)}<span className="panel-total-cap">{cap}</span></div>
+      </div>
+      <CategoryListPanel rows={rows} onPick={onPick} />
     </div>
   );
 }
@@ -130,6 +158,8 @@ function App() {
   const [history, setHistory] = useS([]);
   const [paint, setPaint] = useS(false);
   const [paintGo, setPaintGo] = useS(false);
+  const [detailId, setDetailId] = useS(null); // open transaction-detail modal
+  const [dataVer, setDataVer] = useS(0); // bump to re-aggregate after an inline edit
   const prevTheme = React.useRef("dark");
   const busy = React.useRef(false);
   const colors = THEME_COLORS[theme];
@@ -180,12 +210,12 @@ function App() {
     });
   }, []);
 
-  const view = useMemo(() => buildScreen(state, colors), [state, colors]);
+  const view = useMemo(() => buildScreen(state, colors), [state, colors, dataVer]);
 
   // chart click handler (months on overview/category screens)
   const onIndexClick = useC((i) => {
     if (state.screen === "overview") go({ screen: "month", monthKey: D.months[i].key });
-    else if (state.screen === "category") go({ screen: "categoryMonth", cat: state.cat, monthKey: D.months[i].key, from: "category" });
+    else if (state.screen === "category") go({ screen: "categoryMonth", cat: state.cat, monthKey: D.months[i].key, from: "category", income: state.income });
   }, [state, go]);
 
   // panel pick handlers
@@ -193,7 +223,19 @@ function App() {
     if (state.screen === "overview") go({ screen: "category", cat: c.name });
     else if (state.screen === "month") go({ screen: "categoryMonth", cat: c.name, monthKey: state.monthKey, from: "month" });
   }, [state, go]);
-  const pickMonth = useC((m) => go({ screen: "categoryMonth", cat: state.cat, monthKey: m.key, from: "category" }), [state, go]);
+  const pickIncome = useC((c) => {
+    if (state.screen === "overview") go({ screen: "category", cat: c.name, income: true });
+    else if (state.screen === "month") go({ screen: "categoryMonth", cat: c.name, monthKey: state.monthKey, from: "month", income: true });
+  }, [state, go]);
+  const pickMonth = useC((m) => go({ screen: "categoryMonth", cat: state.cat, monthKey: m.key, from: "category", income: state.income }), [state, go]);
+
+  // After an inline category change: patch the in-memory transaction and re-aggregate
+  // so every screen (lists, totals, charts) reflects it without a page reload.
+  const onTxnRecategorized = useC((id, newCat) => {
+    const arr = window.AresiumData && window.AresiumData.transactions;
+    if (arr) { const t = arr.find((x) => x.id === id); if (t) t.categoryName = newCat; }
+    setDataVer((v) => v + 1);
+  }, []);
 
   const crumbs = crumbsFor(state);
 
@@ -233,25 +275,37 @@ function App() {
         </div>
       </header>
 
-      <main className="grid">
+      <main className={"grid" + (view.panel.dual ? " grid-dual" : "")}>
         <section className="chart-card">
           <div className="chart-card-head">
             <div className="chart-titles">
               <h1 className="chart-title">{view.icon ? <span className="chart-title-ic" style={{ color: view.iconColor }} dangerouslySetInnerHTML={{ __html: window.lucideSvg(view.icon) }} /> : null}{view.title}</h1>
               <p className="chart-sub">{view.subtitle}</p>
             </div>
-            {view.legend && <Legend colors={colors} />}
+            {view.legend && <Legend series={view.chart.series} />}
           </div>
           <div className="chart-host">
             <AnimatedChart {...view.chart} animKey={view.chart.animKey + "-" + theme} theme={theme} onIndexClick={onIndexClick} />
           </div>
         </section>
 
-        <aside className="side-card">
-          <SidePanel key={view.chart.animKey} view={view} dir={dir}
-            pickCategory={pickCategory} pickMonth={pickMonth} />
-        </aside>
+        {view.panel.dual ? (
+          <React.Fragment>
+            <aside className="side-card">
+              <SideListPanel key={view.chart.animKey + "-exp"} title="Expenses" cap="spent" rows={view.panel.expenseRows} onPick={pickCategory} dir={dir} />
+            </aside>
+            <aside className="side-card side-income">
+              <SideListPanel key={view.chart.animKey + "-inc"} title="Income" cap="received" rows={view.panel.incomeRows} onPick={pickIncome} dir={dir} />
+            </aside>
+          </React.Fragment>
+        ) : (
+          <aside className="side-card">
+            <SidePanel key={view.chart.animKey} view={view} dir={dir} pickMonth={pickMonth} openTxn={setDetailId} />
+          </aside>
+        )}
       </main>
+
+      <TxnDetailModal id={detailId} onClose={() => setDetailId(null)} onChanged={onTxnRecategorized} />
 
       {theme === "red" && (
         <div className="aresium-band" aria-hidden="true">

@@ -12,6 +12,14 @@ const ym = (d: Date) => d.toISOString().slice(0, 7);
 const ymd = (d: Date) => d.toISOString().slice(0, 10);
 const daysInMonth = (y: number, m: number) => new Date(Date.UTC(y, m, 0)).getUTCDate();
 
+// "Bankgutschrift auf PayPal-Konto" = your bank funding a PayPal payment (money
+// moving bank→PayPal), NOT income. The real expense is the separate PayPal payment
+// row, so these funding legs are pure noise — excluded from all dashboard figures.
+function isPaypalBankFunding(t: { description: string; raw: unknown }): boolean {
+  const hay = (t.description + " " + JSON.stringify(t.raw ?? "")).toLowerCase();
+  return hay.includes("bankgutschrift auf paypal");
+}
+
 export type CategoryTotal = {
   name: string;
   icon: string | null;
@@ -188,7 +196,7 @@ const CAT_META: Record<string, { icon: string; color: string }> = {
 const MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 export async function getDashboardData() {
-  const txns = await fetchWithCategory({});
+  const txns = (await fetchWithCategory({})).filter((t) => !isPaypalBankFunding(t));
   const categoriesDb = await prisma.category.findMany();
   const today = new Date();
 
@@ -215,6 +223,7 @@ export async function getDashboardData() {
 
   // --- transactions in the flat shape the UI expects ---
   const transactions = txns.map((t) => ({
+    id: t.id,
     date: ymd(t.bookingDate),
     amount: Number(t.amount),
     categoryName: t.category?.name ?? "Uncategorised",
@@ -263,4 +272,75 @@ export async function getDashboardData() {
   }
 
   return { categories, months, transactions, balanceByDay, openingBalance };
+}
+
+// ---- Single-transaction detail -----------------------------------------------
+// Full record behind one purchase: every stored field plus the untouched original
+// export row (`raw`) — i.e. exactly what the bank/PayPal statement showed. Backs the
+// click-through detail modal (GET /api/transaction/:id).
+export async function getTransactionDetail(id: string) {
+  const t = await prisma.transaction.findUnique({
+    where: { id },
+    include: { category: true, account: true },
+  });
+  if (!t) return null;
+  const catName = t.category?.name ?? "Uncategorised";
+  const accent = CAT_META[catName]?.color ?? t.category?.color ?? "#9ca3af";
+  return {
+    id: t.id,
+    place: t.counterparty || t.description,
+    amount: Number(t.amount),
+    currency: t.currency,
+    bookingDate: ymd(t.bookingDate),
+    valueDate: t.valueDate ? ymd(t.valueDate) : null,
+    balance: t.balance != null ? Number(t.balance) : null,
+    category: catName,
+    categoryColor: accent,
+    categorySource: t.categorySource, // rule | llm | manual
+    categorized: t.categorized,
+    description: t.description,
+    counterparty: t.counterparty,
+    account: t.account?.name ?? null,
+    iban: t.account?.iban ?? null,
+    source: t.source, // bank | paypal
+    city: t.city,
+    country: t.country,
+    trip: t.trip,
+    tripKind: t.tripKind, // vacation | travel
+    placeType: t.placeType,
+    recurring: t.recurring,
+    externalId: t.externalId,
+    raw: t.raw, // original export row, verbatim
+  };
+}
+
+// Manually move a transaction to another category. Marks it categorySource="manual"
+// (so rules/LLM never overwrite it) and appends a CategoryCorrection row — the
+// training signal the LLM reads on its next run. No-op (and unlogged) if unchanged.
+export async function recategorizeTransaction(id: string, categoryName: string) {
+  const t = await prisma.transaction.findUnique({ where: { id }, include: { category: true } });
+  if (!t) return { error: "not found" as const };
+  const target = await prisma.category.findFirst({
+    where: { name: { equals: categoryName, mode: "insensitive" } },
+  });
+  if (!target) return { error: "unknown category" as const };
+
+  if (target.id !== t.categoryId) {
+    await prisma.$transaction([
+      prisma.transaction.update({
+        where: { id },
+        data: { categoryId: target.id, categorized: true, categorySource: "manual" },
+      }),
+      prisma.categoryCorrection.create({
+        data: {
+          transactionId: id,
+          merchant: t.counterparty || t.description,
+          fromCategory: t.category?.name ?? null,
+          toCategory: target.name,
+          fromSource: t.categorySource ?? null,
+        },
+      }),
+    ]);
+  }
+  return { detail: await getTransactionDetail(id) };
 }

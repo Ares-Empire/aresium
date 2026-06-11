@@ -88,13 +88,85 @@
         .sort((a, b) => a.day - b.day);
     }
 
+    // ---- income side (positive amounts) -------------------------------------
+    // Bucketing: income/transfer categories (+ Tax) keep their own bucket; a
+    // positive amount in a spend category is a "Refunds"; uncategorised → "Other".
+    const INCOME_META = {
+      Refunds: { name: "Refunds", icon: "RotateCcw", color: "#34E27A", kind: "income" },
+      Other: { name: "Other", icon: "CircleHelp", color: "#9AA6B8", kind: "income" },
+    };
+    const incomeKeep = new Set(["Tax"]);
+    categories.forEach((c) => { if (c.kind === "income" || c.kind === "transfer") incomeKeep.add(c.name); });
+    function incomeBucketOf(t) {
+      const n = t.categoryName;
+      if (!n || n === "Uncategorised") return "Other";
+      return incomeKeep.has(n) ? n : "Refunds";
+    }
+    function incomeBucketMeta(name) { return catByName[name] || INCOME_META[name] || { name, icon: "Tag", color: "#34E27A", kind: "income" }; }
+    function incomeMonth(key) {
+      let s = 0;
+      transactions.forEach((t) => { if (monthOf(t.date) === key && t.amount > 0) s += t.amount; });
+      return money(s);
+    }
+    function incomeDaySeries(key) {
+      const mo = months.find((x) => x.key === key);
+      const arr = new Array(mo.days).fill(0);
+      transactions.forEach((t) => {
+        if (monthOf(t.date) === key && t.amount > 0) {
+          const d = parseInt(t.date.slice(8), 10);
+          if (d >= 1 && d <= mo.days) arr[d - 1] += t.amount;
+        }
+      });
+      return arr.map(money);
+    }
+    function incomeTotals(filterKey) {
+      const totals = {};
+      transactions.forEach((t) => {
+        if (t.amount > 0 && (!filterKey || monthOf(t.date) === filterKey)) {
+          const b = incomeBucketOf(t); totals[b] = (totals[b] || 0) + t.amount;
+        }
+      });
+      return Object.keys(totals).map((n) => ({ ...incomeBucketMeta(n), total: money(totals[n]) })).sort((a, b) => b.total - a.total);
+    }
+    function incomeBucketMonthSeries(bucket) {
+      return months.map((mo) => {
+        let s = 0;
+        transactions.forEach((t) => { if (monthOf(t.date) === mo.key && t.amount > 0 && incomeBucketOf(t) === bucket) s += t.amount; });
+        return money(s);
+      });
+    }
+    function incomeBucketDaySeries(bucket, key) {
+      const mo = months.find((x) => x.key === key);
+      const arr = new Array(mo.days).fill(0);
+      transactions.forEach((t) => {
+        if (monthOf(t.date) === key && t.amount > 0 && incomeBucketOf(t) === bucket) {
+          const d = parseInt(t.date.slice(8), 10);
+          if (d >= 1 && d <= mo.days) arr[d - 1] += t.amount;
+        }
+      });
+      return arr.map(money);
+    }
+    function incomeBucketMonthList(bucket) {
+      const series = incomeBucketMonthSeries(bucket);
+      return months.map((mo, i) => ({ ...mo, total: series[i] })).filter((m) => m.total > 0);
+    }
+    function incomeBucketMonthTransactions(bucket, key) {
+      return transactions.filter((t) => monthOf(t.date) === key && t.amount > 0 && incomeBucketOf(t) === bucket)
+        .map((t) => ({ ...t, day: parseInt(t.date.slice(8), 10) }))
+        .sort((a, b) => a.day - b.day);
+    }
+
     return {
       categories, catByName, months, transactions, balanceByDay, openingBalance,
       monthExpense, monthEndBalance, dayExpenseSeries, dayBalanceSeries,
       categoryMonthSeries, categoryDaySeries, categoryTotalsAll, categoryTotalsMonth,
       categoryMonthList, categoryMonthTransactions,
+      incomeBucketOf, incomeBucketMeta, incomeDaySeries,
+      incomeTotalsAll: () => incomeTotals(null), incomeTotalsMonth: (k) => incomeTotals(k),
+      incomeBucketMonthSeries, incomeBucketDaySeries, incomeBucketMonthList, incomeBucketMonthTransactions,
       overviewMonthExpense: months.map((mo) => monthExpense(mo.key)),
       overviewMonthBalance: months.map((mo) => monthEndBalance(mo.key)),
+      overviewMonthIncome: months.map((mo) => incomeMonth(mo.key)),
     };
   }
 

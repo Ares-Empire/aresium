@@ -43,14 +43,14 @@ html[data-theme="light"] {
   --glow2: radial-gradient(58% 50% at 90% 120%, rgba(216,26,52,0.07), transparent 56%);
 }
 html[data-theme="red"] {
-  --bg: #5e0818;
-  --card: rgba(255,255,255,0.15); --card-2: rgba(255,255,255,0.2);
-  --line-soft: rgba(255,255,255,0.26); --grid: rgba(255,255,255,0.16); --guide: rgba(255,255,255,0.55);
+  --bg: #34060f;
+  --card: rgba(44,5,15,0.52); --card-2: rgba(64,9,21,0.56);
+  --line-soft: rgba(255,210,216,0.16); --grid: rgba(255,210,216,0.10); --guide: rgba(255,220,225,0.45);
   --ink: #fff5f5; --ink-2: rgba(255,236,238,0.86); --ink-3: rgba(255,214,218,0.6);
-  --hover: rgba(255,255,255,0.14); --shadow: 0 34px 84px -28px rgba(30,0,6,0.78);
+  --hover: rgba(255,255,255,0.07); --shadow: 0 34px 84px -28px rgba(20,0,4,0.85);
   --mark: #ffffff;
-  --edge: rgba(255,255,255,0.32);
-  --glass-edge: linear-gradient(135deg, rgba(255,255,255,0.68), rgba(255,255,255,0.14) 36%, rgba(255,255,255,0.05) 70%, rgba(255,255,255,0.22));
+  --edge: rgba(255,255,255,0.12);
+  --glass-edge: linear-gradient(135deg, rgba(255,200,206,0.28), rgba(255,255,255,0.05) 36%, rgba(255,255,255,0.02) 70%, rgba(255,190,200,0.10));
   --spec: radial-gradient(130% 90% at 0% 0%, rgba(255,255,255,0.22), transparent 50%);
   --glow1: linear-gradient(118deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.02) 16%, rgba(255,255,255,0) 34%);
   --glow2: radial-gradient(58% 26% at 50% 1%, rgba(255,120,135,0.15), transparent 60%);
@@ -67,15 +67,15 @@ body::before { background: var(--glow1); }
 body::after { background: var(--glow2); }
 html[data-theme="red"] body {
   background:
-    radial-gradient(62% 32% at 50% -16%, rgba(196,44,64,0.30), rgba(0,0,0,0) 56%),
-    radial-gradient(72% 56% at 86% 122%, rgba(34,1,8,0.85), rgba(0,0,0,0) 56%),
-    linear-gradient(176deg, #6c0a1c 0%, #470611 52%, #240307 100%);
+    radial-gradient(62% 32% at 50% -16%, rgba(158,20,44,0.32), rgba(0,0,0,0) 56%),
+    radial-gradient(72% 56% at 86% 122%, rgba(20,1,6,0.92), rgba(0,0,0,0) 56%),
+    linear-gradient(176deg, #520a1a 0%, #320510 52%, #140206 100%);
   background-attachment: fixed;
 }
 #root { height: 100%; position: relative; z-index: 1; }
 .app {
   height: 100%; display: flex; flex-direction: column;
-  max-width: 1320px; margin: 0 auto; padding: 22px 26px 26px; position: relative; z-index: 1;
+  max-width: none; margin: 0 auto; padding: 20px 22px 24px; position: relative; z-index: 1;
 }
 button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
 
@@ -105,10 +105,27 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .btn-theme { width: 38px; justify-content: center; }
 .btn-back:hover:not(:disabled), .btn-theme:hover { color: var(--ink); border-color: var(--ink-3); background: var(--card-2); }
 .btn-back:disabled { opacity: .4; cursor: default; }
+/* expenses / income segmented toggle */
+.modeseg { display: inline-flex; align-items: center; gap: 2px; height: 38px; padding: 3px; border: 1px solid var(--line-soft); border-radius: 12px; background: var(--card); -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%); }
+.modeseg-btn { height: 100%; padding: 0 13px; border-radius: 9px; font-size: 13px; font-weight: 600; color: var(--ink-3); transition: color .18s, background .18s; }
+.modeseg-btn:hover { color: var(--ink-2); }
+.modeseg-btn.on { color: var(--ink); background: var(--card-2); box-shadow: inset 0 0 0 1px var(--line-soft); }
+/* combined month panel sub-headers */
+.panel-subhead { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); padding: 14px 12px 6px; }
+.panel-subhead.income { color: #34E27A; }
+.panel-empty.sm { padding: 10px 12px; font-size: 13px; text-align: left; }
 
 /* ---------- grid ---------- */
-.grid { flex: 1; display: grid; grid-template-columns: 62% 38%; gap: 20px; min-height: 0; }
-.chart-card, .side-card {
+.grid { flex: 1; display: grid; grid-template-columns: 1.7fr 1fr; gap: 22px; min-height: 0; }
+/* overview/month: graph owns the left, then Expenses, then a narrower Income */
+.grid.grid-dual { grid-template-columns: 2.7fr 1.7fr 1.2fr; }
+/* The graph is painted straight onto the wall — no card, border, or shadow. */
+.chart-card {
+  position: relative; min-height: 0; display: flex; flex-direction: column;
+  padding: 2px 4px 4px 0;
+}
+/* Only the tab panel keeps the glass card treatment. */
+.side-card {
   position: relative;
   border: 1px solid transparent; border-radius: var(--r-card);
   background: linear-gradient(var(--card), var(--card)) padding-box, var(--glass-edge) border-box;
@@ -117,16 +134,15 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   box-shadow: var(--shadow), inset 0 1px 0 var(--edge);
   min-height: 0; display: flex; flex-direction: column;
 }
-.chart-card::before, .side-card::before {
+.side-card::before {
   content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
   background: var(--spec); z-index: 0;
 }
-.chart-card::after, .side-card::after {
+.side-card::after {
   content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 0;
   background: linear-gradient(122deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.02) 14%, rgba(255,255,255,0) 30%);
 }
-.chart-card > *, .side-card > * { position: relative; z-index: 1; }
-.chart-card { padding: 22px 22px 14px; }
+.side-card > * { position: relative; z-index: 1; }
 .chart-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 8px; }
 .chart-titles { flex: 1 1 auto; min-width: 0; }
 .chart-title { margin: 0; font-size: 23px; font-weight: 700; letter-spacing: -0.035em; display: flex; align-items: center; gap: 11px; }
@@ -169,6 +185,15 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 @media (prefers-reduced-motion: reduce) { .panel, .reveal { transition: none; transform: none; } }
 
 .panel-head { padding: 22px 22px 14px; border-bottom: 1px solid var(--line-soft); }
+/* Expenses/Income tabs on the panel */
+.panel-tabs { display: flex; gap: 4px; padding: 12px 12px 0; flex: none; }
+.panel-tab { flex: 1; height: 38px; border-radius: 10px 10px 0 0; font-size: 14.5px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink-3); border-bottom: 2px solid var(--line-soft); transition: color .18s, background .18s, border-color .18s; }
+.panel-tab:hover { color: var(--ink-2); background: var(--hover); }
+.panel-tab.on { color: var(--ink); background: var(--hover); }
+.panel-tab:first-child.on { border-bottom-color: var(--exp); }
+.panel-tab:last-child.on { border-bottom-color: #34E27A; }
+.panel-head.tabbed { padding: 12px 16px 14px; border-bottom: 1px solid var(--line-soft); }
+.panel-head.tabbed .panel-total { margin-top: 6px; }
 .panel-kicker { font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
 .panel-title { font-size: 18px; font-weight: 700; letter-spacing: -0.03em; margin-top: 3px; }
 .panel-total { font-family: var(--sans); font-size: 25px; font-weight: 700; letter-spacing: -0.035em; margin-top: 10px; color: var(--ink); font-variant-numeric: tabular-nums; }
@@ -204,17 +229,85 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .txn-place { font-size: 14.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.015em; }
 .txn-city { font-size: 12.5px; color: var(--ink-3); font-weight: 500; }
 .txn-amt { font-family: var(--mono); font-size: 14px; font-weight: 600; color: var(--exp); }
+/* clickable transaction rows (screen 4) → open detail modal */
+button.txn-row { width: 100%; text-align: left; cursor: pointer; transition: background .16s; }
+button.txn-row.clickable:hover { background: var(--hover); }
+button.txn-row:disabled { cursor: default; }
 .logo { display: block; }
+
+/* ---------- transaction detail modal ---------- */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center;
+  padding: 24px; background: rgba(2,3,6,0.55);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  animation: md-fade .18s ease;
+}
+@keyframes md-fade { from { opacity: 0; } to { opacity: 1; } }
+.modal-card {
+  position: relative; width: 100%; max-width: 460px; max-height: 86vh; overflow-y: auto;
+  border: 1px solid transparent; border-radius: var(--r-card);
+  background: linear-gradient(var(--card-2), var(--card-2)) padding-box, var(--glass-edge) border-box;
+  -webkit-backdrop-filter: blur(30px) saturate(150%); backdrop-filter: blur(30px) saturate(150%);
+  box-shadow: var(--shadow), inset 0 1px 0 var(--edge);
+  padding: 22px 22px 18px; scrollbar-width: thin; scrollbar-color: var(--line-soft) transparent;
+  animation: md-pop .2s cubic-bezier(.22,.7,.25,1);
+}
+@keyframes md-pop { from { transform: translateY(8px) scale(.985); } to { transform: none; } }
+.modal-card::-webkit-scrollbar { width: 8px; }
+.modal-card::-webkit-scrollbar-thumb { background: var(--line-soft); border-radius: 8px; }
+.modal-close {
+  position: absolute; top: 14px; right: 14px; width: 30px; height: 30px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center; color: var(--ink-3);
+  border: 1px solid var(--line-soft); background: var(--card); font-size: 13px; transition: all .16s;
+}
+.modal-close:hover { color: var(--ink); border-color: var(--ink-3); background: var(--card-2); }
+.md-state { padding: 40px 8px; text-align: center; color: var(--ink-3); font-size: 14px; }
+.modal-head { padding: 4px 40px 16px 2px; border-bottom: 1px solid var(--line-soft); }
+.md-place { font-size: 18px; font-weight: 700; letter-spacing: -0.025em; color: var(--ink); line-height: 1.25; }
+.md-amt { font-family: var(--mono); font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin-top: 8px; font-variant-numeric: tabular-nums; }
+.md-date { font-family: var(--mono); font-size: 12.5px; color: var(--ink-3); margin-top: 4px; }
+.modal-grid { display: flex; flex-direction: column; padding: 12px 2px 4px; }
+.md-row { display: grid; grid-template-columns: 116px 1fr; gap: 12px; padding: 7px 0; align-items: baseline; border-bottom: 1px solid var(--grid); }
+.md-row:last-child { border-bottom: none; }
+.md-label { font-size: 12px; font-weight: 600; color: var(--ink-3); letter-spacing: .01em; }
+.md-value { font-size: 13.5px; font-weight: 500; color: var(--ink); word-break: break-word; }
+.md-sub { color: var(--ink-3); font-weight: 500; }
+.md-chip { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12.5px; font-weight: 600; }
+.md-cat-display { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.md-edit { font-size: 11.5px; font-weight: 600; color: var(--ink-3); border: 1px solid var(--line-soft); border-radius: 7px; padding: 2px 8px; transition: all .16s; }
+.md-edit:hover { color: var(--ink); border-color: var(--ink-3); }
+.md-picker { padding: 2px 0; }
+.md-picker-head { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 8px; }
+.md-picker-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.md-pick { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600; border: 1px solid; border-radius: 9px; padding: 6px 9px; text-align: left; transition: filter .15s, transform .1s; min-width: 0; }
+.md-pick:hover:not(:disabled) { filter: brightness(1.3); }
+.md-pick:active:not(:disabled) { transform: scale(.97); }
+.md-pick.cur { outline: 2px solid currentColor; outline-offset: 1px; }
+.md-pick:disabled { opacity: .55; cursor: default; }
+.md-pick-ic { display: inline-flex; flex: none; }
+.md-pick-ic svg { width: 15px; height: 15px; stroke-width: 2; }
+.md-pick-nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.md-pick-cancel-btn { margin-top: 8px; font-size: 12px; font-weight: 600; color: var(--ink-3); border: 1px solid var(--line-soft); border-radius: 8px; padding: 4px 10px; transition: all .16s; }
+.md-pick-cancel-btn:hover { color: var(--ink); border-color: var(--ink-3); }
+.modal-raw { margin-top: 14px; border-top: 1px solid var(--line-soft); padding-top: 12px; }
+.modal-raw summary { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); cursor: pointer; list-style: none; }
+.modal-raw summary::-webkit-details-marker { display: none; }
+.modal-raw summary::before { content: "▸ "; }
+.modal-raw[open] summary::before { content: "▾ "; }
+.md-raw-grid { margin-top: 10px; display: flex; flex-direction: column; gap: 2px; }
+.md-raw-row { display: grid; grid-template-columns: 132px 1fr; gap: 10px; padding: 4px 0; font-family: var(--mono); font-size: 11.5px; }
+.md-raw-k { color: var(--ink-3); word-break: break-word; }
+.md-raw-v { color: var(--ink-2); word-break: break-word; }
 
 /* ---------- red “paint” mode ---------- */
 .paint {
   position: fixed; left: 0; right: 0; top: 0; height: 176vh; z-index: 60; pointer-events: none;
   transform: translateY(-178vh);
   transition: transform 1.45s cubic-bezier(.6,0,.32,1); will-change: transform;
-  --pc: #5c0816;
+  --pc: #46060f;
   background:
-    radial-gradient(58% 24% at 32% 12%, rgba(230,80,100,0.24), transparent 60%),
-    linear-gradient(176deg, #780c1f 0%, #530713 50%, #2a0309 100%);
+    radial-gradient(58% 24% at 32% 12%, rgba(190,40,66,0.22), transparent 60%),
+    linear-gradient(176deg, #5c0a18 0%, #3a0510 50%, #180207 100%);
 }
 .paint.go { transform: translateY(102vh); }
 /* Leading edge as flowing paint: wide, soft, overlapping bulbous drips (not thin spikes).
@@ -222,7 +315,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
    lip, and a slight blur gives it a liquid surface. Uneven lengths read as real drips. */
 .paint::after, .paint::before { content: ""; position: absolute; left: 0; right: 0; background-repeat: no-repeat; }
 .paint::after {
-  top: 100%; height: 138px; filter: blur(1.5px);
+  top: 100%; height: 150px; filter: url(#paintGoo);
   background-image:
     radial-gradient(27px 104px at 5% 0,  var(--pc) 46%, transparent 72%),
     radial-gradient(20px 58px  at 13% 0, var(--pc) 46%, transparent 72%),
@@ -236,7 +329,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
     radial-gradient(20px 60px  at 94% 0, var(--pc) 46%, transparent 72%);
 }
 .paint::before {
-  bottom: 100%; height: 110px; filter: blur(1.5px);
+  bottom: 100%; height: 120px; filter: url(#paintGoo);
   background-image:
     radial-gradient(24px 88px  at 10% 100%, var(--pc) 46%, transparent 72%),
     radial-gradient(30px 108px at 22% 100%, var(--pc) 46%, transparent 72%),
@@ -280,6 +373,21 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 </head>
 <body>
 <div id="root"></div>
+
+<!-- Liquid-paint filter: turbulence warps the drip edge organically, then a goo
+     (blur + alpha threshold) fuses neighbours into flowing blobs. Animated during the sweep. -->
+<svg width="0" height="0" aria-hidden="true" style="position:absolute">
+  <defs>
+    <filter id="paintGoo" x="-30%" y="-30%" width="160%" height="190%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.009 0.022" numOctaves="2" seed="6" result="noise">
+        <animate attributeName="baseFrequency" dur="6.5s" values="0.009 0.022;0.013 0.031;0.009 0.022" repeatCount="indefinite" />
+      </feTurbulence>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="30" xChannelSelector="R" yChannelSelector="G" result="disp" />
+      <feGaussianBlur in="disp" stdDeviation="4" result="blur" />
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -8" />
+    </filter>
+  </defs>
+</svg>
 
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>

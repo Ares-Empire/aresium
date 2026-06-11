@@ -11,6 +11,7 @@ const BATCH = 25;
 const SYSTEM = `You categorise bank/PayPal transactions for a German student who lives in their home city.
 Assign each transaction to exactly ONE category from the provided "categories" list.
 Guidelines:
+- USER CORRECTIONS (HIGHEST PRIORITY): the user message includes a "corrections" list of {merchant, category} the user has manually assigned. These are ground truth. If a transaction's counterparty or description clearly refers to the same merchant as a corrections entry, assign that correction's category — this overrides every guideline below.
 - ESSENTIALS WIN OVER LOCATION: categorise essentials by merchant type even on a trip — a supermarket is always "Groceries", a pharmacy "Health", a drugstore "Drogerie". Groceries bought during a holiday are still "Groceries", never "Vacation".
 - "placeType" (when present) is what the merchant actually IS, resolved from OpenStreetMap — trust it over the raw name. restaurant→"Restaurants", bar/pub→"Drinking", cafe→"Restaurants", museum/attraction/entertainment→leisure (Travel/Vacation if onTrip, else "Non-essentials"), bakery→"Restaurants" or "Groceries", fuel→"Travel", fitness→"Fitness", clothes→"Clothes". placeType="unknown" means the lookup found nothing — fall back to the name.
 - TRIPS: "onTrip": true means it happened away from the home cities (their home cities). "tripKind" tells you which:
@@ -24,7 +25,9 @@ Return ONLY JSON: {"results":[{"id":"<id>","category":"<name>","isNew":<bool>,"c
 
 type LlmResult = { id: string; category: string; isNew?: boolean; confidence?: number };
 
-async function callGroq(key: string, categories: string[], batch: unknown[]): Promise<LlmResult[]> {
+type Correction = { merchant: string; category: string };
+
+async function callGroq(key: string, categories: string[], corrections: Correction[], batch: unknown[]): Promise<LlmResult[]> {
   const res = await fetch(GROQ_URL, {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
@@ -34,13 +37,13 @@ async function callGroq(key: string, categories: string[], batch: unknown[]): Pr
       response_format: { type: "json_object" },
       messages: [
         { role: "system", content: SYSTEM },
-        { role: "user", content: JSON.stringify({ categories, transactions: batch }) },
+        { role: "user", content: JSON.stringify({ categories, corrections, transactions: batch }) },
       ],
     }),
   });
   if (res.status === 429) {
     await new Promise((r) => setTimeout(r, 6000));
-    return callGroq(key, categories, batch);
+    return callGroq(key, categories, corrections, batch);
   }
   if (!res.ok) throw new Error(`Groq ${res.status}: ${await res.text()}`);
   const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
@@ -55,6 +58,14 @@ export async function categorizeWithLLM(opts: { all?: boolean } = {}): Promise<v
   const categories = await prisma.category.findMany({ orderBy: { name: "asc" } });
   const catByName = new Map(categories.map((c) => [c.name.toLowerCase(), c]));
   const catNames = categories.map((c) => c.name);
+
+  // User corrections become authoritative ground-truth examples for the model
+  // (latest decision per merchant wins). This is how manual edits teach the AI.
+  const corrRows = await prisma.categoryCorrection.findMany({ orderBy: { createdAt: "asc" } });
+  const corrByMerchant = new Map<string, Correction>();
+  for (const c of corrRows) corrByMerchant.set(c.merchant.toLowerCase(), { merchant: c.merchant, category: c.toCategory });
+  const corrections = [...corrByMerchant.values()];
+  if (corrections.length) console.log(`Honouring ${corrections.length} user correction(s) as ground truth.`);
 
   const todo = await prisma.transaction.findMany({
     where: opts.all ? { categorySource: { not: "manual" } } : { categorized: false },
@@ -93,7 +104,7 @@ export async function categorizeWithLLM(opts: { all?: boolean } = {}): Promise<v
 
     let results: LlmResult[];
     try {
-      results = await callGroq(key, catNames, batch);
+      results = await callGroq(key, catNames, corrections, batch);
     } catch (e) {
       console.error(`\nBatch ${i}-${i + slice.length} failed: ${(e as Error).message}`);
       continue;
