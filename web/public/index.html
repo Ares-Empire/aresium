@@ -152,7 +152,9 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .chart-title-ic svg { width: 22px; height: 22px; stroke-width: 2; }
 .chart-sub { margin: 5px 0 0; font-size: 13px; color: var(--ink-3); font-weight: 500; letter-spacing: -0.01em; }
 .legend { display: flex; gap: 14px; padding-top: 4px; flex: none; }
-.legend-item { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); white-space: nowrap; }
+.legend-item { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); white-space: nowrap; cursor: pointer; padding: 3px 6px; border-radius: 8px; transition: background .15s, opacity .15s; }
+.legend-item:hover { background: var(--hover); }
+.legend-item.off { opacity: 0.4; text-decoration: line-through; }
 .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
 .chart-host { flex: 1; min-height: 0; position: relative; }
 .chart-canvas { position: absolute; inset: 0; }

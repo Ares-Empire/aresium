@@ -97,11 +97,13 @@ function crumbsFor(state) {
   return out;
 }
 
-function Legend({ series }) {
+function Legend({ series, hidden, onToggle }) {
   return (
     <div className="legend">
       {series.map((s) => (
-        <span key={s.key} className="legend-item"><span className="dot" style={{ background: s.color }} />{s.label}</span>
+        <button key={s.key} className={"legend-item" + (hidden[s.key] ? " off" : "")} onClick={() => onToggle(s.key)} title={hidden[s.key] ? `Show ${s.label}` : `Hide ${s.label}`}>
+          <span className="dot" style={{ background: s.color }} />{s.label}
+        </button>
       ))}
     </div>
   );
@@ -157,6 +159,7 @@ function App() {
   const [paintGo, setPaintGo] = useS(false);
   const [detailId, setDetailId] = useS(null); // open transaction-detail modal
   const [dataVer, setDataVer] = useS(0); // bump to re-aggregate after an inline edit
+  const [hidden, setHidden] = useS({}); // legend toggles: series keys hidden from the graph
   const prevTheme = React.useRef("dark");
   const busy = React.useRef(false);
   const colors = THEME_COLORS[theme];
@@ -234,6 +237,12 @@ function App() {
     setDataVer((v) => v + 1);
   }, []);
 
+  // legend toggles reset whenever you navigate to another screen
+  useE(() => { setHidden({}); }, [state]);
+  const toggleSeries = useC((k) => setHidden((h) => ({ ...h, [k]: !h[k] })), []);
+  const shownSeries = view.chart.series.filter((s) => !hidden[s.key]);
+  const hiddenSig = Object.keys(hidden).filter((k) => hidden[k]).sort().join("");
+
   const crumbs = crumbsFor(state);
 
   return (
@@ -279,10 +288,10 @@ function App() {
               <h1 className="chart-title">{view.icon ? <span className="chart-title-ic" style={{ color: view.iconColor }} dangerouslySetInnerHTML={{ __html: window.lucideSvg(view.icon) }} /> : null}{view.title}</h1>
               <p className="chart-sub">{view.subtitle}</p>
             </div>
-            {view.legend && <Legend series={view.chart.series} />}
+            {view.legend && <Legend series={view.chart.series} hidden={hidden} onToggle={toggleSeries} />}
           </div>
           <div className="chart-host">
-            <AnimatedChart {...view.chart} animKey={view.chart.animKey + "-" + theme} theme={theme} onIndexClick={onIndexClick} />
+            <AnimatedChart {...view.chart} series={shownSeries} animKey={view.chart.animKey + "-" + theme + "-" + hiddenSig} theme={theme} onIndexClick={onIndexClick} />
           </div>
         </section>
 
