@@ -37,7 +37,53 @@ overlay triggered on red-mode toggle):**
 ## 2. Aresium (red) mode polish
 
 - **Richer/darker base** — the deep oxblood is close; can go a touch darker/richer still.
-- **Tabs are too bright** — in red mode the panel/tab cards use near-white glass
-  (`--card`/`--card-2` = `rgba(255,255,255,0.1x)`); they should be **less white,
-  tinted toward the background** (dark red glass) so they sit in the scene rather
-  than glowing. Handle as part of the #3 tab restyle.
+- **Tabs are too bright** — DONE in #3 (dark red glass).
+
+## 3. Phone (mobile) version — *different functionality, not a reflow*
+
+The desktop view doesn't shrink well; phone gets its own component tree + flow.
+Feasible with the current zero-build setup: render a separate `MobileApp` for
+narrow screens; both share the same data layer (`window.AresiumData`), the chart
+(`AnimatedChart`), and the detail/recategorise modal (`TxnDetailModal`).
+
+**Device routing (the iPad question):** pick by viewport width via `matchMedia`,
+re-evaluated on resize/orientation.
+- Phones (`max-width: ~620px`) → **MobileApp**.
+- **iPad** (portrait ~768, landscape ~1024) is above the breakpoint → gets the
+  **web version** (it has the screen for it). A tablet-tuned third variant is a
+  later option if wanted.
+
+**Start screen:**
+- Default = **current month, Expenses** ("current" = latest month with data).
+- Category list sits **embedded on the wall** (no elevated cards), like the web graph.
+- Two controls slightly above the list:
+  1. **Current / Overview** segmented toggle (default Current; Overview = all-time).
+  2. **Graph icon** toggle — when on, a chart smoothly reveals (height/opacity), showing
+     the current/overview series for the active side.
+- **Swipe left/right** switches Expenses ↔ Income: the active category list slides
+  out and the other slides in (embedded, smooth). Swipe handler via touch/pointer
+  events + transform transition.
+- **Bottom: the big ARESIUM** word, always (red/dark/white).
+
+**Drill:** tap a category → **months list with sums**; if the **graph toggle is on**,
+show that category's **over-time graph** instead. Tap category → month (graph off) →
+**individual activities** → tap one → detail modal (reuse, incl. recategorise).
+
+**Mobile state machine:** `{ screen: start|category|categoryMonth, side: expenses|income,
+range: current|overview, monthKey, cat, graphOn }`.
+
+**Build order (next session):** (1) matchMedia root that swaps App↔MobileApp on the
+breakpoint; (2) MobileApp shell + state; (3) start screen (toggles + swipeable
+embedded list + ARESIUM band + graph reveal); (4) drill screens (months / over-time
+graph / activities) reusing the modal; (5) mobile CSS. Reuse data layer + chart + modal.
+
+## 4. Custom login screen (replaces nginx basic-auth) — *its own session*
+
+Today: nginx HTTP `basic_auth` (browser popup, user `pab`). A custom login means an
+in-app login page + session cookie, and **removing `auth_basic`** from the aresium
+nginx vhost. NOT small, and **security-sensitive** (gates real financial data on a
+public box): needs a session mechanism in the Node server, a `/login` route + form,
+gating/redirect for every route, and getting it exactly right so nothing is ever
+exposed. A half-finished version left during a cut-off session could expose the app —
+so do it as its own focused session, ideally paired with the mobile/login design and
+the paint work. Until then, basic-auth stays (it's solid).
