@@ -53,19 +53,16 @@ function buildScreen(state, colors) {
     };
   }
   if (screen === "category") {
-    // A single category: just its own line + Balance for context (never the other side).
+    // A single category: just its own line — no balance, no other side.
     const c = income ? D.incomeBucketMeta(cat) : D.catByName[cat];
     return {
-      title: `${cat} over time`, subtitle: income ? "Monthly income & balance" : "Monthly spend & balance", icon: c.icon, iconColor: c.color,
+      title: `${cat} over time`, subtitle: income ? "Monthly income" : "Monthly spend", icon: c.icon, iconColor: c.color,
       chart: {
         animKey: (income ? "inccat-" : "cat-") + cat, clickable: true, xLabel: "Month", yLabel: "EUR",
         xLabels: monthLabels,
-        series: [
-          { key: income ? "inc" : "exp", label: cat, color: c.color, points: income ? D.incomeBucketMonthSeries(cat) : D.categoryMonthSeries(cat) },
-          { key: "bal", label: "Balance", color: colors.bal, points: D.overviewMonthBalance },
-        ],
+        series: [{ key: income ? "inc" : "exp", label: cat, color: c.color, points: income ? D.incomeBucketMonthSeries(cat) : D.categoryMonthSeries(cat) }],
       },
-      legend: true,
+      legend: false,
       panel: { kind: "months", kicker: cat, title: "By month", cat: c, income, months: income ? D.incomeBucketMonthList(cat) : D.categoryMonthList(cat) },
     };
   }
