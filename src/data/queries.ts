@@ -150,3 +150,117 @@ export async function getCategoryMonth(name: string, month: string) {
   }));
   return { category: { name: cat.name, icon: cat.icon, color: cat.color }, month, daily, places };
 }
+
+// ---- Dashboard payload --------------------------------------------------------
+// One flat snapshot the front-end aggregates client-side (see web/public/app/data.js).
+// Mirrors the shape of the design's mock data so the UI code is unchanged: it reads
+// only `window.AresiumData`. New imports/categories flow through automatically — the
+// dashboard always reflects whatever is currently in Postgres.
+
+// Lucide icon + accent colour per category, so the DB taxonomy renders with the
+// design's crisp line-icons and electric palette. Names match the seed taxonomy;
+// anything not listed (e.g. an LLM-invented category) falls back gracefully.
+const CAT_META: Record<string, { icon: string; color: string }> = {
+  Groceries: { icon: "ShoppingCart", color: "#26E07A" },
+  Rent: { icon: "House", color: "#6366FF" },
+  Travel: { icon: "TrainFront", color: "#13C8E8" },
+  Vacation: { icon: "Palmtree", color: "#FF9F1C" },
+  Education: { icon: "GraduationCap", color: "#FFB020" },
+  Clothes: { icon: "Shirt", color: "#FF5CC8" },
+  Drogerie: { icon: "SprayCan", color: "#10DBAE" },
+  Restaurants: { icon: "Utensils", color: "#FF7A33" },
+  Tech: { icon: "Laptop", color: "#8FA0C4" },
+  Health: { icon: "Pill", color: "#FF4D6D" },
+  Subscriptions: { icon: "Tv", color: "#A36BFF" },
+  Fitness: { icon: "Dumbbell", color: "#34E27A" },
+  "Non-essentials": { icon: "ShoppingBag", color: "#C77BFF" },
+  "Personal care": { icon: "Scissors", color: "#FF7AD9" },
+  Drinking: { icon: "Beer", color: "#FFC02E" },
+  Memberships: { icon: "Handshake", color: "#3DA0FF" },
+  Development: { icon: "Code", color: "#5B8CFF" },
+  Trash: { icon: "Trash2", color: "#8A93A3" },
+  Tax: { icon: "Receipt", color: "#E0894A" },
+  Income: { icon: "Wallet", color: "#25E07A" },
+  Basis: { icon: "Users", color: "#2BB0FF" },
+  Transfer: { icon: "Repeat", color: "#9AA6B8" },
+  Uncategorised: { icon: "CircleHelp", color: "#9ca3af" },
+};
+const MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+export async function getDashboardData() {
+  const txns = await fetchWithCategory({});
+  const categoriesDb = await prisma.category.findMany();
+  const today = new Date();
+
+  // --- per-category net, to classify income vs spend (transfer = excludeFromTotals) ---
+  const net = new Map<string, number>();
+  let hasUncategorised = false;
+  for (const t of txns) {
+    const name = t.category?.name ?? "Uncategorised";
+    if (!t.category) hasUncategorised = true;
+    net.set(name, (net.get(name) ?? 0) + Number(t.amount));
+  }
+
+  const meta = (name: string, dbColor?: string) =>
+    CAT_META[name] ?? { icon: "Tag", color: dbColor ?? "#9ca3af" };
+
+  const categories = categoriesDb.map((c) => {
+    const kind = c.excludeFromTotals ? "transfer" : (net.get(c.name) ?? 0) > 0 ? "income" : "spend";
+    const m = meta(c.name, c.color);
+    return { name: c.name, icon: m.icon, color: m.color, kind };
+  });
+  if (hasUncategorised) {
+    categories.push({ name: "Uncategorised", ...meta("Uncategorised"), kind: "spend" });
+  }
+
+  // --- transactions in the flat shape the UI expects ---
+  const transactions = txns.map((t) => ({
+    date: ymd(t.bookingDate),
+    amount: Number(t.amount),
+    categoryName: t.category?.name ?? "Uncategorised",
+    place: t.counterparty || t.description,
+    city: t.city ?? "",
+  }));
+
+  // --- month list spanning the data range ---
+  const months: {
+    key: string; label: string; short: string; year: number; month: number; days: number; partial: boolean;
+  }[] = [];
+  if (txns.length) {
+    const first = txns[0].bookingDate; // ordered asc by fetchWithCategory
+    const last = txns[txns.length - 1].bookingDate;
+    let y = first.getUTCFullYear(), m = first.getUTCMonth();
+    while (y < last.getUTCFullYear() || (y === last.getUTCFullYear() && m <= last.getUTCMonth())) {
+      const isCurrent = y === today.getUTCFullYear() && m === today.getUTCMonth();
+      months.push({
+        key: `${y}-${String(m + 1).padStart(2, "0")}`,
+        label: `${MONTH_ABBR[m]} ${y}`,
+        short: MONTH_ABBR[m],
+        year: y, month: m,
+        days: isCurrent ? today.getUTCDate() : daysInMonth(y, m + 1),
+        partial: isCurrent,
+      });
+      m++; if (m > 11) { m = 0; y++; }
+    }
+  }
+
+  // --- balance for every day in range (forward-filled from bank's Saldo) ---
+  const balanceByDay: Record<string, number> = {};
+  let openingBalance = 0;
+  if (months.length) {
+    const balAt = new Map<string, number>(); // ymd -> last known balance that day
+    for (const t of txns) if (t.balance != null) balAt.set(ymd(t.bookingDate), Number(t.balance));
+    const firstKnown = txns.find((t) => t.balance != null);
+    openingBalance = firstKnown ? Number(firstKnown.balance) : 0;
+    let bal = openingBalance;
+    for (const mo of months) {
+      for (let d = 1; d <= mo.days; d++) {
+        const ds = `${mo.key}-${String(d).padStart(2, "0")}`;
+        if (balAt.has(ds)) bal = balAt.get(ds)!;
+        balanceByDay[ds] = bal;
+      }
+    }
+  }
+
+  return { categories, months, transactions, balanceByDay, openingBalance };
+}

@@ -10,7 +10,7 @@ const located = await applyLocations();
 console.log(`Locations: tagged ${located} transactions with city/country.`);
 
 const trips = await detectTrips();
-console.log(`Trips: ${trips.trips} detected, covering ${trips.transactions} transactions.`);
+console.log(`Trips: ${trips.trips} detected (${trips.vacations} vacation, ${trips.trips - trips.vacations} travel), covering ${trips.transactions} transactions.`);
 
 const rec = await detectRecurring();
 console.log(`Recurring: flagged ${rec.flagged} transactions across ${rec.groups.length} merchants:`);

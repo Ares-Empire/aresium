@@ -46,6 +46,8 @@ model Transaction {
   city           String?
   country        String?
   trip           String? // label of the trip this transaction belongs to (null = at home)
+  tripKind       String? // "vacation" (multi-day cluster) | "travel" (single away stop) — set by trip detection
+  placeType      String? // resolved merchant type from OSM lookup: restaurant | bar | cafe | museum | ... (null = unknown)
   raw            Json
   createdAt      DateTime  @default(now())
 

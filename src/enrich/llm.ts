@@ -11,11 +11,15 @@ const BATCH = 25;
 const SYSTEM = `You categorise bank/PayPal transactions for a German student who lives in their home city.
 Assign each transaction to exactly ONE category from the provided "categories" list.
 Guidelines:
-- Categorise essentials by merchant type even while travelling: a supermarket is always "Groceries", a pharmacy "Health", a drugstore "Drogerie".
-- "onTrip": true means it happened on a trip away from the home cities (their home cities). On a trip, leisure/tourism spending (cafés, bars, restaurants, attractions, ski lifts, hotels, local transport, fuel) is usually "Travel". Long-distance rail (Deutsche Bahn/DB), flights and coaches are always "Travel".
+- ESSENTIALS WIN OVER LOCATION: categorise essentials by merchant type even on a trip — a supermarket is always "Groceries", a pharmacy "Health", a drugstore "Drogerie". Groceries bought during a holiday are still "Groceries", never "Vacation".
+- "placeType" (when present) is what the merchant actually IS, resolved from OpenStreetMap — trust it over the raw name. restaurant→"Restaurants", bar/pub→"Drinking", cafe→"Restaurants", museum/attraction/entertainment→leisure (Travel/Vacation if onTrip, else "Non-essentials"), bakery→"Restaurants" or "Groceries", fuel→"Travel", fitness→"Fitness", clothes→"Clothes". placeType="unknown" means the lookup found nothing — fall back to the name.
+- TRIPS: "onTrip": true means it happened away from the home cities (their home cities). "tripKind" tells you which:
+    • "vacation" → a multi-day stay. Discretionary spending there (restaurants, bars, attractions, hotels, local transport, souvenirs) is "Vacation".
+    • "travel" → a single en-route stop. Such spending, plus all long-distance transport (Deutsche Bahn/DB, flights, coaches), is "Travel".
+  Long-distance transport is ALWAYS "Travel" even on a vacation.
 - Transfers between own accounts, PayPal top-ups and investments are "Transfer".
 - amount is negative for money spent, positive for money received.
-- If no listed category fits well, propose a SHORT new category name (1-2 English words) and set isNew=true.
+- If no listed category fits well, propose a SHORT new category name (1-2 English words) and set isNew=true. Use "Vacation" for multi-day-trip leisure even if it is not yet in the list.
 Return ONLY JSON: {"results":[{"id":"<id>","category":"<name>","isNew":<bool>,"confidence":<0..1>}]}`;
 
 type LlmResult = { id: string; category: string; isNew?: boolean; confidence?: number };
@@ -56,7 +60,7 @@ export async function categorizeWithLLM(opts: { all?: boolean } = {}): Promise<v
     where: opts.all ? { categorySource: { not: "manual" } } : { categorized: false },
     select: {
       id: true, description: true, counterparty: true, amount: true,
-      bookingDate: true, city: true, country: true, trip: true,
+      bookingDate: true, city: true, country: true, trip: true, tripKind: true, placeType: true,
     },
     orderBy: { bookingDate: "desc" },
   });
@@ -83,6 +87,8 @@ export async function categorizeWithLLM(opts: { all?: boolean } = {}): Promise<v
       country: t.country,
       onTrip: Boolean(t.trip),
       trip: t.trip,
+      tripKind: t.tripKind,
+      placeType: t.placeType && t.placeType !== "unknown" ? t.placeType : undefined,
     }));
 
     let results: LlmResult[];
