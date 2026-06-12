@@ -311,6 +311,9 @@ function App() {
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M11.5 4.5 L4.5 11.5 M4.5 4.5 L11.5 11.5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" /></svg>
             )}
           </button>
+          <button className="btn-logout" onClick={() => { window.location.href = "/logout"; }} aria-label="Log out" title="Log out">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M14 4 H7 a2 2 0 0 0 -2 2 v12 a2 2 0 0 0 2 2 h7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /><path d="M17 8 l4 4 -4 4 M21 12 H10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          </button>
         </div>
       </header>
 

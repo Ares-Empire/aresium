@@ -258,15 +258,20 @@
               <div className="mob-h1"><span className="mob-h1-tx">Aresium</span></div>
             )}
           </div>
-          <button className="mob-icon-btn" onClick={onThemeBtn} aria-label="Toggle theme">
-            {theme === "dark" ? (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4.2" fill="currentColor" /><g stroke="currentColor" strokeWidth="1.7" strokeLinecap="round">{[0,45,90,135,180,225,270,315].map((a)=>{const r=a*Math.PI/180;return <line key={a} x1={12+Math.cos(r)*7} y1={12+Math.sin(r)*7} x2={12+Math.cos(r)*9.4} y2={12+Math.sin(r)*9.4}/>;})}</g></svg>
-            ) : theme === "light" ? (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M20 14.5 A8 8 0 1 1 9.5 4 A6.2 6.2 0 0 0 20 14.5 Z" fill="currentColor" /></svg>
-            ) : (
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M11.5 4.5 L4.5 11.5 M4.5 4.5 L11.5 11.5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" /></svg>
-            )}
-          </button>
+          <div className="mob-top-right">
+            <button className="mob-icon-btn" onClick={onThemeBtn} aria-label="Toggle theme">
+              {theme === "dark" ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4.2" fill="currentColor" /><g stroke="currentColor" strokeWidth="1.7" strokeLinecap="round">{[0,45,90,135,180,225,270,315].map((a)=>{const r=a*Math.PI/180;return <line key={a} x1={12+Math.cos(r)*7} y1={12+Math.sin(r)*7} x2={12+Math.cos(r)*9.4} y2={12+Math.sin(r)*9.4}/>;})}</g></svg>
+              ) : theme === "light" ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M20 14.5 A8 8 0 1 1 9.5 4 A6.2 6.2 0 0 0 20 14.5 Z" fill="currentColor" /></svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M11.5 4.5 L4.5 11.5 M4.5 4.5 L11.5 11.5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" /></svg>
+              )}
+            </button>
+            <button className="mob-icon-btn" onClick={() => { window.location.href = "/logout"; }} aria-label="Log out">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M14 4 H7 a2 2 0 0 0 -2 2 v12 a2 2 0 0 0 2 2 h7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /><path d="M17 8 l4 4 -4 4 M21 12 H10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </button>
+          </div>
         </header>
 
         {showControls && (

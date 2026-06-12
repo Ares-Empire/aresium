@@ -97,15 +97,15 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .crumb-link:hover { color: var(--ink); }
 .crumb-cur { color: var(--ink); }
 .actions { display: flex; align-items: center; gap: 10px; }
-.btn-back, .btn-theme {
+.btn-back, .btn-theme, .btn-logout {
   display: inline-flex; align-items: center; gap: 7px; height: 38px;
   border: 1px solid var(--line-soft); border-radius: 12px; background: var(--card);
   -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%);
   color: var(--ink-2); font-weight: 600; font-size: 13.5px; transition: all .2s;
 }
 .btn-back { padding: 0 14px 0 11px; }
-.btn-theme { width: 38px; justify-content: center; }
-.btn-back:hover:not(:disabled), .btn-theme:hover { color: var(--ink); border-color: var(--ink-3); background: var(--card-2); }
+.btn-theme, .btn-logout { width: 38px; justify-content: center; }
+.btn-back:hover:not(:disabled), .btn-theme:hover, .btn-logout:hover { color: var(--ink); border-color: var(--ink-3); background: var(--card-2); }
 .btn-back:disabled { opacity: .4; cursor: default; }
 
 /* import (upload statements) button — same glass language as btn-back */
@@ -413,9 +413,10 @@ button.txn-row:disabled { cursor: default; }
   padding: calc(env(safe-area-inset-top) + 8px) 0 0;
 }
 .mob-top {
-  flex: none; display: grid; grid-template-columns: 40px 1fr 40px; align-items: center;
+  flex: none; display: grid; grid-template-columns: 40px 1fr auto; align-items: center;
   gap: 10px; padding: 4px 14px 10px;
 }
+.mob-top-right { display: inline-flex; align-items: center; gap: 8px; }
 .mob-icon-btn {
   width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center;
   border: 1px solid var(--line-soft); border-radius: 12px; background: var(--card);
