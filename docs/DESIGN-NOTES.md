@@ -3,24 +3,33 @@
 Deferred design work and the reasoning behind it. Picked up after the layout
 overhaul (#3) lands, since that changes the Aresium (red) screen anyway.
 
-## 1. Real "poured paint" transition (red / Aresium mode) — ✅ built (procedural WebGL)
+## 1. Real "poured paint" transition (red / Aresium mode) — ✅ GPU fluid sim
 
-**Implemented in `web/public/app/paint.js`** (`window.AresiumPaint`): a self-contained
-WebGL canvas overlay that slides a *lit, wet, drippy* red paint sheet top→bottom through
-the viewport. Finite-difference surface normals drive a directional diffuse term + a
-tight Blinn-Phong specular (the wet gloss); the red deepens with paint thickness; the
-leading/trailing edges break into rounded drip tendrils; a sheen band travels down the
-fresh paint. `app.jsx`/`mobile.jsx` call `AresiumPaint.pour({onCovered, onDone})` — the
-theme swaps at `onCovered` (screen fully covered), revealed as the sheet leaves. Falls
-back to the original CSS curtain when WebGL is unavailable or `prefers-reduced-motion`.
+**Implemented in `web/public/app/paint.js`** (`window.AresiumPaint`): a genuine real-time
+**height-field fluid simulation** on the GPU — red paint is poured at the top, flows down
+under gravity, fingers into drips, covers the screen, then drains to reveal the recoloured
+UI. `app.jsx`/`mobile.jsx` call `AresiumPaint.pour({onCovered, onDone})` (theme swaps at
+`onCovered`). Self-contained; falls back to the CSS curtain when WebGL / float targets are
+unavailable or `prefers-reduced-motion`.
 
-**Chosen approach vs. the original plan:** procedural/analytic surface rather than a full
-GPU height-field fluid sim (ping-pong FBOs, advection, surface tension). The look is the
-goal, and the procedural route is deterministic, dependency-free, and robust across
-devices/contexts without float-texture support. Tunables live in `CFG` at the top of
-`paint.js` (colours, drip growth, normal/specular strength, light dir) for visual tuning.
-A full fluid sim remains a possible upgrade if the procedural surface isn't convincing
-enough — the original design is kept below for reference.
+How it works (grounded in the thin-film literature — lubrication approximation, flux ∝ h³,
+which drives the drip-fingering instability):
+- **Sim** (ping-pong FBOs, single-channel thickness `h`, half-float→byte fallback):
+  semi-Lagrangian gravity advection with thickness-dependent speed (~h²), anisotropic
+  diffusion (rounds drips), a noisy top source (uneven pour streams seed fingering), and a
+  coverage "floor" band that guarantees opacity for the hidden theme swap then recedes to
+  reveal it top-first.
+- **Render** (wet shading): normals from ∇h → diffuse + tight Blinn-Phong specular + Fresnel
+  rim; **Beer–Lambert** pigment (`1−e^(−k·h)`) so thin edges are translucent and thick
+  centres opaque deep red; normal-based **refraction** of the outgoing theme colour at the
+  wet edges.
+
+Validated headlessly (headless-gl + xvfb): shaders compile/link, full timeline runs with
+zero GL errors, paint renders, `onCovered`/`onDone` fire. **Visual tuning is unverified —
+needs a real screen.** All look/feel constants live in `CFG` at the top of `paint.js`
+(gravity, viscosity, pour rate, absorb/Beer–Lambert k, specular, normal strength, refract,
+colours, light, timeline). Possible upgrade: refract a real DOM snapshot (e.g. html2canvas)
+instead of a flat backdrop, so the paint distorts the actual UI behind it.
 
 **Original state (replaced):** a CSS curtain — a red-gradient panel that slides
 top→bottom, with an SVG turbulence/displacement/goo filter warping its leading edge

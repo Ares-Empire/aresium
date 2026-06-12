@@ -1,259 +1,388 @@
 /* Aresium — poured-paint transition (window.AresiumPaint).
 
-   Replaces the CSS curtain (`.paint` in index.html) used when toggling red/Aresium
-   mode. Instead of a warped sliding sheet, this renders a *lit, wet, drippy* sheet
-   of red paint that sweeps down through the viewport: finite-difference surface
-   normals drive a directional diffuse term + a tight Blinn-Phong specular (the wet
-   gloss), the red tint deepens with paint thickness, and the leading/trailing edges
-   break into rounded drip tendrils. The whole sheet slides top→bottom on one eased
-   timeline — same motion as the old curtain, so the theme can be swapped mid-sweep
-   (onCovered) while the screen is fully covered, then revealed (onDone) as it leaves.
+   A real-time GPU fluid: red paint is poured at the top of the screen and flows down
+   under gravity, accumulating, fingering into drips, and covering the viewport — then
+   draining away to reveal the re-coloured UI. This is a genuine thin-film simulation,
+   not a moving sheet.
 
-   Self-contained: it owns its own <canvas> overlay and rAF loop, depends on nothing
-   else in the app, and exposes only window.AresiumPaint:
+   Technique (see docs/DESIGN-NOTES.md #1):
+   - HEIGHT-FIELD SIM on the GPU (ping-pong framebuffers). A single channel stores paint
+     thickness h(x,y). Each step: a semi-Lagrangian gravity advection whose speed grows
+     with thickness (~h²) — the lubrication-approximation flux for a film on a vertical
+     wall — which makes the advancing front steepen and break into finger-drips. Plus a
+     little anisotropic diffusion (rounds drips), a noisy top source (the pour, with a
+     few lead streams), and a coverage "floor" band that guarantees full opacity at the
+     moment the theme is swapped (so the swap stays hidden) and recedes to reveal it.
+   - WET SHADING in the render pass: surface normals from ∇h drive diffuse + a tight
+     Blinn-Phong specular and a Fresnel rim (glossy wet look); Beer–Lambert pigment
+     (1−e^(−k·h)) makes thin edges translucent and thick centres opaque deep red; and the
+     normal refracts the backdrop (the outgoing theme colour) so wet edges bend it.
 
-     prewarm()                       — create the GL context + compile shaders early
-                                       so the first real pour isn't janky (optional).
-     pour({ onCovered, onDone })     — run one sweep. onCovered fires once the sheet
-                                       fully covers the viewport (swap the theme here);
-                                       onDone fires when the sheet has left and the
-                                       overlay is removed.
+   Coordinates: vUv = aPos*0.5+0.5, so y increases UPWARD (matching GL texture rows —
+   texel t=0 is the framebuffer bottom). Gravity therefore pulls toward y=0; the pour
+   source sits near y=1 (top of screen).
 
-   If WebGL is unavailable or the user prefers reduced motion, it falls back to the
-   original CSS `.paint` curtain (built imperatively here, same look as before) so
-   behaviour never regresses. The procedural-surface choice (vs. a full GPU fluid
-   sim) is deliberate: it's deterministic, dependency-free, and robust across
-   devices — see docs/DESIGN-NOTES.md #1. */
+   Public API (unchanged — app.jsx/mobile.jsx call these):
+     prewarm()                    — create the GL context + compile shaders early.
+     pour({ onCovered, onDone })  — run one pour. onCovered fires when the screen is fully
+                                    covered (swap the theme here); onDone when it's done.
+
+   Falls back to the original CSS `.paint` curtain (built imperatively) if WebGL / float
+   targets are unavailable or the user prefers reduced motion — behaviour never regresses.
+   All look/feel constants live in CFG so the result can be tuned on a real screen. */
 (function () {
   "use strict";
 
-  // ---- timeline (ms) -------------------------------------------------------
-  // Mirrors the old curtain so the hidden theme-swap stays hidden: total ~1.56s,
-  // fully covering the viewport around the midpoint.
-  const TOTAL = 1560;
-  const COVER_AT = 0.49;   // fraction of TOTAL at which onCovered fires (screen covered)
+  // ---- timeline (ms) — phases of one pour ----------------------------------
+  const T_POUR = 720;    // paint pours in + covers the screen (fill line descends)
+  const T_HOLD = 360;    // fully covered; the theme is swapped at the start of this
+  const T_DRAIN = 760;   // paint drains downward, revealing the new theme
+  const TOTAL = T_POUR + T_HOLD + T_DRAIN;
+  const COVER_AT = T_POUR; // ms at which onCovered fires (screen opaque)
 
-  // ---- tunables (passed to the shader as uniforms) -------------------------
-  // Centralised so the look can be tuned without touching GLSL. Colours are linear-ish
-  // sRGB; "deep" is where the paint is thickest (more pigment), "lit" the thinner edge.
+  // ---- tunables (shader uniforms) — tweak the look here --------------------
   const CFG = {
-    canvasVh: 1.8,         // canvas height as a multiple of viewport height
-    bodyTop: 0.16,         // solid body spans [bodyTop, bodyBot] of the canvas (rest = drips)
-    bodyBot: 0.90,
-    dripGrow: 0.16,        // how far the leading tendrils stretch (uv units) over the sweep
-    deep: [0.085, 0.015, 0.035],
-    lit:  [0.62, 0.05, 0.12],
-    spec: [1.0, 0.86, 0.86],
-    specPower: 55.0,
-    normalStrength: 26.0,  // finite-difference normal exaggeration
-    light: [-0.35, -0.55, 0.78],
-    seed: 6.0,
+    simScale: 0.34,        // sim resolution as a fraction of canvas px (perf vs detail)
+    simSteps: 2,           // sim sub-steps per frame (stability / flow speed)
     maxDpr: 1.5,
+
+    gravity: 0.85,         // downward advection speed scale (drip/flow speed)
+    viscosity: 0.12,       // anisotropic diffusion (drip rounding / smoothing)
+    pourRate: 7.0,         // top-source inflow strength
+    streamFreq: 9.0,       // number of pour streams across the width
+    maxThick: 1.4,         // clamp on thickness
+    drainClear: 0.82,      // per-step thinning of revealed paint during drain
+
+    deep: [0.085, 0.014, 0.034],   // opaque thick-paint colour (deep oxblood red)
+    spec: [1.0, 0.85, 0.85],       // specular highlight colour
+    specPower: 60.0,               // highlight tightness (higher = sharper/wetter)
+    absorb: 4.2,                   // Beer–Lambert k (how fast it becomes opaque with h)
+    normal: 2.4,                   // normal exaggeration (relief strength)
+    refract: 0.10,                 // backdrop refraction amount at the wet edges
+    edge: 0.10,                    // alpha feather at the thin leading edge
+    light: [-0.35, 0.5, 0.8],      // directional light
+    rim: [0.5, 0.1, 0.16],         // Fresnel rim tint
+    seed: 11.0,
   };
 
   const VERT = `
     attribute vec2 aPos;
     varying vec2 vUv;
     void main() {
-      vUv = aPos * 0.5 + 0.5;        // 0..1, y up
+      vUv = aPos * 0.5 + 0.5;     // y up (0 = bottom, 1 = top) — matches GL texture rows
       gl_Position = vec4(aPos, 0.0, 1.0);
     }`;
 
-  const FRAG = `
+  // --- simulation update: advect down, diffuse, pour at top, coverage floor, drain ---
+  const SIM_FRAG = `
     precision highp float;
     varying vec2 vUv;
-    uniform vec2  uRes;        // drawing-buffer size (px)
-    uniform float uT;          // 0..1 sweep progress (sheet-internal drip growth)
-    uniform float uSeed;
-    uniform float uBodyTop, uBodyBot, uDripGrow, uNormStr, uSpecPow;
-    uniform vec3  uDeep, uLit, uSpec, uLight;
+    uniform sampler2D uPrev;
+    uniform vec2 uTexel;
+    uniform float uGravity, uVisc, uPour, uPourRate, uStreamFreq, uMaxThick, uDrainClear;
+    uniform float uFloorLo, uFloorHi, uClearAbove, uSeed, uTime;
 
-    float hash(float n){ return fract(sin(n * 127.1 + uSeed * 13.7) * 43758.5453); }
-    float vnoise(float x){
-      float i = floor(x), f = fract(x);
-      f = f * f * (3.0 - 2.0 * f);
-      return mix(hash(i), hash(i + 1.0), f);
-    }
-
-    // y increases downward here (paint flows down). Lower drip front: the leading
-    // edge — a broad wobble plus a few columns that elongate into tendrils over time.
-    float lowFront(float x, float t){
-      float base = uBodyBot;
-      float wobble = (vnoise(x * 6.0) - 0.5) * 0.045;
-      float cell = floor(x * 9.0);
-      float pick = hash(cell + 3.1);
-      float tendril = smoothstep(0.55, 1.0, pick) * (0.04 + 0.13 * pick);
-      float withinCol = 1.0 - abs(fract(x * 9.0) - 0.5) * 2.0;  // 1 at column centre, 0 at edges
-      float shape = smoothstep(0.0, 0.5, withinCol);
-      return base + wobble + tendril * shape * (0.3 + 0.7 * t) * uDripGrow;
-    }
-    // Upper (trailing) edge — gentle wobble, retreats slightly as paint drains down.
-    float highFront(float x, float t){
-      return uBodyTop + (vnoise(x * 7.0 + 5.0) - 0.5) * 0.038 - 0.02 * t;
-    }
-
-    // Paint thickness at p (uv, y down). Solid in the body, tapering to 0 at both
-    // fronts so the edges read as rounded lips, with an extra bead near the leading lip.
-    float heightAt(vec2 p){
-      float lo = lowFront(p.x, uT);
-      float hi = highFront(p.x, uT);
-      float inBody = smoothstep(hi, hi + 0.02, p.y) * (1.0 - smoothstep(lo - 0.03, lo, p.y));
-      float lip = (1.0 - smoothstep(lo - 0.045, lo, p.y)) * smoothstep(lo - 0.065, lo - 0.045, p.y);
-      return clamp(inBody + lip * 0.6, 0.0, 1.0);
+    float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7)) + uSeed) * 43758.5453); }
+    float noise(vec2 p){
+      vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+      float a = hash(i), b = hash(i + vec2(1.0, 0.0)), c = hash(i + vec2(0.0, 1.0)), d = hash(i + vec2(1.0, 1.0));
+      return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
     }
 
     void main(){
-      vec2 p = vec2(vUv.x, 1.0 - vUv.y);   // flip so y is down
-      float h = heightAt(p);
-      if (h <= 0.002) discard;             // outside the sheet / between tendrils
+      vec2 uv = vUv;
+      float h = texture2D(uPrev, uv).r;
 
-      // surface normal from the thickness gradient (finite differences)
-      float e = 1.0 / uRes.y;
-      float hl = heightAt(p + vec2(-e, 0.0)), hr = heightAt(p + vec2(e, 0.0));
-      float hu = heightAt(p + vec2(0.0, -e)), hd = heightAt(p + vec2(0.0, e));
-      vec3 n = normalize(vec3((hl - hr) * uNormStr, (hd - hu) * uNormStr, 1.0));
+      // gravity advection (semi-Lagrangian): paint flows toward y=0; material arriving
+      // here came from above (higher y). Speed grows with thickness (~h²) — the
+      // lubrication flux that drives drip fingering.
+      float speed = uGravity * (0.0016 + 0.010 * h * h);
+      h = texture2D(uPrev, uv + vec2(0.0, speed)).r;
 
-      vec3 base = mix(uLit, uDeep, clamp(h, 0.0, 1.0));   // thicker = deeper red
+      // anisotropic diffusion — rounds drips, more vertical than horizontal
+      float l = texture2D(uPrev, uv + vec2(-uTexel.x, 0.0)).r;
+      float r = texture2D(uPrev, uv + vec2( uTexel.x, 0.0)).r;
+      float u = texture2D(uPrev, uv + vec2(0.0, -uTexel.y)).r;
+      float d = texture2D(uPrev, uv + vec2(0.0,  uTexel.y)).r;
+      h += uVisc * ((l + r) * 0.2 + (u + d) * 0.3 - h);
+
+      // pour source near the top (y≈1), broken into uneven streams to seed fingering
+      float top = smoothstep(0.88, 1.0, uv.y);
+      float streams = 0.45 + 0.55 * noise(vec2(uv.x * uStreamFreq, uTime * 1.7));
+      h += uPour * uPourRate * top * streams * 0.0026;
+
+      // coverage floor band [lo, hi] — guarantees opacity for the hidden theme swap,
+      // and recedes during drain so the new theme is revealed top-first.
+      float floorH = step(uFloorLo, uv.y) * step(uv.y, uFloorHi);
+      h = max(h, floorH * 0.95);
+
+      // during drain, thin the revealed paint (above the band) so the theme shows through
+      h *= mix(1.0, uDrainClear, step(uClearAbove, uv.y));
+
+      gl_FragColor = vec4(clamp(h, 0.0, uMaxThick), 0.0, 0.0, 1.0);
+    }`;
+
+  // --- render: wet shading of the thickness field ---
+  const RENDER_FRAG = `
+    precision highp float;
+    varying vec2 vUv;
+    uniform sampler2D uSim;
+    uniform vec2 uTexel;
+    uniform float uNorm, uRefract, uSpecPow, uAbsorb, uEdge;
+    uniform vec3 uDeep, uBgTop, uBgBot, uSpec, uLight, uRim;
+
+    void main(){
+      float h = texture2D(uSim, vUv).r;
+      if (h <= 0.002) discard;
+
+      float hl = texture2D(uSim, vUv + vec2(-uTexel.x, 0.0)).r;
+      float hr = texture2D(uSim, vUv + vec2( uTexel.x, 0.0)).r;
+      float hd = texture2D(uSim, vUv + vec2(0.0, -uTexel.y)).r;
+      float hu = texture2D(uSim, vUv + vec2(0.0,  uTexel.y)).r;
+      vec3 n = normalize(vec3((hl - hr) * uNorm, (hd - hu) * uNorm, 1.0));
+
+      // refract the outgoing backdrop through the wet surface
+      vec2 refr = vUv + n.xy * h * uRefract;
+      vec3 bg = mix(uBgBot, uBgTop, clamp(refr.y, 0.0, 1.0));
+
+      // Beer–Lambert: translucent tinted edge → opaque deep red where thick
+      float a = 1.0 - exp(-uAbsorb * h);
+      vec3 base = mix(bg, uDeep, a);
+
       vec3 L = normalize(uLight);
       float diff = clamp(dot(n, L), 0.0, 1.0);
-      vec3 Hh = normalize(L + vec3(0.0, 0.0, 1.0));
-      float spec = pow(clamp(dot(n, Hh), 0.0, 1.0), uSpecPow);
+      vec3 H = normalize(L + vec3(0.0, 0.0, 1.0));
+      float spec = pow(clamp(dot(n, H), 0.0, 1.0), uSpecPow);
+      float fres = pow(1.0 - n.z, 3.0);
 
-      // a wet sheen band travelling down the freshly poured paint
-      float sheen = smoothstep(0.07, 0.0, abs(p.y - (uT * 1.25 - 0.12))) * 0.22;
-
-      vec3 col = base * (0.4 + 0.72 * diff) + uSpec * spec + sheen;
-      float a = smoothstep(0.0, 0.12, h);
-      gl_FragColor = vec4(col, a);
+      vec3 col = base * (0.45 + 0.6 * diff) + uSpec * spec + uRim * fres;
+      gl_FragColor = vec4(col, smoothstep(0.0, uEdge, h));
     }`;
 
   let prefersReduced = false;
   try { prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (_) {}
 
-  let busy = false;          // one pour at a time
-  let gl = null, prog = null, uni = null, canvas = null, ready = false, failed = false;
+  let busy = false;
+  let gl = null, canvas = null, ready = false, failed = false;
+  let simProg = null, renderProg = null, quad = null;
+  let texA = null, texB = null, fboA = null, fboB = null, simW = 0, simH = 0;
+  let texType = null;
 
-  function compile(g, type, src) {
-    const sh = g.createShader(type);
-    g.shaderSource(sh, src); g.compileShader(sh);
-    if (!g.getShaderParameter(sh, g.COMPILE_STATUS)) {
-      throw new Error("paint shader: " + g.getShaderInfoLog(sh));
-    }
+  function compile(type, src) {
+    const sh = gl.createShader(type);
+    gl.shaderSource(sh, src); gl.compileShader(sh);
+    if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) throw new Error("shader: " + gl.getShaderInfoLog(sh));
     return sh;
+  }
+  function program(vs, fs) {
+    const p = gl.createProgram();
+    gl.attachShader(p, compile(gl.VERTEX_SHADER, vs));
+    gl.attachShader(p, compile(gl.FRAGMENT_SHADER, fs));
+    gl.linkProgram(p);
+    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error("link: " + gl.getProgramInfoLog(p));
+    p.u = {};
+    const n = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS);
+    for (let i = 0; i < n; i++) { const info = gl.getActiveUniform(p, i); p.u[info.name] = gl.getUniformLocation(p, info.name); }
+    return p;
+  }
+
+  function makeTarget(w, h) {
+    const tex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, texType, null);
+    const fbo = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+    const ok = gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    return ok ? { tex, fbo } : null;
   }
 
   function makeCanvas() {
     const c = document.createElement("canvas");
     c.setAttribute("aria-hidden", "true");
     const s = c.style;
-    s.position = "fixed"; s.left = "0"; s.width = "100vw";
-    s.top = "0"; s.height = (CFG.canvasVh * 100) + "vh";
-    s.zIndex = "60"; s.pointerEvents = "none"; s.willChange = "transform";
-    s.transform = "translateY(-200vh)";   // parked above the screen until a pour starts
+    s.position = "fixed"; s.inset = "0"; s.width = "100vw"; s.height = "100vh";
+    s.zIndex = "60"; s.pointerEvents = "none";
     return c;
   }
 
-  // Lazily create the GL context + program. Returns false (and sets `failed`) if
-  // WebGL is unavailable — callers then use the CSS fallback.
   function init() {
     if (ready) return true;
     if (failed) return false;
     try {
       canvas = makeCanvas();
-      gl = canvas.getContext("webgl", { premultipliedAlpha: false, alpha: true, antialias: true })
+      gl = canvas.getContext("webgl", { premultipliedAlpha: false, alpha: true, antialias: false, depth: false })
         || canvas.getContext("experimental-webgl");
       if (!gl) throw new Error("no webgl");
 
-      prog = gl.createProgram();
-      gl.attachShader(prog, compile(gl, gl.VERTEX_SHADER, VERT));
-      gl.attachShader(prog, compile(gl, gl.FRAGMENT_SHADER, FRAG));
-      gl.linkProgram(prog);
-      if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
-        throw new Error("paint link: " + gl.getProgramInfoLog(prog));
-      }
+      // float (or half-float) render targets give smooth thickness/normals
+      const hf = gl.getExtension("OES_texture_half_float");
+      gl.getExtension("OES_texture_half_float_linear");
+      gl.getExtension("OES_texture_float");
+      gl.getExtension("OES_texture_float_linear");
+      texType = hf ? hf.HALF_FLOAT_OES : gl.UNSIGNED_BYTE;
 
-      const buf = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW); // fullscreen tri
-      const loc = gl.getAttribLocation(prog, "aPos");
-      gl.enableVertexAttribArray(loc);
-      gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+      simProg = program(VERT, SIM_FRAG);
+      renderProg = program(VERT, RENDER_FRAG);
 
-      gl.useProgram(prog);
-      uni = {};
-      ["uRes", "uT", "uSeed", "uBodyTop", "uBodyBot", "uDripGrow", "uNormStr",
-       "uSpecPow", "uDeep", "uLit", "uSpec", "uLight"].forEach((k) => {
-        uni[k] = gl.getUniformLocation(prog, k);
-      });
+      quad = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, quad);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
 
-      gl.enable(gl.BLEND);
-      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
-      // static uniforms
-      gl.uniform1f(uni.uSeed, CFG.seed);
-      gl.uniform1f(uni.uBodyTop, CFG.bodyTop);
-      gl.uniform1f(uni.uBodyBot, CFG.bodyBot);
-      gl.uniform1f(uni.uDripGrow, CFG.dripGrow);
-      gl.uniform1f(uni.uNormStr, CFG.normalStrength);
-      gl.uniform1f(uni.uSpecPow, CFG.specPower);
-      gl.uniform3fv(uni.uDeep, CFG.deep);
-      gl.uniform3fv(uni.uLit, CFG.lit);
-      gl.uniform3fv(uni.uSpec, CFG.spec);
-      gl.uniform3fv(uni.uLight, CFG.light);
-
+      gl.disable(gl.DEPTH_TEST);
       ready = true;
       return true;
     } catch (err) {
-      console.warn("[AresiumPaint] WebGL init failed, using CSS fallback:", err && err.message);
-      failed = true;
-      if (canvas && canvas.parentNode) canvas.parentNode.removeChild(canvas);
-      canvas = null; gl = null; prog = null;
+      console.warn("[AresiumPaint] WebGL init failed, CSS fallback:", err && err.message);
+      failed = true; teardownGL();
       return false;
     }
   }
 
-  function sizeBuffer() {
-    const dpr = Math.min(CFG.maxDpr, window.devicePixelRatio || 1);
-    const w = Math.round(window.innerWidth * dpr);
-    const h = Math.round(window.innerHeight * CFG.canvasVh * dpr);
-    if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
-    gl.viewport(0, 0, w, h);
-    gl.uniform2f(uni.uRes, w, h);
+  function teardownGL() {
+    if (canvas && canvas.parentNode) canvas.parentNode.removeChild(canvas);
+    canvas = null; gl = null; ready = false;
   }
 
-  function easeInOutCubic(t) {
-    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  function setupTargets() {
+    const dpr = Math.min(CFG.maxDpr, window.devicePixelRatio || 1);
+    canvas.width = Math.round(window.innerWidth * dpr);
+    canvas.height = Math.round(window.innerHeight * dpr);
+    simW = Math.max(64, Math.round(canvas.width * CFG.simScale));
+    simH = Math.max(64, Math.round(canvas.height * CFG.simScale));
+
+    fboA = makeTarget(simW, simH); fboB = makeTarget(simW, simH);
+    if (!fboA || !fboB) {                 // half-float not renderable → byte fallback
+      texType = gl.UNSIGNED_BYTE;
+      fboA = makeTarget(simW, simH); fboB = makeTarget(simW, simH);
+      if (!fboA || !fboB) return false;
+    }
+    texA = fboA.tex; texB = fboB.tex;
+    for (const t of [fboA, fboB]) {       // clear both to empty
+      gl.bindFramebuffer(gl.FRAMEBUFFER, t.fbo);
+      gl.viewport(0, 0, simW, simH);
+      gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+    }
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    return true;
+  }
+
+  function bindQuad(prog) {
+    gl.useProgram(prog);
+    gl.bindBuffer(gl.ARRAY_BUFFER, quad);
+    const loc = gl.getAttribLocation(prog, "aPos");
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  }
+
+  // read the current page background so the wet edges refract the outgoing theme
+  function backdropColors() {
+    const toRgb = (str) => {
+      const m = /rgba?\(([^)]+)\)/.exec(str || "");
+      if (!m) return [0.03, 0.035, 0.045];
+      const p = m[1].split(",").map(Number);
+      return [p[0] / 255, p[1] / 255, p[2] / 255];
+    };
+    let bg = "rgb(8,9,12)";
+    try { bg = getComputedStyle(document.body).backgroundColor || bg; } catch (_) {}
+    const c = toRgb(bg);
+    return { top: c, bot: c.map((v) => v * 0.82) };
   }
 
   function runGL(onCovered, onDone) {
     document.body.appendChild(canvas);
-    sizeBuffer();
-    // force a layout flush so the parked transform is applied before we animate
-    void canvas.offsetHeight;
+    if (!setupTargets()) { teardownGL(); failed = true; runCSS(onCovered, onDone); return; }
 
-    const startTravel = -(CFG.canvasVh + 0.04) * 100;   // just above the viewport (vh)
-    const endTravel = 104;                               // just below the viewport (vh)
+    const bg = backdropColors();
     const start = performance.now();
     let covered = false;
+    const texel = [1 / simW, 1 / simH];
+
+    function simStep(time, phase, frac) {
+      // floor band [lo,hi] in y-up space; pour fills top→down, drain reveals top→down
+      let floorLo = 0, floorHi = 0, pour = 0, clearAbove = 2.0;
+      if (phase === "pour") { floorLo = 1.0 - frac; floorHi = 1.0; pour = 1.0; }
+      else if (phase === "hold") { floorLo = 0.0; floorHi = 1.0; pour = 0.0; }
+      else { floorLo = 0.0; floorHi = 1.0 - frac; clearAbove = 1.0 - frac; } // drain
+
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fboB.fbo);
+      gl.viewport(0, 0, simW, simH);
+      bindQuad(simProg);
+      gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, texA);
+      const u = simProg.u;
+      gl.uniform1i(u.uPrev, 0);
+      gl.uniform2f(u.uTexel, texel[0], texel[1]);
+      gl.uniform1f(u.uGravity, CFG.gravity);
+      gl.uniform1f(u.uVisc, CFG.viscosity);
+      gl.uniform1f(u.uPour, pour);
+      gl.uniform1f(u.uPourRate, CFG.pourRate);
+      gl.uniform1f(u.uStreamFreq, CFG.streamFreq);
+      gl.uniform1f(u.uMaxThick, CFG.maxThick);
+      gl.uniform1f(u.uDrainClear, CFG.drainClear);
+      gl.uniform1f(u.uFloorLo, floorLo);
+      gl.uniform1f(u.uFloorHi, floorHi);
+      gl.uniform1f(u.uClearAbove, clearAbove);
+      gl.uniform1f(u.uSeed, CFG.seed);
+      gl.uniform1f(u.uTime, time);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      // ping-pong swap
+      const tt = texA; texA = texB; texB = tt;
+      const tf = fboA; fboA = fboB; fboB = tf;
+    }
+
+    function render() {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+      bindQuad(renderProg);
+      gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, texA);
+      const u = renderProg.u;
+      gl.uniform1i(u.uSim, 0);
+      gl.uniform2f(u.uTexel, texel[0], texel[1]);
+      gl.uniform1f(u.uNorm, CFG.normal);
+      gl.uniform1f(u.uRefract, CFG.refract);
+      gl.uniform1f(u.uSpecPow, CFG.specPower);
+      gl.uniform1f(u.uAbsorb, CFG.absorb);
+      gl.uniform1f(u.uEdge, CFG.edge);
+      gl.uniform3fv(u.uDeep, CFG.deep);
+      gl.uniform3fv(u.uBgTop, bg.top);
+      gl.uniform3fv(u.uBgBot, bg.bot);
+      gl.uniform3fv(u.uSpec, CFG.spec);
+      gl.uniform3fv(u.uLight, CFG.light);
+      gl.uniform3fv(u.uRim, CFG.rim);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      gl.disable(gl.BLEND);
+    }
 
     function frame(now) {
-      const lin = Math.min(1, (now - start) / TOTAL);
-      const e = easeInOutCubic(lin);
-      const y = startTravel + (endTravel - startTravel) * e;
-      canvas.style.transform = "translateY(" + y.toFixed(2) + "vh)";
+      const t = now - start;
+      let phase, frac;
+      if (t < T_POUR) { phase = "pour"; frac = t / T_POUR; }
+      else if (t < T_POUR + T_HOLD) { phase = "hold"; frac = 1; }
+      else { phase = "drain"; frac = Math.min(1, (t - T_POUR - T_HOLD) / T_DRAIN); }
 
-      gl.uniform1f(uni.uT, lin);
-      gl.clearColor(0, 0, 0, 0);
-      gl.clear(gl.COLOR_BUFFER_BIT);
-      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      try {
+        for (let i = 0; i < CFG.simSteps; i++) simStep((now + i * 16) * 0.001, phase, frac);
+        render();
+      } catch (e) {
+        console.warn("[AresiumPaint] GL frame error, falling back:", e && e.message);
+        teardownGL(); failed = true; busy = false;
+        runCSS(covered ? null : onCovered, onDone);
+        return;
+      }
 
-      if (!covered && lin >= COVER_AT) { covered = true; if (onCovered) onCovered(); }
+      if (!covered && t >= COVER_AT) { covered = true; if (onCovered) onCovered(); }
 
-      if (lin < 1) {
+      if (t < TOTAL) {
         requestAnimationFrame(frame);
       } else {
-        if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
-        canvas.style.transform = "translateY(-200vh)";
+        teardownAfterRun();
         busy = false;
         if (onDone) onDone();
       }
@@ -261,14 +390,21 @@
     requestAnimationFrame(frame);
   }
 
+  function teardownAfterRun() {
+    if (canvas && canvas.parentNode) canvas.parentNode.removeChild(canvas);
+    // keep gl/programs warm for the next pour; drop the FBOs/textures
+    for (const t of [fboA, fboB]) { if (t) { gl.deleteFramebuffer(t.fbo); gl.deleteTexture(t.tex); } }
+    fboA = fboB = texA = texB = null;
+  }
+
   // CSS-curtain fallback — the original `.paint` element + timings, built imperatively.
   function runCSS(onCovered, onDone) {
     const el = document.createElement("div");
     el.className = "paint"; el.setAttribute("aria-hidden", "true");
     document.body.appendChild(el);
-    void el.offsetHeight;                       // reflow so the .go transition runs
+    void el.offsetHeight;
     requestAnimationFrame(() => el.classList.add("go"));
-    setTimeout(() => { if (onCovered) onCovered(); }, Math.round(TOTAL * COVER_AT));
+    if (onCovered) setTimeout(onCovered, COVER_AT);
     setTimeout(() => {
       if (el.parentNode) el.parentNode.removeChild(el);
       busy = false;
@@ -277,17 +413,13 @@
   }
 
   window.AresiumPaint = {
-    prewarm() {
-      if (prefersReduced) return;
-      try { init(); } catch (_) {}
-    },
+    prewarm() { if (!prefersReduced) { try { init(); } catch (_) {} } },
     pour(opts) {
       opts = opts || {};
-      const onCovered = opts.onCovered, onDone = opts.onDone;
       if (busy) return;
       busy = true;
-      if (prefersReduced || !init()) { runCSS(onCovered, onDone); return; }
-      runGL(onCovered, onDone);
+      if (prefersReduced || !init()) { runCSS(opts.onCovered, opts.onDone); return; }
+      runGL(opts.onCovered, opts.onDone);
     },
   };
 })();
