@@ -18,6 +18,7 @@
     "places": "tsx scripts/places.ts",
     "ai": "tsx scripts/ai.ts",
     "web": "tsx src/web/server.ts",
+    "remind": "tsx src/bot/remind.ts",
     "recat": "tsx scripts/recat.ts",
     "summary": "tsx scripts/summary.ts",
     "show": "tsx scripts/show.ts",

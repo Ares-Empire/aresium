@@ -1,0 +1,10 @@
+[Unit]
+Description=Aresium upload reminder on the 1st and 15th
+
+[Timer]
+# 08:00 UTC (= 10:00 Berlin in summer / 09:00 in winter). System TZ is UTC.
+OnCalendar=*-*-01,15 08:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

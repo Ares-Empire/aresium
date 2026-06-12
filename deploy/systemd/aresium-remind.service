@@ -1,0 +1,10 @@
+[Unit]
+Description=Aresium upload reminder (Telegram)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/root/aresium
+ExecStart=/usr/bin/npm run remind
