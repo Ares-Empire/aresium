@@ -98,13 +98,29 @@ breakpoint; (2) MobileApp shell + state; (3) start screen (toggles + swipeable
 embedded list + ARESIUM band + graph reveal); (4) drill screens (months / over-time
 graph / activities) reusing the modal; (5) mobile CSS. Reuse data layer + chart + modal.
 
-## 4. Custom login screen (replaces nginx basic-auth) — *its own session*
+## 4. Custom login screen (replaces nginx basic-auth) — ✅ in-app auth built
 
-Today: nginx HTTP `basic_auth` (browser popup, user `pab`). A custom login means an
-in-app login page + session cookie, and **removing `auth_basic`** from the aresium
-nginx vhost. NOT small, and **security-sensitive** (gates real financial data on a
-public box): needs a session mechanism in the Node server, a `/login` route + form,
-gating/redirect for every route, and getting it exactly right so nothing is ever
-exposed. A half-finished version left during a cut-off session could expose the app —
-so do it as its own focused session, ideally paired with the mobile/login design and
-the paint work. Until then, basic-auth stays (it's solid).
+**Built (app side):** single password + a stateless, HMAC-signed session cookie (30-day),
+zero deps (Node crypto: scrypt for the password, HMAC-SHA256 for the cookie).
+- `src/web/auth.ts` — hashing, cookie issue/verify, `authEnabled()`.
+- `src/web/login-page.ts` — branded `/login` page (self-contained, no external assets).
+- `src/web/server.ts` — `GET/POST /login`, `/logout`, and a gate on every other route
+  (browser → 303 `/login`; `/api/*` → 401). Cookie is HttpOnly + Secure + SameSite=Lax.
+- `scripts/set-password.ts` (`npm run set-password`) — writes `AUTH_PASSWORD_HASH` +
+  generates `AUTH_SESSION_SECRET` into `.env`.
+
+**Safety design:** the gate is enforced ONLY when both env vars are set. Until then the
+server logs through unchanged — so deploying the code can't lock anyone out, and nginx
+basic-auth keeps protecting the app in the meantime. Tested end-to-end (unauth redirect,
+401 on API, wrong-password 401, valid/tampered/expired cookie, logout).
+
+**Rollout (no exposure window — do in this order):**
+1. `npm run set-password` → set the password (hash + secret land in `.env`).
+2. `systemctl restart aresium` → the gate activates.
+3. Visit the site (still behind basic-auth) and confirm the in-app login works.
+4. ONLY THEN remove `auth_basic` (+ `auth_basic_user_file`) from the aresium server
+   block in the shared `insureai_nginx` vhost and reload nginx. Now the in-app login is
+   the sole gate. (This nginx edit is on shared infra — done by the operator, not in repo.)
+
+Optional follow-ups: a logout button in the UI (route exists at `/logout`); DB-backed
+sessions if instant global revocation is ever wanted.

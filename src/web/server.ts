@@ -11,6 +11,8 @@ import { prisma } from "../lib/db.js";
 import { getDashboardData, getTransactionDetail, recategorizeTransaction } from "../data/queries.js";
 import { importContent } from "../import/core.js";
 import { categorizeAll } from "../sync/categorize.js";
+import { authEnabled, hasValidSession, verifyPassword, sessionCookie, clearCookie } from "./auth.js";
+import { loginPage } from "./login-page.js";
 
 // `max` caps the buffered body (bytes); on overflow the request is destroyed and the
 // promise resolves "" so the handler reports a clean error. Uploads need a larger cap
@@ -44,6 +46,43 @@ const MIME: Record<string, string> = {
 const server = createServer(async (req, res) => {
   try {
     const url = new URL(req.url ?? "/", `http://${req.headers.host}`);
+
+    // ---- authentication (single password + signed session cookie) ----
+    // GET /login → page; POST /login → set cookie; /logout → clear. Everything else is
+    // gated when auth is configured. /login & /logout must stay reachable unauthenticated.
+    if (url.pathname === "/login" && req.method === "GET") {
+      res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" });
+      res.end(loginPage());
+      return;
+    }
+    if (url.pathname === "/login" && req.method === "POST") {
+      const password = new URLSearchParams(await readBody(req)).get("password") ?? "";
+      if (verifyPassword(password)) {
+        res.writeHead(303, { "Set-Cookie": sessionCookie(), Location: "/" });
+        res.end();
+      } else {
+        await new Promise((r) => setTimeout(r, 500)); // small delay slows brute-forcing
+        res.writeHead(401, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" });
+        res.end(loginPage("Incorrect password."));
+      }
+      return;
+    }
+    if (url.pathname === "/logout") {
+      res.writeHead(303, { "Set-Cookie": clearCookie(), Location: "/login" });
+      res.end();
+      return;
+    }
+    // gate every other route once auth is configured
+    if (authEnabled() && !hasValidSession(req.headers.cookie)) {
+      if (url.pathname.startsWith("/api/")) {
+        res.writeHead(401, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+        res.end(JSON.stringify({ error: "unauthenticated" }));
+      } else {
+        res.writeHead(303, { Location: "/login" });
+        res.end();
+      }
+      return;
+    }
 
     if (url.pathname === "/api/data") {
       const data = await getDashboardData();

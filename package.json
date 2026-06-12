@@ -9,6 +9,7 @@
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "seed": "tsx scripts/seed-categories.ts",
+    "set-password": "tsx scripts/set-password.ts",
     "reset:data": "tsx scripts/reset-data.ts",
     "import": "tsx src/import/run.ts",
     "backfill:balance": "tsx scripts/backfill-balance.ts",
