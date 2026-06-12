@@ -43,7 +43,7 @@
     enabled: true,
     webm: "assets/paint-pour.webm",   // VP9 + alpha — Chrome / Firefox / Edge
     mov: "",                          // optional HEVC + alpha .mov for Safari/iOS ("" = none)
-    coverAt: 1.4,                     // seconds into the clip when paint fully covers the screen
+    coverAt: 1.9,                     // seconds into the clip when paint fully covers the screen
   };
 
   // ---- timeline (ms) — phases of one pour ----------------------------------

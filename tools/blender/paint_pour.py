@@ -1,24 +1,36 @@
-# Aresium — paint-pour render recipe (Blender 4.x / Mantaflow).
+# Aresium — paint-pour render recipe (Blender 4.x–5.x / Mantaflow).
 #
 # Builds a scene where a "bucket" of red paint pours from the top and runs DOWN a vertical
-# wall, sheeting and dripping, covering the frame, then draining. Rendered over a
+# wall, sheeting and dripping, until it COVERS the whole frame and holds. Rendered over a
 # TRANSPARENT background (no wall in the final image — the Aresium UI is the background),
 # so the resulting alpha clip can be poured over the real screen.
 #
+# THE REVEAL (drain): a physically-simulated drain was tried and abandoned — a thin viscous
+# film clings to the domain walls and won't fall out under gravity (a closed floor traps it;
+# an open floor / outflow / dropping-trapdoor floor all failed to clear it; see git history).
+# Instead the clip COVERS and holds, and the reveal is an ALPHA FADE-OUT baked in by ffmpeg
+# (step 4) — the red simply dissolves to reveal the re-coloured UI. Simple, reliable, and the
+# theme swap (paint.js VIDEO.coverAt) happens while fully opaque so it stays hidden. If you
+# want a real liquid drain later, a DEEP domain (a falling 3-D body, not a thin sheet) is the
+# direction — that's the open simulation-tuning item.
+#
 # ── How to use ────────────────────────────────────────────────────────────────────────
-# 1. Open Blender 4.x → Scripting tab → open this file → Run (or: `blender -P paint_pour.py`).
+# Headless (no UI), bakes + renders + reports coverage in one go on a GPU box:
+#       blender -b -P tools/blender/render_headless.py
+# …or in the GUI:
+# 1. Open Blender → Scripting tab → open this file → Run (or: `blender -P paint_pour.py`).
 #    It builds the scene, the fluid sim, the paint material, camera, and render settings.
 # 2. Select the "Domain" object → Physics → Fluid → Bake Data (then Bake Mesh).
-#    (Baking can also be attempted from this script — see BAKE at the bottom — but the UI
-#    button is the reliable path. Start at RES_MAX=128 to iterate fast; raise to 256 for the
-#    final once you like the motion.)
+#    Start at RES_MAX=128 to iterate fast; raise to 256 for the final once you like the motion.
 # 3. Render → Render Animation. Frames land as RGBA PNGs in ./render/paint_####.png.
-# 4. Package to a web alpha clip (needs ffmpeg):
+# 4. Package to a web alpha clip WITH the reveal fade (needs ffmpeg). For an 80-frame/24fps
+#    clip (~3.33 s), fade alpha out over the last 0.8 s (st = 3.33 − 0.8 = 2.53):
 #       ffmpeg -y -framerate 24 -i render/paint_%04d.png \
+#         -vf "fade=t=out:st=2.53:d=0.8:alpha=1" \
 #         -c:v libvpx-vp9 -pix_fmt yuva420p -b:v 0 -crf 30 -an \
 #         web/public/assets/paint-pour.webm
-# 5. Watch the clip, find the frame where paint FULLY covers the screen, divide by FPS, and
-#    set VIDEO.coverAt (seconds) in web/public/app/paint.js. Done — it auto-activates.
+# 5. render_headless.py prints the full-coverage time (also in render/coverage.json); set
+#    VIDEO.coverAt (seconds) in web/public/app/paint.js to it. Done — it auto-activates.
 #
 # ── Tuning (the look lives here) ──────────────────────────────────────────────────────
 #   RES_MAX        sim detail (128 fast / 256 crisp drips — much slower + more RAM)
@@ -35,11 +47,11 @@ from mathutils import Vector
 # ---- parameters ----
 RES_X, RES_Y = 1080, 1620        # portrait reads best for a downward pour (object-fit: cover)
 FPS = 24
-FRAME_START, FRAME_END = 1, 120  # ~5 s: pour → cover → drain
+FRAME_START, FRAME_END = 1, 80   # ~3.3 s: fast pour → full cover → hold (reveal = ffmpeg alpha fade)
 RES_MAX = 128                    # raise to 256 for the final render
-VISCOSITY = 0.08                 # paint-like; try 0.04 (runnier) .. 0.2 (thicker)
-POUR_FRAMES = 26                 # frames the bucket pours for
-POUR_SPEED = 3.0                 # initial downward speed of the poured paint
+VISCOSITY = 0.05                 # paint-like cling so the cover holds solid; raise = thicker
+POUR_FRAMES = 40                 # frames the bucket pours for (must fill the frame to full)
+POUR_SPEED = 6.0                 # initial downward speed of the poured paint
 PAINT_COLOR = (0.85, 0.02, 0.015) # vivid glossy red (linear; ≈ sRGB #EE2020, matches paint.png)
 SAMPLES = 128                    # Cycles render samples
 
@@ -92,7 +104,8 @@ def main():
     scene.render.fps = FPS
     scene.frame_start, scene.frame_end = FRAME_START, FRAME_END
 
-    # ── Domain: a tall, thin box. Paint lives inside; gravity (-Z) pulls it down. ──
+    # ── Domain: a wide, thin, tall box. Paint lives inside; gravity (-Z) pulls it down and it
+    # accumulates from the floor up until it covers the whole frame. ──
     bpy.ops.mesh.primitive_cube_add(size=1)
     domain = bpy.context.active_object
     domain.name = "Domain"
@@ -133,8 +146,8 @@ def main():
     bpy.ops.mesh.primitive_cube_add(size=1)
     inflow = bpy.context.active_object
     inflow.name = "Pour"
-    inflow.scale = (1.25, 0.18, 0.10)
-    inflow.location = (0, 0.06, 1.05)            # top, in front of the wall
+    inflow.scale = (1.55, 0.25, 0.14)            # wide + chunky so it fills fast
+    inflow.location = (0, 0.06, 1.0)             # near the top, in front of the wall
     bpy.ops.object.transform_apply(scale=True)
     imod = add_fluid(inflow)
     imod.fluid_type = "FLOW"
@@ -150,10 +163,12 @@ def main():
         fs.use_inflow = False; fs.keyframe_insert("use_inflow", frame=POUR_FRAMES + 1)
     inflow.hide_render = True
 
-    # ── Camera: orthographic, straight on the wall, framed to the render aspect. ──
+    # ── Camera: orthographic, straight on the wall, framed tight so the paint reaches the
+    # edges of the render. ortho_scale spans the frame's long (vertical) axis; the domain is
+    # 2.4 tall × 1.6 wide, so 2.0 frames the paint body edge-to-edge and overfills the sides. ──
     cam_data = bpy.data.cameras.new("Cam")
     cam_data.type = "ORTHO"
-    cam_data.ortho_scale = 5.0                   # zoom: smaller = tighter on the paint
+    cam_data.ortho_scale = 2.0
     cam = bpy.data.objects.new("Cam", cam_data)
     cam.location = (0, -6.0, 0)
     cam.rotation_euler = (1.5708, 0, 0)          # look +Y at the wall
