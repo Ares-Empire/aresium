@@ -383,6 +383,8 @@ button.txn-row:disabled { cursor: default; }
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
 }
 .aresium-word span { display: block; }
+/* during the wordmark intro transition the overlay owns the word; hide the real band(s) */
+.ares-intro-running .aresium-band, .ares-intro-running .mob-band { visibility: hidden; }
 
 /* ---------- responsive / mobile ---------- */
 @media (max-width: 860px) {
@@ -515,6 +517,7 @@ html[data-theme="red"] .mob-band .aresium-word {
 <script src="app/data.js"></script>
 <script src="app/upload.js"></script>
 <script src="app/paint.js"></script>
+<script src="app/aresium-intro.js"></script>
 <script type="text/babel" src="app/chart.jsx"></script>
 <script type="text/babel" src="app/panels.jsx"></script>
 <script type="text/babel" src="app/mobile.jsx"></script>

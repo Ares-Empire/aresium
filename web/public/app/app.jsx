@@ -166,27 +166,27 @@ function App() {
   const colors = THEME_COLORS[theme];
 
   useE(() => { document.documentElement.setAttribute("data-theme", theme); }, [theme]);
-  useE(() => { window.AresiumPaint && window.AresiumPaint.prewarm(); }, []);
 
-  // One downward poured-paint sweep (window.AresiumPaint); the theme is swapped while
-  // the sheet fully covers the screen (onCovered) so the UI re-colours behind the
-  // paint — no hard reload — then revealed as it slides off (onDone).
-  const runPaint = useC((target) => {
+  // Wordmark intro transition (window.AresiumIntro): the ARESIUM word flies in to a hero,
+  // vibrates, and settles into the bottom band while the background morphs — and the mirror
+  // when leaving red. The real theme is swapped (onSwap) while the page is covered.
+  const runIntro = useC((target, entering) => {
     if (busy.current) return; busy.current = true;
-    window.AresiumPaint.pour({
-      onCovered: () => setTheme(target),
+    window.AresiumIntro.play({
+      entering, target,
+      onSwap: () => setTheme(target),
       onDone: () => { busy.current = false; },
     });
   }, []);
 
   const toggleRed = useC(() => {
-    if (theme === "red") runPaint(prevTheme.current);
-    else { prevTheme.current = theme; runPaint("red"); }
-  }, [theme, runPaint]);
+    if (theme === "red") runIntro(prevTheme.current, false);
+    else { prevTheme.current = theme; runIntro("red", true); }
+  }, [theme, runIntro]);
   const onThemeBtn = useC(() => {
-    if (theme === "red") { runPaint(prevTheme.current); return; }
+    if (theme === "red") { runIntro(prevTheme.current, false); return; }
     setTheme((t) => (t === "dark" ? "light" : "dark"));
-  }, [theme, runPaint]);
+  }, [theme, runIntro]);
 
   const go = useC((next) => {
     setDir(1);

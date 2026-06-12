@@ -3,7 +3,22 @@
 Deferred design work and the reasoning behind it. Picked up after the layout
 overhaul (#3) lands, since that changes the Aresium (red) screen anyway.
 
-## 1. Real "poured paint" transition (red / Aresium mode) — ✅ GPU fluid sim
+## 1. Red / Aresium-mode transition
+
+**Active transition: the wordmark intro** (`web/public/app/aresium-intro.js`,
+`window.AresiumIntro`). On the Aresium/red toggle the big ARESIUM wordmark flies up from
+below to a centred hero, vibrates as it lands, then settles into the bottom band while the
+background morphs between themes — and the mirror when leaving red. Self-contained overlay
+(morphing bg layer + a copy of the band word) animated with the Web Animations API; the real
+`.aresium-band` is hidden (`.ares-intro-running`) for the duration and the theme is swapped
+(`onSwap`) while the page is covered, so the overlay hands off to the real band seamlessly.
+Tunables in `CFG` (timeline, hero offset/scale, swap point). Both `app.jsx` and `mobile.jsx`
+call it from their red toggles.
+
+The poured-paint pipeline below (`paint.js` + `assets/paint-pour.webm`) is **retained but no
+longer wired** to the toggle — kept in case we want it back or as an alternate mode.
+
+### (archived) Real "poured paint" transition — GPU fluid sim + video
 
 **Implemented in `web/public/app/paint.js`** (`window.AresiumPaint`): a genuine real-time
 **height-field fluid simulation** on the GPU — red paint is poured at the top, flows down
