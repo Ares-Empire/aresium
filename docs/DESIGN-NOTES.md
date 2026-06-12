@@ -3,12 +3,29 @@
 Deferred design work and the reasoning behind it. Picked up after the layout
 overhaul (#3) lands, since that changes the Aresium (red) screen anyway.
 
-## 1. Real "poured paint" transition (red / Aresium mode)
+## 1. Real "poured paint" transition (red / Aresium mode) — ✅ built (procedural WebGL)
 
-**Current state:** a CSS curtain — a red-gradient panel that slides top→bottom,
-with an SVG turbulence/displacement/goo filter warping its leading edge
-(`.paint` in `web/public/index.html`). Honest assessment: it reads as a *warped
-sheet sliding down*, not as paint. No real body, flow, or lighting.
+**Implemented in `web/public/app/paint.js`** (`window.AresiumPaint`): a self-contained
+WebGL canvas overlay that slides a *lit, wet, drippy* red paint sheet top→bottom through
+the viewport. Finite-difference surface normals drive a directional diffuse term + a
+tight Blinn-Phong specular (the wet gloss); the red deepens with paint thickness; the
+leading/trailing edges break into rounded drip tendrils; a sheen band travels down the
+fresh paint. `app.jsx`/`mobile.jsx` call `AresiumPaint.pour({onCovered, onDone})` — the
+theme swaps at `onCovered` (screen fully covered), revealed as the sheet leaves. Falls
+back to the original CSS curtain when WebGL is unavailable or `prefers-reduced-motion`.
+
+**Chosen approach vs. the original plan:** procedural/analytic surface rather than a full
+GPU height-field fluid sim (ping-pong FBOs, advection, surface tension). The look is the
+goal, and the procedural route is deterministic, dependency-free, and robust across
+devices/contexts without float-texture support. Tunables live in `CFG` at the top of
+`paint.js` (colours, drip growth, normal/specular strength, light dir) for visual tuning.
+A full fluid sim remains a possible upgrade if the procedural surface isn't convincing
+enough — the original design is kept below for reference.
+
+**Original state (replaced):** a CSS curtain — a red-gradient panel that slides
+top→bottom, with an SVG turbulence/displacement/goo filter warping its leading edge
+(`.paint` in `web/public/index.html`, now the fallback). Read as a *warped sheet sliding
+down*, not as paint. No real body, flow, or lighting.
 
 **The goal:** it should look like a bucket of rich red paint is actually poured
 over the screen and **flows down** — 3D body, viscous/smooth motion, drip

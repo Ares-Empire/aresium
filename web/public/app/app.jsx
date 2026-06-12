@@ -155,8 +155,6 @@ function App() {
   const [state, setState] = useS({ screen: "overview" });
   const [dir, setDir] = useS(1); // 1 forward, -1 back
   const [history, setHistory] = useS([]);
-  const [paint, setPaint] = useS(false);
-  const [paintGo, setPaintGo] = useS(false);
   const [detailId, setDetailId] = useS(null); // open transaction-detail modal
   const [dataVer, setDataVer] = useS(0); // bump to re-aggregate after an inline edit
   const [hidden, setHidden] = useS({}); // legend toggles: series keys hidden from the graph
@@ -165,15 +163,17 @@ function App() {
   const colors = THEME_COLORS[theme];
 
   useE(() => { document.documentElement.setAttribute("data-theme", theme); }, [theme]);
+  useE(() => { window.AresiumPaint && window.AresiumPaint.prewarm(); }, []);
 
-  // One continuous downward paint sweep; the theme is swapped mid-sweep (while the
-  // screen is fully covered) so the UI re-colours behind the paint — no hard reload.
+  // One downward poured-paint sweep (window.AresiumPaint); the theme is swapped while
+  // the sheet fully covers the screen (onCovered) so the UI re-colours behind the
+  // paint — no hard reload — then revealed as it slides off (onDone).
   const runPaint = useC((target) => {
     if (busy.current) return; busy.current = true;
-    setPaint(true); setPaintGo(false);
-    setTimeout(() => setPaintGo(true), 40);
-    setTimeout(() => setTheme(target), 740);
-    setTimeout(() => { setPaint(false); setPaintGo(false); busy.current = false; }, 1560);
+    window.AresiumPaint.pour({
+      onCovered: () => setTheme(target),
+      onDone: () => { busy.current = false; },
+    });
   }, []);
 
   const toggleRed = useC(() => {
@@ -318,8 +318,6 @@ function App() {
           <div className="aresium-word">{"ARESIUM".split("").map((ch, i) => <span key={i}>{ch}</span>)}</div>
         </div>
       )}
-
-      {paint && <div className={"paint" + (paintGo ? " go" : "")} aria-hidden="true" />}
     </div>
   );
 }

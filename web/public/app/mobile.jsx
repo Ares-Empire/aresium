@@ -133,21 +133,21 @@
     const [graphOn, setGraphOn] = useState(false);     // reveal the chart
     const [detailId, setDetailId] = useState(null);
     const [dataVer, setDataVer] = useState(0);
-    const [paint, setPaint] = useState(false);
-    const [paintGo, setPaintGo] = useState(false);
     const prevTheme = useRef("dark");
     const busy = useRef(false);
     const colors = THEME_COLORS[theme];
 
     useEffect(() => { document.documentElement.setAttribute("data-theme", theme); }, [theme]);
+    useEffect(() => { window.AresiumPaint && window.AresiumPaint.prewarm(); }, []);
 
-    // One downward paint sweep; theme swapped mid-sweep so the UI re-colours behind it.
+    // One downward poured-paint sweep (window.AresiumPaint); theme swapped while the
+    // sheet covers the screen (onCovered) so the UI re-colours behind it.
     const runPaint = useCallback((target) => {
       if (busy.current) return; busy.current = true;
-      setPaint(true); setPaintGo(false);
-      setTimeout(() => setPaintGo(true), 40);
-      setTimeout(() => setTheme(target), 740);
-      setTimeout(() => { setPaint(false); setPaintGo(false); busy.current = false; }, 1560);
+      window.AresiumPaint.pour({
+        onCovered: () => setTheme(target),
+        onDone: () => { busy.current = false; },
+      });
     }, []);
     const toggleRed = useCallback(() => {
       if (theme === "red") runPaint(prevTheme.current);
@@ -294,7 +294,6 @@
         </button>
 
         <TxnDetailModal id={detailId} onClose={() => setDetailId(null)} onChanged={onRecat} />
-        {paint && <div className={"paint" + (paintGo ? " go" : "")} aria-hidden="true" />}
       </div>
     );
   }
