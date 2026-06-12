@@ -19,6 +19,7 @@
     "ai": "tsx scripts/ai.ts",
     "web": "tsx src/web/server.ts",
     "remind": "tsx src/bot/remind.ts",
+    "bot": "tsx src/bot/bot.ts",
     "recat": "tsx scripts/recat.ts",
     "summary": "tsx scripts/summary.ts",
     "show": "tsx scripts/show.ts",

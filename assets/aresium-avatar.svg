@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <!-- background: deep oxblood glow on near-black, matching Aresium red mode -->
+    <radialGradient id="bg" cx="50%" cy="38%" r="72%">
+      <stop offset="0%"  stop-color="#37060f"/>
+      <stop offset="46%" stop-color="#160409"/>
+      <stop offset="100%" stop-color="#070708"/>
+    </radialGradient>
+    <!-- the dark glass squircle face -->
+    <linearGradient id="face" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"  stop-color="#1b1d24"/>
+      <stop offset="55%" stop-color="#111219"/>
+      <stop offset="100%" stop-color="#0b0c11"/>
+    </linearGradient>
+    <!-- top sheen on the glass -->
+    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"  stop-color="#ffffff" stop-opacity="0.14"/>
+      <stop offset="34%" stop-color="#ffffff" stop-opacity="0.03"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <!-- the rising line: bright crest into brand red -->
+    <linearGradient id="line" x1="0.1" y1="1" x2="0.9" y2="0">
+      <stop offset="0%"  stop-color="#E11030"/>
+      <stop offset="55%" stop-color="#FF2D4B"/>
+      <stop offset="100%" stop-color="#FF8A98"/>
+    </linearGradient>
+    <!-- translucent area under the line -->
+    <linearGradient id="area" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"  stop-color="#FF2D4B" stop-opacity="0.34"/>
+      <stop offset="100%" stop-color="#FF2D4B" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="14" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="dotglow" x="-120%" y="-120%" width="340%" height="340%">
+      <feGaussianBlur stdDeviation="20"/>
+    </filter>
+    <clipPath id="faceclip">
+      <rect x="196" y="196" width="632" height="632" rx="186" ry="186"/>
+    </clipPath>
+  </defs>
+
+  <!-- full-bleed background (corners are cropped to a circle by Telegram) -->
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+
+  <!-- glass squircle, safely inside the circular crop -->
+  <rect x="196" y="196" width="632" height="632" rx="186" ry="186" fill="url(#face)"
+        stroke="#FF2D4B" stroke-opacity="0.22" stroke-width="2.5"/>
+  <g clip-path="url(#faceclip)">
+    <rect x="196" y="196" width="632" height="300" fill="url(#sheen)"/>
+
+    <!-- area under the rising line -->
+    <path d="M300 666 L432 470 L556 568 L726 372 L726 828 L300 828 Z" fill="url(#area)"/>
+
+    <!-- soft glow pass of the line -->
+    <path d="M300 666 L432 470 L556 568 L726 372" fill="none" stroke="#FF2D4B"
+          stroke-opacity="0.5" stroke-width="40" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"/>
+    <!-- crisp line -->
+    <path d="M300 666 L432 470 L556 568 L726 372" fill="none" stroke="url(#line)"
+          stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <!-- glowing crest dot -->
+    <circle cx="726" cy="372" r="46" fill="#FF2D4B" opacity="0.85" filter="url(#dotglow)"/>
+    <circle cx="726" cy="372" r="30" fill="#FF4257"/>
+    <circle cx="726" cy="372" r="13" fill="#FFE9EC"/>
+  </g>
+</svg>
