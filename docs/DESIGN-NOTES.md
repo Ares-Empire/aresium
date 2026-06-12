@@ -39,7 +39,11 @@ overlay triggered on red-mode toggle):**
 - **Richer/darker base** — the deep oxblood is close; can go a touch darker/richer still.
 - **Tabs are too bright** — DONE in #3 (dark red glass).
 
-## 3. Phone (mobile) version — *different functionality, not a reflow*
+## 3. Phone (mobile) version — *different functionality, not a reflow* — ✅ built
+
+Implemented in `web/public/app/mobile.jsx` (`window.MobileApp`); `app.jsx`'s `Root`
+swaps `App`↔`MobileApp` via `matchMedia("(max-width: 620px)")`. Reuses the data layer,
+`AnimatedChart`, the panel lists, and `TxnDetailModal`. Original plan below for reference.
 
 The desktop view doesn't shrink well; phone gets its own component tree + flow.
 Feasible with the current zero-build setup: render a separate `MobileApp` for

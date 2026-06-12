@@ -373,6 +373,85 @@ button.txn-row:disabled { cursor: default; }
   .btn-back span { display: none; }
   .btn-back { width: 38px; justify-content: center; padding: 0; }
 }
+
+/* ---------- phone version (MobileApp; mounts ≤620px) ----------
+   Its own flow, not the desktop grid: header · controls · revealing graph ·
+   swipeable Expenses/Income wall · big ARESIUM band. */
+.mobile-app {
+  min-height: 100vh; min-height: 100dvh;
+  display: flex; flex-direction: column; position: relative; z-index: 1;
+  padding: calc(env(safe-area-inset-top) + 8px) 0 0;
+}
+.mob-top {
+  flex: none; display: grid; grid-template-columns: 40px 1fr 40px; align-items: center;
+  gap: 10px; padding: 4px 14px 10px;
+}
+.mob-icon-btn {
+  width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--line-soft); border-radius: 12px; background: var(--card);
+  -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%);
+  color: var(--ink-2); transition: color .18s, border-color .18s, background .18s;
+}
+.mob-icon-btn:active { transform: scale(.95); }
+.mob-brand { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; color: var(--mark); }
+.mob-head-title { min-width: 0; text-align: center; }
+.mob-h1 { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; font-size: 17px; font-weight: 700; letter-spacing: -0.03em; }
+.mob-h1-ic { display: inline-flex; flex: none; }
+.mob-h1-ic svg { width: 18px; height: 18px; stroke-width: 2; }
+.mob-h1-tx { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mob-h2 { font-size: 12px; color: var(--ink-3); font-weight: 500; margin-top: 2px; }
+
+.mob-controls { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 14px 8px; }
+.mob-graph-btn { color: var(--ink-3); }
+.mob-graph-btn.on { color: var(--ink); border-color: var(--ink-3); background: var(--card-2); }
+.mob-graph-btn span, .mob-graph-btn svg { display: inline-flex; }
+.mob-graph-btn svg { width: 19px; height: 19px; }
+
+/* graph reveal — height + opacity grow in; the inner host keeps a fixed height so the
+   chart can measure itself even while the wrapper is collapsed. */
+.mob-graph { max-height: 0; opacity: 0; overflow: hidden; transition: max-height .42s cubic-bezier(.22,.7,.25,1), opacity .42s ease; }
+.mob-graph.on { max-height: 40vh; opacity: 1; }
+.mob-graph-host { position: relative; height: 30vh; min-height: 190px; padding: 0 8px; }
+@media (prefers-reduced-motion: reduce) { .mob-graph { transition: none; } }
+
+.mob-dots { flex: none; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 0 6px; }
+.mob-dot { width: 7px; height: 7px; border-radius: 50%; padding: 0; background: var(--guide); opacity: .5; transition: opacity .18s, transform .18s, background .18s; }
+.mob-dot.on { opacity: 1; transform: scale(1.25); background: var(--ink); }
+
+.mob-main { flex: 1; min-height: 0; display: flex; flex-direction: column; position: relative; }
+
+/* swipe track: two full-width pages side-by-side */
+.mob-swipe { flex: 1; min-height: 0; overflow: hidden; position: relative; touch-action: pan-y; }
+.mob-track { display: flex; width: 200%; height: 100%; transition: transform .42s cubic-bezier(.22,.7,.25,1); }
+.mob-track.drag { transition: none; }
+.mob-page { width: 50%; flex: none; display: flex; flex-direction: column; min-height: 0; }
+.mob-page-head { flex: none; padding: 6px 18px 8px; }
+.mob-page-kicker { font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
+.mob-side-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-top: 4px; }
+.mob-side-name { font-size: 21px; font-weight: 700; letter-spacing: -0.03em; }
+.mob-side-total { font-size: 21px; font-weight: 700; letter-spacing: -0.03em; color: var(--ink); font-variant-numeric: tabular-nums; }
+.mob-side-cap { font-size: 11px; font-weight: 500; color: var(--ink-3); margin-left: 6px; }
+
+/* drill screens reuse the panel lists directly on the wall (no card) */
+.mob-drill { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.mob-cat-graph { flex: 1; min-height: 0; position: relative; padding: 6px 8px 4px; }
+
+/* the always-on big ARESIUM word, theme-aware, taps to toggle Aresium (red) mode */
+.mob-band {
+  flex: none; height: 14vh; min-height: 84px; display: flex; align-items: flex-end; justify-content: center;
+  overflow: hidden; padding: 0 0 calc(env(safe-area-inset-bottom) + 4px); width: 100%;
+  background: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.mob-band:active { transform: scale(.99); }
+.mob-band .aresium-word {
+  background: linear-gradient(177deg, var(--mark) 0%, rgba(127,127,127,0.18) 116%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
+  opacity: .92;
+}
+html[data-theme="red"] .mob-band .aresium-word {
+  background: linear-gradient(177deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.16) 60%, rgba(255,255,255,0.05) 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
 </style>
 </head>
 <body>
@@ -401,6 +480,7 @@ button.txn-row:disabled { cursor: default; }
 <script src="app/data.js"></script>
 <script type="text/babel" src="app/chart.jsx"></script>
 <script type="text/babel" src="app/panels.jsx"></script>
+<script type="text/babel" src="app/mobile.jsx"></script>
 <script type="text/babel" src="app/app.jsx"></script>
 </body>
 </html>

@@ -324,4 +324,20 @@ function App() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+// Device routing: phones (≤620px) get their own MobileApp component tree (different
+// functionality, not a reflow); iPad and wider get the desktop web version. Re-evaluated
+// on resize/orientation so rotating a device swaps the right experience in.
+const MOBILE_MQ = "(max-width: 620px)";
+function Root() {
+  const [isMobile, setIsMobile] = useS(() => window.matchMedia(MOBILE_MQ).matches);
+  useE(() => {
+    const m = window.matchMedia(MOBILE_MQ);
+    const fn = (e) => setIsMobile(e.matches);
+    m.addEventListener ? m.addEventListener("change", fn) : m.addListener(fn);
+    return () => { m.removeEventListener ? m.removeEventListener("change", fn) : m.removeListener(fn); };
+  }, []);
+  const Mobile = window.MobileApp;
+  return isMobile && Mobile ? <Mobile /> : <App />;
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<Root />);
