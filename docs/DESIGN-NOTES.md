@@ -25,11 +25,21 @@ which drives the drip-fingering instability):
   wet edges.
 
 Validated headlessly (headless-gl + xvfb): shaders compile/link, full timeline runs with
-zero GL errors, paint renders, `onCovered`/`onDone` fire. **Visual tuning is unverified —
-needs a real screen.** All look/feel constants live in `CFG` at the top of `paint.js`
-(gravity, viscosity, pour rate, absorb/Beer–Lambert k, specular, normal strength, refract,
-colours, light, timeline). Possible upgrade: refract a real DOM snapshot (e.g. html2canvas)
-instead of a flat backdrop, so the paint distorts the actual UI behind it.
+zero GL errors, paint renders, `onCovered`/`onDone` fire. All look/feel constants live in
+`CFG` at the top of `paint.js`.
+
+**Reality check / chosen direction for hyper-realism:** a real-time shader tops out at
+*stylised*, not photoreal. To get "a bucket of red paint poured over the screen," the
+realistic path is a **pre-rendered alpha paint-pour clip** played as a transparent overlay
+that reveals the new screen — because it's real/offline-rendered footage, it actually looks
+real. `paint.js` now tries that **video first** (`VIDEO` config → `web/public/assets/
+paint-pour.webm`, VP9+alpha), and falls back to the GPU sim, then the CSS curtain, when the
+asset is absent — so it upgrades the moment the clip is dropped in, no code change.
+
+Pipeline: `tools/blender/paint_pour.py` (Mantaflow liquid pour, rendered over transparent
+film) → ffmpeg to VP9+alpha `.webm` → set `VIDEO.coverAt` to the full-coverage timestamp.
+See `web/public/assets/README.md` for the asset contract. The GPU sim remains the no-asset
+fallback.
 
 **Original state (replaced):** a CSS curtain — a red-gradient panel that slides
 top→bottom, with an SVG turbulence/displacement/goo filter warping its leading edge

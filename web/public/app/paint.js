@@ -33,6 +33,19 @@
 (function () {
   "use strict";
 
+  // ---- photoreal video asset (preferred when present) ----------------------
+  // A real/offline-rendered paint-pour clip with alpha is FAR more realistic than any
+  // real-time shader. When the asset loads, it's played as a transparent fullscreen
+  // overlay and the theme is swapped at `coverAt`; if it's missing/unsupported, we fall
+  // back to the GPU sim below, then the CSS curtain. Drop the render at web/public/assets/.
+  // (Render recipe: tools/blender/paint_pour.py → ffmpeg → VP9+alpha .webm.)
+  const VIDEO = {
+    enabled: true,
+    webm: "assets/paint-pour.webm",   // VP9 + alpha — Chrome / Firefox / Edge
+    mov: "",                          // optional HEVC + alpha .mov for Safari/iOS ("" = none)
+    coverAt: 1.4,                     // seconds into the clip when paint fully covers the screen
+  };
+
   // ---- timeline (ms) — phases of one pour ----------------------------------
   const T_POUR = 720;    // paint pours in + covers the screen (fill line descends)
   const T_HOLD = 360;    // fully covered; the theme is swapped at the start of this
@@ -53,7 +66,7 @@
     maxThick: 1.4,         // clamp on thickness
     drainClear: 0.82,      // per-step thinning of revealed paint during drain
 
-    deep: [0.085, 0.014, 0.034],   // opaque thick-paint colour (deep oxblood red)
+    deep: [0.62, 0.02, 0.03],      // opaque thick-paint colour (vivid glossy red, per paint.png)
     spec: [1.0, 0.85, 0.85],       // specular highlight colour
     specPower: 60.0,               // highlight tightness (higher = sharper/wetter)
     absorb: 4.2,                   // Beer–Lambert k (how fast it becomes opaque with h)
@@ -397,6 +410,45 @@
     fboA = fboB = texA = texB = null;
   }
 
+  // Photoreal path: play an alpha paint-pour clip as a transparent fullscreen overlay.
+  // Swaps the theme at VIDEO.coverAt; on any load/playback failure (e.g. asset not yet
+  // rendered → 404), calls fallback() so the sim/CSS takes over with no visible glitch.
+  function runVideo(onCovered, onDone, fallback) {
+    const v = document.createElement("video");
+    v.muted = true; v.defaultMuted = true; v.playsInline = true;
+    v.setAttribute("playsinline", ""); v.setAttribute("aria-hidden", "true"); v.preload = "auto";
+    const s = v.style;
+    s.position = "fixed"; s.inset = "0"; s.width = "100vw"; s.height = "100vh";
+    s.objectFit = "cover"; s.zIndex = "60"; s.pointerEvents = "none"; s.background = "transparent";
+
+    const addSrc = (src, type) => { const el = document.createElement("source"); el.src = src; el.type = type; v.appendChild(el); };
+    if (VIDEO.webm) addSrc(VIDEO.webm, "video/webm");
+    if (VIDEO.mov) addSrc(VIDEO.mov, 'video/quicktime; codecs="hvc1"');
+
+    let settled = false, covered = false, coverTimer = null, loadTimer = null;
+    const cleanup = () => { if (coverTimer) clearTimeout(coverTimer); if (loadTimer) clearTimeout(loadTimer); if (v.parentNode) v.parentNode.removeChild(v); };
+    const fail = () => { if (settled) return; settled = true; cleanup(); fallback(); };
+
+    v.addEventListener("error", fail);
+    v.addEventListener("loadeddata", () => {
+      if (settled) return;
+      if (loadTimer) clearTimeout(loadTimer);
+      v.play().then(() => {
+        coverTimer = setTimeout(() => { covered = true; if (onCovered) onCovered(); }, VIDEO.coverAt * 1000);
+      }).catch(fail);
+    });
+    v.addEventListener("ended", () => {
+      if (settled) return; settled = true;
+      if (!covered && onCovered) onCovered();
+      cleanup(); busy = false; if (onDone) onDone();
+    });
+    // if nothing has loaded shortly, treat as missing and fall back
+    loadTimer = setTimeout(() => { if (!settled && v.readyState < 2) fail(); }, 1500);
+
+    document.body.appendChild(v);
+    v.load();
+  }
+
   // CSS-curtain fallback — the original `.paint` element + timings, built imperatively.
   function runCSS(onCovered, onDone) {
     const el = document.createElement("div");
@@ -418,8 +470,11 @@
       opts = opts || {};
       if (busy) return;
       busy = true;
-      if (prefersReduced || !init()) { runCSS(opts.onCovered, opts.onDone); return; }
-      runGL(opts.onCovered, opts.onDone);
+      if (prefersReduced) { runCSS(opts.onCovered, opts.onDone); return; }
+      // prefer the photoreal video → GPU sim → CSS curtain
+      const fallback = () => { if (init()) runGL(opts.onCovered, opts.onDone); else runCSS(opts.onCovered, opts.onDone); };
+      if (VIDEO.enabled) runVideo(opts.onCovered, opts.onDone, fallback);
+      else fallback();
     },
   };
 })();

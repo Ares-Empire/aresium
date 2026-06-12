@@ -41,6 +41,7 @@ const MIME: Record<string, string> = {
   ".json": "application/json; charset=utf-8",
   ".png": "image/png", ".jpg": "image/jpeg", ".svg": "image/svg+xml",
   ".woff2": "font/woff2", ".ico": "image/x-icon",
+  ".webm": "video/webm", ".mp4": "video/mp4", ".mov": "video/quicktime",
 };
 
 const server = createServer(async (req, res) => {
