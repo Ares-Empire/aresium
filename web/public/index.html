@@ -107,6 +107,36 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .btn-theme { width: 38px; justify-content: center; }
 .btn-back:hover:not(:disabled), .btn-theme:hover { color: var(--ink); border-color: var(--ink-3); background: var(--card-2); }
 .btn-back:disabled { opacity: .4; cursor: default; }
+
+/* import (upload statements) button — same glass language as btn-back */
+.btn-import {
+  display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 14px 0 11px;
+  border: 1px solid var(--line-soft); border-radius: 12px; background: var(--card);
+  -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%);
+  color: var(--ink-2); font-weight: 600; font-size: 13.5px; transition: all .2s;
+}
+.btn-import:hover:not(:disabled) { color: var(--ink); border-color: var(--ink-3); background: var(--card-2); }
+.btn-import.busy { opacity: .75; cursor: default; }
+.btn-import svg { display: inline-flex; }
+.btn-spin, .mob-spin {
+  width: 15px; height: 15px; border-radius: 50%;
+  border: 2px solid var(--ink-3); border-top-color: transparent;
+  animation: imp-spin .7s linear infinite;
+}
+@keyframes imp-spin { to { transform: rotate(360deg); } }
+
+/* result toast (desktop + phone) */
+.import-toast {
+  position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+  z-index: 70; max-width: 86vw; padding: 11px 18px; border-radius: 13px;
+  font-size: 13.5px; font-weight: 600; color: var(--ink);
+  background: var(--card-2); border: 1px solid var(--line-soft);
+  -webkit-backdrop-filter: blur(16px) saturate(150%); backdrop-filter: blur(16px) saturate(150%);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.35); animation: imp-toast .26s ease both;
+}
+.import-toast.ok  { box-shadow: 0 12px 40px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(52,226,122,0.35); }
+.import-toast.err { box-shadow: 0 12px 40px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,80,100,0.45); }
+@keyframes imp-toast { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
 /* expenses / income segmented toggle */
 .modeseg { display: inline-flex; align-items: center; gap: 2px; height: 38px; padding: 3px; border: 1px solid var(--line-soft); border-radius: 12px; background: var(--card); -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%); }
 .modeseg-btn { height: 100%; padding: 0 13px; border-radius: 9px; font-size: 13px; font-weight: 600; color: var(--ink-3); transition: color .18s, background .18s; }
@@ -402,6 +432,10 @@ button.txn-row:disabled { cursor: default; }
 .mob-h2 { font-size: 12px; color: var(--ink-3); font-weight: 500; margin-top: 2px; }
 
 .mob-controls { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 14px 8px; }
+.mob-ctl-right { display: flex; align-items: center; gap: 10px; }
+.mob-import-btn { color: var(--ink-2); }
+.mob-import-btn.busy { opacity: .7; }
+.mob-import-btn svg { width: 18px; height: 18px; display: inline-flex; }
 .mob-graph-btn { color: var(--ink-3); }
 .mob-graph-btn.on { color: var(--ink); border-color: var(--ink-3); background: var(--card-2); }
 .mob-graph-btn span, .mob-graph-btn svg { display: inline-flex; }
@@ -478,6 +512,7 @@ html[data-theme="red"] .mob-band .aresium-word {
 
 <script src="app/data.mock.js"></script>
 <script src="app/data.js"></script>
+<script src="app/upload.js"></script>
 <script src="app/paint.js"></script>
 <script type="text/babel" src="app/chart.jsx"></script>
 <script type="text/babel" src="app/panels.jsx"></script>

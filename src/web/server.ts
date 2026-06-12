@@ -9,15 +9,23 @@ import { fileURLToPath } from "node:url";
 import { dirname, join, normalize, extname } from "node:path";
 import { prisma } from "../lib/db.js";
 import { getDashboardData, getTransactionDetail, recategorizeTransaction } from "../data/queries.js";
+import { importContent } from "../import/core.js";
+import { categorizeAll } from "../sync/categorize.js";
 
-function readBody(req: IncomingMessage): Promise<string> {
+// `max` caps the buffered body (bytes); on overflow the request is destroyed and the
+// promise resolves "" so the handler reports a clean error. Uploads need a larger cap
+// than the small JSON the rest of the API takes.
+function readBody(req: IncomingMessage, max = 1e6): Promise<string> {
   return new Promise((resolve) => {
     let data = "";
-    req.on("data", (c) => { data += c; if (data.length > 1e6) req.destroy(); });
+    req.on("data", (c) => { data += c; if (data.length > max) req.destroy(); });
     req.on("end", () => resolve(data));
     req.on("error", () => resolve(""));
   });
 }
+
+const IMPORT_MAX_BYTES = 25 * 1024 * 1024;   // generous for a year of PayPal/VR-Bank CSV
+let importing = false;                        // serialise imports (single-user tool)
 
 const PUBLIC = join(dirname(fileURLToPath(import.meta.url)), "../../web/public");
 const PORT = Number(process.env.PORT) || 5173;
@@ -41,6 +49,37 @@ const server = createServer(async (req, res) => {
       const data = await getDashboardData();
       res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
       res.end(JSON.stringify(data));
+      return;
+    }
+
+    // POST /api/import  → ingest uploaded bank/PayPal exports, then categorise.
+    // Body: { files: [{ name, content }] }. The front-end reads files as text, so this
+    // is plain JSON (no multipart). Same auth gate as the rest of the site.
+    if (req.method === "POST" && url.pathname === "/api/import") {
+      const headers = { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" };
+      if (importing) { res.writeHead(409, headers); res.end(JSON.stringify({ error: "an import is already running" })); return; }
+      let body: { files?: Array<{ name?: string; content?: string }> };
+      try { body = JSON.parse(await readBody(req, IMPORT_MAX_BYTES)); } catch { body = {}; }
+      const files = Array.isArray(body.files) ? body.files : [];
+      const valid = files.filter((f) => f && typeof f.name === "string" && typeof f.content === "string" && /\.(csv|xml)$/i.test(f.name));
+      if (valid.length === 0) { res.writeHead(400, headers); res.end(JSON.stringify({ error: "no .csv/.xml files in request" })); return; }
+
+      importing = true;
+      try {
+        const results = [];
+        for (const f of valid) {
+          try {
+            results.push(await importContent(f.name as string, f.content as string));
+          } catch (e) {
+            results.push({ name: f.name, added: 0, total: 0, account: null, skipped: false, error: (e as Error).message });
+          }
+        }
+        await categorizeAll();
+        res.writeHead(200, headers);
+        res.end(JSON.stringify({ results }));
+      } finally {
+        importing = false;
+      }
       return;
     }
 

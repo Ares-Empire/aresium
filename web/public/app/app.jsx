@@ -157,6 +157,9 @@ function App() {
   const [history, setHistory] = useS([]);
   const [detailId, setDetailId] = useS(null); // open transaction-detail modal
   const [dataVer, setDataVer] = useS(0); // bump to re-aggregate after an inline edit
+  const [importVer, setImportVer] = useS(0); // bump after an upload to morph/re-reveal everything
+  const [upload, setUpload] = useS(null); // { busy } | { msg, ok } toast, or null
+  const fileRef = React.useRef(null);
   const [hidden, setHidden] = useS({}); // legend toggles: series keys hidden from the graph
   const prevTheme = React.useRef("dark");
   const busy = React.useRef(false);
@@ -237,11 +240,34 @@ function App() {
     setDataVer((v) => v + 1);
   }, []);
 
+  // Upload bank/PayPal exports → server ingests + categorises → refresh live data and
+  // bump importVer so the chart morphs and the category lists re-reveal to the new totals.
+  const openUpload = useC(() => { if (fileRef.current) fileRef.current.click(); }, []);
+  const onUploadPick = useC(async (e) => {
+    const files = e.target.files;
+    if (!files || !files.length) return;
+    setUpload({ busy: true });
+    try {
+      const data = await window.AresiumUpload.send(files);
+      await window.AresiumData.refresh();
+      setImportVer((v) => v + 1);
+      setDataVer((v) => v + 1);
+      setUpload({ msg: window.AresiumUpload.summarize(data), ok: true });
+    } catch (err) {
+      setUpload({ msg: (err && err.message) || "Import failed", ok: false });
+    } finally {
+      if (fileRef.current) fileRef.current.value = "";   // allow re-picking the same file
+      setTimeout(() => setUpload((u) => (u && u.busy ? u : null)), 4600);
+    }
+  }, []);
+
   // legend toggles reset whenever you navigate to another screen
   useE(() => { setHidden({}); }, [state]);
   const toggleSeries = useC((k) => setHidden((h) => ({ ...h, [k]: !h[k] })), []);
   const shownSeries = view.chart.series.filter((s) => !hidden[s.key]);
   const hiddenSig = Object.keys(hidden).filter((k) => hidden[k]).sort().join("");
+  // include importVer so a fresh upload re-keys the chart (morph) + side lists (re-reveal)
+  const ak = view.chart.animKey + "-i" + importVer;
 
   const crumbs = crumbsFor(state);
 
@@ -265,6 +291,13 @@ function App() {
           </nav>
         </div>
         <div className="actions">
+          <input ref={fileRef} type="file" accept=".csv,.xml" multiple style={{ display: "none" }} onChange={onUploadPick} />
+          <button className={"btn-import" + (upload && upload.busy ? " busy" : "")} onClick={openUpload} disabled={!!(upload && upload.busy)} aria-label="Import statements" title="Import VR Bank / PayPal exports">
+            {upload && upload.busy
+              ? <span className="btn-spin" aria-hidden="true" />
+              : <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 10.5 V2.5 M8 2.5 L5 5.5 M8 2.5 L11 5.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /><path d="M3 11 V13 H13 V11" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>}
+            <span>{upload && upload.busy ? "Importing…" : "Import"}</span>
+          </button>
           <button className="btn-back" onClick={back} disabled={history.length === 0} aria-label="Back">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3 L5 8 L10 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
             <span>Back</span>
@@ -291,27 +324,31 @@ function App() {
             {view.legend && <Legend series={view.chart.series} hidden={hidden} onToggle={toggleSeries} />}
           </div>
           <div className="chart-host">
-            <AnimatedChart {...view.chart} series={shownSeries} animKey={view.chart.animKey + "-" + theme + "-" + hiddenSig} theme={theme} onIndexClick={onIndexClick} />
+            <AnimatedChart {...view.chart} series={shownSeries} animKey={ak + "-" + theme + "-" + hiddenSig} theme={theme} onIndexClick={onIndexClick} />
           </div>
         </section>
 
         {view.panel.dual ? (
           <React.Fragment>
             <aside className="side-card">
-              <SideListPanel key={view.chart.animKey + "-exp"} title="Expenses" cap="spent" rows={view.panel.expenseRows} onPick={pickCategory} dir={dir} />
+              <SideListPanel key={ak + "-exp"} title="Expenses" cap="spent" rows={view.panel.expenseRows} onPick={pickCategory} dir={dir} />
             </aside>
             <aside className="side-card side-income">
-              <SideListPanel key={view.chart.animKey + "-inc"} title="Income" cap="received" rows={view.panel.incomeRows} onPick={pickIncome} dir={dir} />
+              <SideListPanel key={ak + "-inc"} title="Income" cap="received" rows={view.panel.incomeRows} onPick={pickIncome} dir={dir} />
             </aside>
           </React.Fragment>
         ) : (
           <aside className="side-card">
-            <SidePanel key={view.chart.animKey} view={view} dir={dir} pickMonth={pickMonth} openTxn={setDetailId} />
+            <SidePanel key={ak} view={view} dir={dir} pickMonth={pickMonth} openTxn={setDetailId} />
           </aside>
         )}
       </main>
 
       <TxnDetailModal id={detailId} onClose={() => setDetailId(null)} onChanged={onTxnRecategorized} />
+
+      {upload && !upload.busy && (
+        <div className={"import-toast " + (upload.ok ? "ok" : "err")} role="status">{upload.msg}</div>
+      )}
 
       {theme === "red" && (
         <div className="aresium-band" aria-hidden="true">

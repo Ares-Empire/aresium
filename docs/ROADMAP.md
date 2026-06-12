@@ -19,7 +19,8 @@ The modern, stylish part. **Next.js + Tailwind + shadcn/ui + Tremor**.
 - [ ] Income vs. expense + savings rate
 - [ ] Transaction table: search, filter, manually re-categorise
 - [ ] Account balances + combined net worth over time
-- [ ] **Upload button** in the UI that runs the importer (no terminal needed)
+- [x] **Upload button** in the UI that runs the importer (no terminal needed) — desktop
+      header + phone controls; POST /api/import → live morph to new totals
 - [ ] Deploy to Hetzner behind your domain (HTTPS via Caddy/Traefik)
 
 ## Phase 3 — Smart features

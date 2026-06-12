@@ -118,9 +118,9 @@
     );
   }
 
-  function MobileChart({ chart, theme }) {
+  function MobileChart({ chart, theme, iv }) {
     return (
-      <AnimatedChart {...chart} animKey={chart.animKey + "-" + theme} theme={theme} />
+      <AnimatedChart {...chart} animKey={chart.animKey + "-" + theme + "-i" + (iv || 0)} theme={theme} />
     );
   }
 
@@ -133,6 +133,9 @@
     const [graphOn, setGraphOn] = useState(false);     // reveal the chart
     const [detailId, setDetailId] = useState(null);
     const [dataVer, setDataVer] = useState(0);
+    const [importVer, setImportVer] = useState(0);     // bump after an upload to morph/re-reveal
+    const [upload, setUpload] = useState(null);        // { busy } | { msg, ok } | null
+    const fileRef = useRef(null);
     const prevTheme = useRef("dark");
     const busy = useRef(false);
     const colors = THEME_COLORS[theme];
@@ -166,6 +169,26 @@
     const pickFromStart = useCallback((s, c) => go({ screen: "category", cat: c.name, income: s === "income" }), [go]);
     const pickMonth = useCallback((m) => go({ screen: "categoryMonth", cat: nav.cat, income: nav.income, monthKey: m.key }), [go, nav]);
     const pickGraphMonth = useCallback((i) => go({ screen: "categoryMonth", cat: nav.cat, income: nav.income, monthKey: months[i].key }), [go, nav]);
+
+    // Upload bank/PayPal exports → server ingests + categorises → refresh + morph.
+    const openUpload = useCallback(() => { if (fileRef.current) fileRef.current.click(); }, []);
+    const onUploadPick = useCallback(async (e) => {
+      const files = e.target.files;
+      if (!files || !files.length) return;
+      setUpload({ busy: true });
+      try {
+        const data = await window.AresiumUpload.send(files);
+        await window.AresiumData.refresh();
+        setImportVer((v) => v + 1);
+        setDataVer((v) => v + 1);
+        setUpload({ msg: window.AresiumUpload.summarize(data), ok: true });
+      } catch (err) {
+        setUpload({ msg: (err && err.message) || "Import failed", ok: false });
+      } finally {
+        if (fileRef.current) fileRef.current.value = "";
+        setTimeout(() => setUpload((u) => (u && u.busy ? u : null)), 4600);
+      }
+    }, []);
 
     // After an inline recategorise: patch the in-memory txn + re-aggregate everywhere.
     const onRecat = useCallback((id, newCat) => {
@@ -254,9 +277,17 @@
                 <button className={"modeseg-btn" + (range === "overview" ? " on" : "")} onClick={() => setRange("overview")}>Overview</button>
               </div>
             ) : <span />}
-            <button className={"mob-icon-btn mob-graph-btn" + (graphOn ? " on" : "")} onClick={() => setGraphOn((v) => !v)} aria-pressed={graphOn} aria-label="Toggle graph">
-              <span dangerouslySetInnerHTML={{ __html: lucideSvg("TrendingUp") }} />
-            </button>
+            <div className="mob-ctl-right">
+              <input ref={fileRef} type="file" accept=".csv,.xml" multiple style={{ display: "none" }} onChange={onUploadPick} />
+              <button className={"mob-icon-btn mob-import-btn" + (upload && upload.busy ? " busy" : "")} onClick={openUpload} disabled={!!(upload && upload.busy)} aria-label="Import statements">
+                {upload && upload.busy
+                  ? <span className="mob-spin" aria-hidden="true" />
+                  : <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><path d="M8 10.5 V2.5 M8 2.5 L5 5.5 M8 2.5 L11 5.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /><path d="M3 11 V13 H13 V11" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>}
+              </button>
+              <button className={"mob-icon-btn mob-graph-btn" + (graphOn ? " on" : "")} onClick={() => setGraphOn((v) => !v)} aria-pressed={graphOn} aria-label="Toggle graph">
+                <span dangerouslySetInnerHTML={{ __html: lucideSvg("TrendingUp") }} />
+              </button>
+            </div>
           </div>
         )}
 
@@ -264,20 +295,20 @@
           {nav.screen === "start" && (
             <React.Fragment>
               <div className={"mob-graph" + (graphOn ? " on" : "")}>
-                <div className="mob-graph-host">{graphOn && <MobileChart chart={startChart} theme={theme} />}</div>
+                <div className="mob-graph-host">{graphOn && <MobileChart chart={startChart} theme={theme} iv={importVer} />}</div>
               </div>
               <div className="mob-dots" role="tablist" aria-label="Side">
                 <button className={"mob-dot" + (side === "expenses" ? " on" : "")} onClick={() => setSide("expenses")} aria-label="Expenses" />
                 <button className={"mob-dot" + (side === "income" ? " on" : "")} onClick={() => setSide("income")} aria-label="Income" />
               </div>
-              <StartSwipe side={side} setSide={setSide} expRows={expRows} incRows={incRows} colors={colors} rangeLabel={rangeLabel} onPick={pickFromStart} />
+              <StartSwipe key={"sw-i" + importVer} side={side} setSide={setSide} expRows={expRows} incRows={incRows} colors={colors} rangeLabel={rangeLabel} onPick={pickFromStart} />
             </React.Fragment>
           )}
 
           {nav.screen === "category" && (
             <div className="mob-drill">
               {graphOn
-                ? <div className="mob-cat-graph"><MobileChart chart={{ ...catChart, onIndexClick: pickGraphMonth }} theme={theme} /></div>
+                ? <div className="mob-cat-graph"><MobileChart chart={{ ...catChart, onIndexClick: pickGraphMonth }} theme={theme} iv={importVer} /></div>
                 : <MonthListPanel cat={catMeta} months={catMonths} onPick={pickMonth} />}
             </div>
           )}
@@ -294,6 +325,9 @@
         </button>
 
         <TxnDetailModal id={detailId} onClose={() => setDetailId(null)} onChanged={onRecat} />
+        {upload && !upload.busy && (
+          <div className={"import-toast " + (upload.ok ? "ok" : "err")} role="status">{upload.msg}</div>
+        )}
       </div>
     );
   }

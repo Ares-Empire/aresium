@@ -186,5 +186,26 @@
     return window.AresiumMockSource;
   }
 
-  window.AresiumData = buildAresiumData(loadSource());
+  // Build, then copy the result *onto* the existing window.AresiumData object (rather
+  // than replacing it) so the reference captured at module scope by app.jsx/mobile.jsx
+  // stays live. `refresh` is preserved across rebuilds.
+  function applySource(src) {
+    const built = buildAresiumData(src);
+    if (!window.AresiumData) window.AresiumData = {};
+    Object.keys(window.AresiumData).forEach((k) => {
+      if (k !== "refresh" && !(k in built)) delete window.AresiumData[k];
+    });
+    Object.assign(window.AresiumData, built);
+  }
+
+  // Re-pull live data after an import and rebuild in place. Callers bump their React
+  // version state afterwards so every screen re-aggregates + morphs to the new totals.
+  async function refresh() {
+    const res = await fetch("/api/data", { cache: "no-store" });
+    if (!res.ok) throw new Error("data refresh failed (" + res.status + ")");
+    applySource(await res.json());
+  }
+
+  applySource(loadSource());
+  window.AresiumData.refresh = refresh;
 })();
