@@ -7,11 +7,13 @@ Arestoteles repo: `docs/09-aresium-integration.md` and `docs/11-web-frontend.md`
 
 ## The decision (so future sessions don't relitigate it)
 
-- **Arestoteles is its own site**, at its own subdomain (`arestoteles.aresium.de`), in the **same
-  design language as Aresium** (the "Ares Empire": shared tokens, fonts, on-the-wall charts,
-  wordmark band, a dropping-wordmark intro). It is **not** a page rendered inside Aresium.
-- **Aresium hosts a compact Investments overview card** that deep-links into that site. That keeps
-  the "everything in one place" feel without owning Arestoteles' rich UI.
+- **Arestoteles is its own site**, at its **own domain `arestoteles.de`**, in the **same design
+  language as Aresium** (the "Ares Empire": shared tokens, fonts, on-the-wall charts, wordmark band,
+  a dropping intro). It is **not** a page rendered inside Aresium.
+- A **central Ares manager/hub** (adopted direction) is the empire's home — a launcher to each app
+  and the future SSO provider.
+- **Aresium hosts a compact Investments overview card** that deep-links into the Arestoteles site.
+  That keeps the "everything in one place" feel without owning Arestoteles' rich UI.
 - Data flows over a **read-only REST API** from Arestoteles (no shared DB). Aresium fetches it
   **server-side** so the bearer token never reaches the browser.
 
@@ -23,19 +25,21 @@ Arestoteles repo: `docs/09-aresium-integration.md` and `docs/11-web-frontend.md`
 2. **Investments overview card** on the overview screen — a glass `side-card` in the existing
    language showing: NAV, **today's P&L** + **since-inception P&L** (green `#34E27A` / red
    `var(--exp)`), a benchmark sparkline (SOXX), top-N positions, a **paper/live** chip, and a button
-   that opens `arestoteles.aresium.de`. Pulls `/portfolio` + `/positions` (5-min cache, fetch on
-   load). Until the brain trades (Arestoteles Phase 2) it shows a clean empty/paper state.
-3. **Ares switcher** — a small launcher (in the header) listing the Ares apps (Aresium,
-   Arestoteles, future ones). **Do not repurpose the top-left brand button** — single-click there
-   stays the red "Ares mode" intro. Add the switcher alongside it.
+   that opens `arestoteles.de`. Pulls `/portfolio` + `/positions` (5-min cache, fetch on load).
+   Until the brain trades (Arestoteles Phase 2) it shows a clean empty/paper state.
+3. **Ares switcher / hub link** — in the header, to the central Ares manager and sibling apps.
+   **Do not repurpose the top-left brand button** — single-click there stays the red "Ares mode"
+   intro. Add the switcher alongside it.
 
 ## Cross-app login (SSO) — the empire login
 
 Aresium's auth is an HMAC-signed session cookie (`src/web/auth.ts`, `AUTH_SESSION_SECRET`,
-HttpOnly+Secure+SameSite=Lax). To get **one login across all Ares apps**:
-- Scope the Aresium session cookie to the parent domain **`.aresium.de`** and share
-  `AUTH_SESSION_SECRET` with Arestoteles, which verifies the same signed cookie. One login, whole
-  empire. (Fallback: Arestoteles keeps its own independent login.)
+HttpOnly+Secure+SameSite=Lax). `aresium.de` and `arestoteles.de` are **separate registrable
+domains**, so a shared parent-domain cookie can't span them. SSO instead routes through the
+**central Ares manager as the identity provider**: sign in once at the hub, which mints a
+short-lived signed token each app exchanges (on redirect) for its own session cookie. Until the hub
+exists, each app keeps its **own independent login** (Arestoteles ports Aresium's scrypt+HMAC
+pattern).
 
 ## Deploy note (shared infra)
 

@@ -45,9 +45,9 @@ The AI stock manager (separate repo) joins the family. Full plan: `docs/INVESTME
 
 - [ ] Server-side typed client for the Arestoteles read-only API (`ARESTOTELES_URL` + token)
 - [ ] **Investments overview card** (NAV, daily & since-inception P&L, benchmark sparkline, top
-      positions, paper/live chip) deep-linking to `arestoteles.aresium.de`
-- [ ] **Ares switcher** in the header (don't touch the top-left red-mode brand button)
-- [ ] Optional empire **SSO**: scope the session cookie to `.aresium.de` + share the secret
+      positions, paper/live chip) deep-linking to `arestoteles.de`
+- [ ] **Ares switcher / hub link** in the header (don't touch the top-left red-mode brand button)
+- [ ] Empire **SSO** via the central Ares manager (token handoff; cross-domain, not a shared cookie)
 
 ---
 
