@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Aresium — Personal Finance</title>
+<title>Aresium</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg" />
 <link rel="apple-touch-icon" href="favicon.svg" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -323,6 +323,65 @@ button.txn-row:disabled { cursor: default; }
 .md-pick-nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .md-pick-cancel-btn { margin-top: 8px; font-size: 12px; font-weight: 600; color: var(--ink-3); border: 1px solid var(--line-soft); border-radius: 8px; padding: 4px 10px; transition: all .16s; }
 .md-pick-cancel-btn:hover { color: var(--ink); border-color: var(--ink-3); }
+.md-chip-tag { font-size: 12px; font-weight: 600; opacity: .92; }
+.txn-tag-badge { margin-left: 7px; font-size: 9.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); border: 1px solid var(--line-soft); border-radius: 5px; padding: 0 4px; vertical-align: middle; }
+
+/* ---------- recategorise window (Switch / Add) — opens on top of the detail modal ---------- */
+.recat-overlay {
+  position: fixed; inset: 0; z-index: 90; display: flex; align-items: center; justify-content: center;
+  padding: 24px; background: rgba(2,3,6,0.62);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  animation: md-fade .16s ease;
+}
+.recat-card {
+  position: relative; width: 100%; max-width: 600px; max-height: 88vh; overflow-y: auto;
+  border: 1px solid transparent; border-radius: var(--r-card);
+  background: linear-gradient(var(--card-2), var(--card-2)) padding-box, var(--glass-edge) border-box;
+  -webkit-backdrop-filter: blur(30px) saturate(150%); backdrop-filter: blur(30px) saturate(150%);
+  box-shadow: var(--shadow), inset 0 1px 0 var(--edge);
+  padding: 24px 24px 20px; scrollbar-width: thin; scrollbar-color: var(--line-soft) transparent;
+  animation: md-pop .2s cubic-bezier(.22,.7,.25,1);
+}
+.recat-head { padding: 2px 40px 14px 2px; border-bottom: 1px solid var(--line-soft); }
+.recat-place { font-size: 18px; font-weight: 700; letter-spacing: -0.025em; color: var(--ink); line-height: 1.25; }
+.recat-cur { display: flex; align-items: center; gap: 8px; margin-top: 9px; }
+.recat-seg {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin: 16px 0 12px;
+  padding: 4px; border-radius: 12px; background: var(--card); border: 1px solid var(--line-soft);
+}
+.recat-seg-btn {
+  padding: 9px 12px; border-radius: 9px; font-size: 13.5px; font-weight: 700; letter-spacing: .01em;
+  color: var(--ink-3); background: transparent; transition: all .16s;
+}
+.recat-seg-btn.on { color: var(--ink); background: var(--card-2); box-shadow: inset 0 0 0 1px var(--edge); }
+.recat-hint { font-size: 12.5px; line-height: 1.5; color: var(--ink-2); margin-bottom: 14px; min-height: 18px; }
+.recat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+@media (max-width: 520px) { .recat-grid { grid-template-columns: 1fr 1fr; } }
+.recat-pick {
+  position: relative; display: inline-flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 600; border: 1px solid; border-radius: 10px; padding: 9px 11px;
+  text-align: left; transition: filter .15s, transform .1s, box-shadow .15s; min-width: 0;
+}
+.recat-pick:hover:not(:disabled) { filter: brightness(1.28); }
+.recat-pick:active:not(:disabled) { transform: scale(.975); }
+.recat-pick.sel { box-shadow: 0 0 0 2px currentColor inset; }
+.recat-pick.cur { opacity: .85; }
+.recat-pick:disabled { cursor: default; }
+.recat-pick:disabled:not(.cur) { opacity: .5; }
+.recat-pick .md-pick-ic svg { width: 16px; height: 16px; stroke-width: 2; }
+.recat-pick .md-pick-nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
+.recat-check { flex: none; font-size: 12px; font-weight: 800; }
+.recat-tag-badge { flex: none; font-size: 9px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; opacity: .7; }
+.recat-err { margin-top: 12px; font-size: 12.5px; font-weight: 600; color: var(--exp); }
+.recat-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line-soft); }
+.recat-btn { font-size: 13px; font-weight: 700; border-radius: 10px; padding: 9px 16px; border: 1px solid var(--line-soft); transition: all .16s; }
+.recat-btn:disabled { opacity: .45; cursor: default; }
+.recat-btn.ghost { color: var(--ink-2); background: var(--card); }
+.recat-btn.ghost:hover:not(:disabled) { color: var(--ink); border-color: var(--ink-3); }
+.recat-btn.primary { color: #fff; background: var(--bal); border-color: transparent; }
+.recat-btn.primary:hover:not(:disabled) { filter: brightness(1.1); }
+.recat-btn.danger { color: var(--exp); background: transparent; border-color: color-mix(in srgb, var(--exp) 45%, transparent); }
+.recat-btn.danger:hover:not(:disabled) { background: color-mix(in srgb, var(--exp) 12%, transparent); }
 .modal-raw { margin-top: 14px; border-top: 1px solid var(--line-soft); padding-top: 12px; }
 .modal-raw summary { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); cursor: pointer; list-style: none; }
 .modal-raw summary::-webkit-details-marker { display: none; }
