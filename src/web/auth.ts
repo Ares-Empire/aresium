@@ -18,6 +18,14 @@ const SESSION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 const HASH = process.env.AUTH_PASSWORD_HASH ?? "";
 const SECRET = process.env.AUTH_SESSION_SECRET ?? "";
 
+// ── Empire SSO (verifier) ──────────────────────────────────────────────────
+// Accept a short-lived, HMAC-signed token minted by the Ares Empire hub (shared SSO_SECRET,
+// audience-bound to this province) and start a normal aresium_session from it — no re-login.
+// The empire's `exp` is a UNIX time in SECONDS, so compare against Date.now()/1000.
+const SSO_SECRET = process.env.SSO_SECRET ?? "";
+const SSO_AUD = "aresium";
+const ssoSign = (payload: string) => createHmac("sha256", SSO_SECRET).update(payload).digest("base64url");
+
 /** Auth is enforced only when a password hash AND a signing secret are configured. */
 export function authEnabled(): boolean {
   return HASH.length > 0 && SECRET.length > 0;
@@ -56,6 +64,22 @@ export function sessionCookie(): string {
 /** A Set-Cookie value that clears the session (logout). */
 export function clearCookie(): string {
   return `${COOKIE_NAME}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`;
+}
+
+/** True if `token` is a valid, unexpired empire SSO token addressed to this province. */
+export function ssoVerify(token: string | undefined): boolean {
+  if (!SSO_SECRET || !token || !token.includes(".")) return false;
+  const dot = token.lastIndexOf(".");
+  const payload = token.slice(0, dot);
+  const sig = token.slice(dot + 1);
+  const a = Buffer.from(sig), b = Buffer.from(ssoSign(payload));
+  if (a.length !== b.length || !timingSafeEqual(a, b)) return false;
+  try {
+    const { aud, exp } = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as { aud?: string; exp?: number };
+    return aud === SSO_AUD && typeof exp === "number" && Date.now() < exp * 1000;
+  } catch {
+    return false;
+  }
 }
 
 /** True if the request carries a valid, unexpired, correctly-signed session cookie. */

@@ -8,10 +8,10 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join, normalize, extname } from "node:path";
 import { prisma } from "../lib/db.js";
-import { getDashboardData, getTransactionDetail, recategorizeTransaction } from "../data/queries.js";
+import { getDashboardData, getTransactionDetail, recategorizeTransaction, setTransactionTags } from "../data/queries.js";
 import { importContent } from "../import/core.js";
 import { categorizeAll } from "../sync/categorize.js";
-import { authEnabled, hasValidSession, verifyPassword, sessionCookie, clearCookie } from "./auth.js";
+import { authEnabled, hasValidSession, verifyPassword, sessionCookie, clearCookie, ssoVerify } from "./auth.js";
 import { loginPage } from "./login-page.js";
 
 // `max` caps the buffered body (bytes); on overflow the request is destroyed and the
@@ -73,6 +73,17 @@ const server = createServer(async (req, res) => {
       res.end();
       return;
     }
+    // Empire SSO hand-off: a valid token from the hub starts a session with no second login.
+    // Must stay reachable before the gate (like /login). Invalid/expired → normal login page.
+    if (url.pathname === "/sso" && req.method === "GET") {
+      if (ssoVerify(url.searchParams.get("token") ?? undefined)) {
+        res.writeHead(303, { "Set-Cookie": sessionCookie(), Location: "/" });
+      } else {
+        res.writeHead(303, { Location: "/login" });
+      }
+      res.end();
+      return;
+    }
     // gate every other route once auth is configured
     if (authEnabled() && !hasValidSession(req.headers.cookie)) {
       if (url.pathname.startsWith("/api/")) {
@@ -131,6 +142,26 @@ const server = createServer(async (req, res) => {
       try { category = JSON.parse(await readBody(req)).category; } catch { /* invalid body */ }
       if (!id || !category) { res.writeHead(400, headers); res.end(JSON.stringify({ error: "id and category required" })); return; }
       const result = await recategorizeTransaction(id, category);
+      if ("error" in result) {
+        res.writeHead(result.error === "not found" ? 404 : 400, headers);
+        res.end(JSON.stringify({ error: result.error }));
+        return;
+      }
+      res.writeHead(200, headers);
+      res.end(JSON.stringify(result.detail));
+      return;
+    }
+
+    // POST /api/transaction/:id/tags  → "Add" the txn into extra categories (secondary
+    // views, never re-summed into totals). { categories: string[], dropCurrent?: bool }.
+    // dropCurrent moves it out of its current primary into categories[0] + tags the rest.
+    if (req.method === "POST" && url.pathname.startsWith("/api/transaction/") && url.pathname.endsWith("/tags")) {
+      const id = decodeURIComponent(url.pathname.slice("/api/transaction/".length, -"/tags".length));
+      const headers = { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" };
+      let categories: unknown, dropCurrent = false;
+      try { const b = JSON.parse(await readBody(req)); categories = b.categories; dropCurrent = !!b.dropCurrent; } catch { /* invalid body */ }
+      if (!id || !Array.isArray(categories)) { res.writeHead(400, headers); res.end(JSON.stringify({ error: "id and categories required" })); return; }
+      const result = await setTransactionTags(id, categories as string[], dropCurrent);
       if ("error" in result) {
         res.writeHead(result.error === "not found" ? 404 : 400, headers);
         res.end(JSON.stringify({ error: result.error }));
