@@ -14,3 +14,6 @@ imports/*
 tools/blender/render/
 tools/blender/cache_fluid/
 tools/blender/_check/
+
+# database dumps — never commit (contains finance data)
+*.dump
