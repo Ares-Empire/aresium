@@ -35,19 +35,13 @@
   };
 
   function MobLogo() {
-    return (
-      <svg width="24" height="24" viewBox="0 0 26 26" fill="none">
-        <rect x="1.5" y="1.5" width="23" height="23" rx="7" stroke="currentColor" strokeWidth="1.6" opacity="0.5" />
-        <path d="M6 17 L11 9 L15 14 L20 6.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <circle cx="20" cy="6.5" r="2.1" fill="currentColor" />
-      </svg>
-    );
+    // The Hermes bust — the Aresium mark across the empire.
+    return <img src="brand/hermes.png" width="24" height="24" alt="Aresium" />;
   }
 
   // One side's category wall (Expenses or Income) — header with the side total, then
   // the reused CategoryListPanel. Two of these live in the swipe track side-by-side.
-  function StartPage({ side, name, cap, rows, color, rangeLabel, onPick }) {
-    const total = rows.reduce((s, r) => s + r.total, 0);
+  function StartPage({ side, name, cap, rows, total, color, rangeLabel, onPick }) {
     return (
       <div className="mob-page">
         <div className="mob-page-head">
@@ -64,7 +58,7 @@
 
   // Swipeable Expenses ↔ Income. Horizontal drags slide the track; vertical drags fall
   // through to the list's native scroll (touch-action: pan-y + an axis-lock on first move).
-  function StartSwipe({ side, setSide, expRows, incRows, colors, rangeLabel, onPick }) {
+  function StartSwipe({ side, setSide, expRows, incRows, expTotal, incTotal, colors, rangeLabel, onPick }) {
     const wrapRef = useRef(null);
     const [pageW, setPageW] = useState(0);
     const [drag, setDrag] = useState(0);
@@ -111,8 +105,8 @@
       <div ref={wrapRef} className="mob-swipe"
         onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
         <div className={"mob-track" + (dragging ? " drag" : "")} style={{ transform: `translateX(${base + drag}px)` }}>
-          <StartPage side="expenses" name="Expenses" cap="spent" rows={expRows} color={colors.exp} rangeLabel={rangeLabel} onPick={onPick} />
-          <StartPage side="income" name="Income" cap="received" rows={incRows} color={INC} rangeLabel={rangeLabel} onPick={onPick} />
+          <StartPage side="expenses" name="Expenses" cap="spent" rows={expRows} total={expTotal} color={colors.exp} rangeLabel={rangeLabel} onPick={onPick} />
+          <StartPage side="income" name="Income" cap="received" rows={incRows} total={incTotal} color={INC} rangeLabel={rangeLabel} onPick={onPick} />
         </div>
       </div>
     );
@@ -190,16 +184,21 @@
       }
     }, []);
 
-    // After an inline recategorise: patch the in-memory txn + re-aggregate everywhere.
-    const onRecat = useCallback((id, newCat) => {
+    // After a category change (Switch / Add): patch the in-memory txn's primary category
+    // AND its secondary tags, then re-aggregate everywhere. `detail` = updated API record.
+    const onRecat = useCallback((detail) => {
+      if (!detail) return;
       const arr = D.transactions;
-      if (arr) { const t = arr.find((x) => x.id === id); if (t) t.categoryName = newCat; }
+      if (arr) { const t = arr.find((x) => x.id === detail.id); if (t) { t.categoryName = detail.category; t.tags = detail.tags || []; } }
       setDataVer((v) => v + 1);
     }, []);
 
     // ---- derive the rows / chart for the current screen ----
     const expRows = useMemo(() => (range === "current" ? D.categoryTotalsMonth(curKey) : D.categoryTotalsAll()), [range, dataVer]);
     const incRows = useMemo(() => (range === "current" ? D.incomeTotalsMonth(curKey) : D.incomeTotalsAll()), [range, dataVer]);
+    // primary-only money figures for the side headers (rows can overlap via "Add" tags)
+    const expTotal = useMemo(() => (range === "current" ? D.expenseTotal(curKey) : D.expenseTotal(null)), [range, dataVer]);
+    const incTotal = useMemo(() => (range === "current" ? D.incomeTotalPrimary(curKey) : D.incomeTotalPrimary(null)), [range, dataVer]);
     const rangeLabel = range === "current"
       ? months[months.length - 1].label
       : `${months[0].label} – ${months[months.length - 1].label}`;
@@ -306,7 +305,7 @@
                 <button className={"mob-dot" + (side === "expenses" ? " on" : "")} onClick={() => setSide("expenses")} aria-label="Expenses" />
                 <button className={"mob-dot" + (side === "income" ? " on" : "")} onClick={() => setSide("income")} aria-label="Income" />
               </div>
-              <StartSwipe key={"sw-i" + importVer} side={side} setSide={setSide} expRows={expRows} incRows={incRows} colors={colors} rangeLabel={rangeLabel} onPick={pickFromStart} />
+              <StartSwipe key={"sw-i" + importVer} side={side} setSide={setSide} expRows={expRows} incRows={incRows} expTotal={expTotal} incTotal={incTotal} colors={colors} rangeLabel={rangeLabel} onPick={pickFromStart} />
             </React.Fragment>
           )}
 

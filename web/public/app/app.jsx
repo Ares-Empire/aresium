@@ -32,7 +32,8 @@ function buildScreen(state, colors) {
       },
       legend: true,
       panel: { dual: true, kicker: "By category",
-        expenseRows: D.categoryTotalsAll(), incomeRows: D.incomeTotalsAll() },
+        expenseRows: D.categoryTotalsAll(), incomeRows: D.incomeTotalsAll(),
+        expenseTotal: D.expenseTotal(null), incomeTotal: D.incomeTotalPrimary(null) },
     };
   }
   if (screen === "month") {
@@ -49,7 +50,8 @@ function buildScreen(state, colors) {
       },
       legend: true,
       panel: { dual: true, kicker: mo.label,
-        expenseRows: D.categoryTotalsMonth(monthKey), incomeRows: D.incomeTotalsMonth(monthKey) },
+        expenseRows: D.categoryTotalsMonth(monthKey), incomeRows: D.incomeTotalsMonth(monthKey),
+        expenseTotal: D.expenseTotal(monthKey), incomeTotal: D.incomeTotalPrimary(monthKey) },
     };
   }
   if (screen === "category") {
@@ -125,10 +127,11 @@ function SidePanel({ view, dir, pickMonth, openTxn }) {
 
 // One side list with its own header + total — used twice (Expenses, Income) on the
 // overview/month screens so both are visible at once.
-function SideListPanel({ title, cap, rows, onPick, dir }) {
+function SideListPanel({ title, cap, rows, total, onPick, dir }) {
   const [shown, setShown] = useS(false);
   useE(() => { const id = setTimeout(() => setShown(true), 20); return () => clearTimeout(id); }, []);
-  const total = rows.reduce((s, r) => s + r.total, 0);
+  // `total` is the primary-only money figure (real spend/income). It is passed in rather
+  // than summed from `rows` because rows may include "Add"-tagged overlaps across categories.
   return (
     <div className={`panel ${dir > 0 ? "fwd" : "back"} ${shown ? "in" : ""}`}>
       <div className="panel-head">
@@ -141,13 +144,8 @@ function SideListPanel({ title, cap, rows, onPick, dir }) {
 }
 
 function Logo() {
-  return (
-    <svg className="logo" width="26" height="26" viewBox="0 0 26 26" fill="none">
-      <rect x="1.5" y="1.5" width="23" height="23" rx="7" stroke="currentColor" strokeWidth="1.6" opacity="0.5" />
-      <path d="M6 17 L11 9 L15 14 L20 6.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="20" cy="6.5" r="2.1" fill="currentColor" />
-    </svg>
-  );
+  // The Hermes bust — the Aresium mark across the empire.
+  return <img className="logo" src="brand/hermes.png" width="26" height="26" alt="Aresium" />;
 }
 
 function App() {
@@ -232,11 +230,13 @@ function App() {
   }, [state, go]);
   const pickMonth = useC((m) => go({ screen: "categoryMonth", cat: state.cat, monthKey: m.key, from: "category", income: state.income }), [state, go]);
 
-  // After an inline category change: patch the in-memory transaction and re-aggregate
-  // so every screen (lists, totals, charts) reflects it without a page reload.
-  const onTxnRecategorized = useC((id, newCat) => {
+  // After a category change (Switch / Add): patch the in-memory transaction's primary
+  // category AND its secondary tags, then re-aggregate so every screen reflects it without
+  // a page reload. `detail` is the updated record returned by the API.
+  const onTxnRecategorized = useC((detail) => {
+    if (!detail) return;
     const arr = window.AresiumData && window.AresiumData.transactions;
-    if (arr) { const t = arr.find((x) => x.id === id); if (t) t.categoryName = newCat; }
+    if (arr) { const t = arr.find((x) => x.id === detail.id); if (t) { t.categoryName = detail.category; t.tags = detail.tags || []; } }
     setDataVer((v) => v + 1);
   }, []);
 
@@ -334,10 +334,10 @@ function App() {
         {view.panel.dual ? (
           <React.Fragment>
             <aside className="side-card">
-              <SideListPanel key={ak + "-exp"} title="Expenses" cap="spent" rows={view.panel.expenseRows} onPick={pickCategory} dir={dir} />
+              <SideListPanel key={ak + "-exp"} title="Expenses" cap="spent" rows={view.panel.expenseRows} total={view.panel.expenseTotal} onPick={pickCategory} dir={dir} />
             </aside>
             <aside className="side-card side-income">
-              <SideListPanel key={ak + "-inc"} title="Income" cap="received" rows={view.panel.incomeRows} onPick={pickIncome} dir={dir} />
+              <SideListPanel key={ak + "-inc"} title="Income" cap="received" rows={view.panel.incomeRows} total={view.panel.incomeTotal} onPick={pickIncome} dir={dir} />
             </aside>
           </React.Fragment>
         ) : (
