@@ -36,7 +36,7 @@
 
   function MobLogo() {
     // The Hermes bust — the Aresium mark across the empire.
-    return <img src="brand/hermes.png" width="24" height="24" alt="Aresium" />;
+    return <img src="brand/hermes.png" width="34" height="34" alt="Aresium" />;
   }
 
   // One side's category wall (Expenses or Income) — header with the side total, then

@@ -145,7 +145,7 @@ function SideListPanel({ title, cap, rows, total, onPick, dir }) {
 
 function Logo() {
   // The Hermes bust — the Aresium mark across the empire.
-  return <img className="logo" src="brand/hermes.png" width="26" height="26" alt="Aresium" />;
+  return <img className="logo" src="brand/hermes.png" width="38" height="38" alt="Aresium" />;
 }
 
 function App() {
