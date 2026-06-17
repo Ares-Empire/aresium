@@ -85,7 +85,7 @@ function TxnRow({ t, index, onOpen }) {
       onClick={() => t.id && onOpen(t.id)} disabled={!t.id}>
       <span className="txn-day"><span className="txn-day-n">{t.day}</span></span>
       <span className="txn-main">
-        <span className="txn-place">{t.place}</span>
+        <span className="txn-place">{t.place}{t.tagged && <span className="txn-tag-badge" title={"Added here · counted in " + t.categoryName}>tag</span>}</span>
         <span className="txn-city">{t.city}</span>
       </span>
       <span className="txn-amt" style={{ color: t.amount < 0 ? "var(--exp)" : INC_GREEN }}>
@@ -148,12 +148,11 @@ function TabbedPanel({ kicker, active, onTab, expenseRows, incomeRows, onPickExp
 function TxnDetailModal({ id, onClose, onChanged }) {
   const [data, setData] = React.useState(null);
   const [err, setErr] = React.useState(false);
-  const [editing, setEditing] = React.useState(false);
-  const [saving, setSaving] = React.useState(false);
+  const [recat, setRecat] = React.useState(false); // separate recategorise window open?
 
   React.useEffect(() => {
     if (!id) return;
-    setData(null); setErr(false); setEditing(false);
+    setData(null); setErr(false); setRecat(false);
     let alive = true;
     fetch("/api/transaction/" + encodeURIComponent(id))
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
@@ -171,18 +170,9 @@ function TxnDetailModal({ id, onClose, onChanged }) {
 
   if (!id) return null;
 
-  const changeCategory = (name) => {
-    if (saving || !data || name === data.category) { setEditing(false); return; }
-    setSaving(true);
-    fetch("/api/transaction/" + encodeURIComponent(data.id) + "/category", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ category: name }),
-    })
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((d) => { setData(d); setEditing(false); if (onChanged) onChanged(d.id, d.category); })
-      .catch(() => {})
-      .finally(() => setSaving(false));
-  };
+  // Called by the separate recategorise window after a successful Switch/Add: refresh the
+  // detail shown here and let the app patch its in-memory copy + re-aggregate every screen.
+  const onApplied = (d) => { setData(d); if (onChanged) onChanged(d); };
   // Picker shows only the side that matches the item: a positive (income) txn
   // moves among income categories, a negative (expense) txn among spending ones —
   // each in the same order as its tab.
@@ -217,6 +207,7 @@ function TxnDetailModal({ id, onClose, onChanged }) {
   ].filter(([, v]) => v !== null && v !== undefined && v !== "") : [];
 
   return (
+    <React.Fragment>
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
         <button className="modal-close" onClick={onClose} aria-label="Close">✕</button>
@@ -235,31 +226,27 @@ function TxnDetailModal({ id, onClose, onChanged }) {
               <div className="md-row">
                 <span className="md-label">Category</span>
                 <span className="md-value">
-                  {!editing ? (
-                    <span className="md-cat-display">
-                      <span className="md-chip" style={{ color: data.categoryColor, background: data.categoryColor + "1f", border: "1px solid " + data.categoryColor + "33" }}>{data.category}</span>
-                      {data.categorySource ? <span className="md-sub"> via {data.categorySource}</span> : null}
-                      {pickList.length > 0 && <button className="md-edit" onClick={() => setEditing(true)}>Change</button>}
-                    </span>
-                  ) : (
-                    <div className="md-picker">
-                      <div className="md-picker-head">Move to {isIncomeItem ? "income" : "spending"} category</div>
-                      <div className="md-picker-grid">
-                        {pickList.map((c) => (
-                          <button key={c.name} disabled={saving}
-                            className={"md-pick" + (c.name === data.category ? " cur" : "")}
-                            style={{ color: c.color, borderColor: c.color + "55", background: c.color + "14" }}
-                            onClick={() => changeCategory(c.name)}>
-                            <span className="md-pick-ic" dangerouslySetInnerHTML={{ __html: window.lucideSvg(c.icon) }} />
-                            <span className="md-pick-nm">{c.name}</span>
-                          </button>
-                        ))}
-                      </div>
-                      <button className="md-pick-cancel-btn" disabled={saving} onClick={() => setEditing(false)}>Cancel</button>
-                    </div>
-                  )}
+                  <span className="md-cat-display">
+                    <span className="md-chip" style={{ color: data.categoryColor, background: data.categoryColor + "1f", border: "1px solid " + data.categoryColor + "33" }}>{data.category}</span>
+                    {data.categorySource ? <span className="md-sub"> via {data.categorySource}</span> : null}
+                    {pickList.length > 0 && <button className="md-edit" onClick={() => setRecat(true)}>Change</button>}
+                  </span>
                 </span>
               </div>
+              {data.tags && data.tags.length > 0 && (
+                <div className="md-row">
+                  <span className="md-label">Also in</span>
+                  <span className="md-value">
+                    <span className="md-cat-display">
+                      {data.tags.map((nm) => {
+                        const tc = (window.AresiumData && window.AresiumData.catByName && window.AresiumData.catByName[nm]) || {};
+                        const col = tc.color || data.categoryColor;
+                        return <span key={nm} className="md-chip md-chip-tag" style={{ color: col, background: col + "16", border: "1px solid " + col + "33" }}>{nm}</span>;
+                      })}
+                    </span>
+                  </span>
+                </div>
+              )}
               {data.account && (
                 <div className="md-row">
                   <span className="md-label">Account</span>
@@ -288,6 +275,126 @@ function TxnDetailModal({ id, onClose, onChanged }) {
             )}
           </React.Fragment>
         )}
+      </div>
+    </div>
+    {recat && data && (
+      <RecategorizeModal data={data} pickList={pickList} isIncomeItem={isIncomeItem}
+        onClose={() => setRecat(false)} onApplied={onApplied} />
+    )}
+    </React.Fragment>
+  );
+}
+
+// ---- Separate recategorise window (opens on top of the detail modal) ---------
+// One window, one segmented toggle:
+//   Switch — the txn is in the wrong category; move it to a single new one.
+//   Add    — keep it where it is but also surface it under other categories. The money is
+//            never double-counted (its primary category still owns it for all totals); the
+//            extra categories just also list it. "Save & remove from current" instead moves
+//            it out of its current category entirely, into the selected ones.
+function RecategorizeModal({ data, pickList, isIncomeItem, onClose, onApplied }) {
+  const [mode, setMode] = React.useState("switch"); // "switch" | "add"
+  const [target, setTarget] = React.useState(null); // switch: chosen category name
+  const [extras, setExtras] = React.useState(() => new Set(data.tags || [])); // add: selected extra categories
+  const [saving, setSaving] = React.useState(false);
+  const [err, setErr] = React.useState(false);
+
+  React.useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape" && !saving) onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose, saving]);
+
+  const current = data.category;
+  const toggleExtra = (name) => setExtras((s) => {
+    const n = new Set(s); n.has(name) ? n.delete(name) : n.add(name); return n;
+  });
+
+  const submit = (url, body) => {
+    setSaving(true); setErr(false);
+    fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d) => { onApplied(d); onClose(); })
+      .catch(() => { setErr(true); setSaving(false); });
+  };
+  const doSwitch = () => {
+    if (!target || target === current) return;
+    submit("/api/transaction/" + encodeURIComponent(data.id) + "/category", { category: target });
+  };
+  const doAdd = (dropCurrent) => {
+    const categories = [...extras];
+    if (dropCurrent && categories.length === 0) return;
+    submit("/api/transaction/" + encodeURIComponent(data.id) + "/tags", { categories, dropCurrent });
+  };
+
+  const switchReady = !!target && target !== current;
+  const addExtras = [...extras].filter((n) => n !== current);
+
+  return (
+    <div className="recat-overlay" onClick={() => { if (!saving) onClose(); }}>
+      <div className="recat-card" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+        <button className="modal-close" onClick={onClose} aria-label="Close" disabled={saving}>✕</button>
+
+        <div className="recat-head">
+          <div className="recat-place">{data.place}</div>
+          <div className="recat-cur">
+            <span className="md-sub">Currently in</span>
+            <span className="md-chip" style={{ color: data.categoryColor, background: data.categoryColor + "1f", border: "1px solid " + data.categoryColor + "33" }}>{current}</span>
+          </div>
+        </div>
+
+        <div className="recat-seg" role="tablist" aria-label="Mode">
+          <button className={"recat-seg-btn" + (mode === "switch" ? " on" : "")} role="tab" aria-selected={mode === "switch"} onClick={() => setMode("switch")}>Switch</button>
+          <button className={"recat-seg-btn" + (mode === "add" ? " on" : "")} role="tab" aria-selected={mode === "add"} onClick={() => setMode("add")}>Add</button>
+        </div>
+
+        <div className="recat-hint">
+          {mode === "switch"
+            ? "Wrong category? Pick the one it belongs in — it moves there."
+            : "Also show this under other categories. It stays counted once (in " + current + "), so nothing is double-counted."}
+        </div>
+
+        <div className="recat-grid">
+          {pickList.map((c) => {
+            const isCurrent = c.name === current;
+            const selected = mode === "switch" ? c.name === target : extras.has(c.name);
+            const onClick = mode === "switch"
+              ? () => setTarget(c.name)
+              : () => { if (!isCurrent) toggleExtra(c.name); };
+            return (
+              <button key={c.name} disabled={saving || (mode === "add" && isCurrent)}
+                className={"recat-pick" + (selected ? " sel" : "") + (isCurrent ? " cur" : "")}
+                style={{ color: c.color, borderColor: c.color + (selected ? "" : "55"), background: c.color + (selected ? "2a" : "14") }}
+                onClick={onClick}>
+                <span className="md-pick-ic" dangerouslySetInnerHTML={{ __html: window.lucideSvg(c.icon) }} />
+                <span className="md-pick-nm">{c.name}</span>
+                {isCurrent && <span className="recat-tag-badge">current</span>}
+                {!isCurrent && selected && <span className="recat-check" aria-hidden="true">✓</span>}
+              </button>
+            );
+          })}
+        </div>
+
+        {err && <div className="recat-err">Couldn’t save — please try again.</div>}
+
+        <div className="recat-actions">
+          <button className="recat-btn ghost" onClick={onClose} disabled={saving}>Cancel</button>
+          {mode === "switch" ? (
+            <button className="recat-btn primary" onClick={doSwitch} disabled={saving || !switchReady}>
+              {saving ? "Saving…" : "Save"}
+            </button>
+          ) : (
+            <React.Fragment>
+              <button className="recat-btn danger" onClick={() => doAdd(true)} disabled={saving || addExtras.length === 0}
+                title="Move this transaction out of its current category and into the selected ones">
+                Save & remove from current
+              </button>
+              <button className="recat-btn primary" onClick={() => doAdd(false)} disabled={saving}>
+                {saving ? "Saving…" : "Save"}
+              </button>
+            </React.Fragment>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -36,7 +36,7 @@ type TxnWithCat = Awaited<ReturnType<typeof fetchWithCategory>>[number];
 function fetchWithCategory(where: object) {
   return prisma.transaction.findMany({
     where,
-    include: { category: true },
+    include: { category: true, tags: { include: { category: true } } },
     orderBy: { bookingDate: "asc" },
   });
 }
@@ -227,6 +227,7 @@ export async function getDashboardData() {
     date: ymd(t.bookingDate),
     amount: Number(t.amount),
     categoryName: t.category?.name ?? "Uncategorised",
+    tags: t.tags.map((tt) => tt.category.name), // extra ("Add") categories — shown there, never re-summed into totals
     place: t.counterparty || t.description,
     city: t.city ?? "",
   }));
@@ -281,7 +282,7 @@ export async function getDashboardData() {
 export async function getTransactionDetail(id: string) {
   const t = await prisma.transaction.findUnique({
     where: { id },
-    include: { category: true, account: true },
+    include: { category: true, account: true, tags: { include: { category: true } } },
   });
   if (!t) return null;
   const catName = t.category?.name ?? "Uncategorised";
@@ -296,6 +297,7 @@ export async function getTransactionDetail(id: string) {
     balance: t.balance != null ? Number(t.balance) : null,
     category: catName,
     categoryColor: accent,
+    tags: t.tags.map((tt) => tt.category.name), // secondary ("Add") categories
     categorySource: t.categorySource, // rule | llm | manual
     categorized: t.categorized,
     description: t.description,
@@ -342,5 +344,67 @@ export async function recategorizeTransaction(id: string, categoryName: string) 
       }),
     ]);
   }
+  return { detail: await getTransactionDetail(id) };
+}
+
+// "Add" the transaction into extra categories so it ALSO shows under them, without
+// double-counting: the primary categoryId still owns the money for every total/chart;
+// these tag rows only widen where the transaction appears. Two behaviours:
+//   dropCurrent=false → keep the current primary, set the tag set to `categoryNames`.
+//   dropCurrent=true  → move the transaction OUT of its current category entirely:
+//                       categoryNames[0] becomes the new primary, the rest become tags.
+export async function setTransactionTags(id: string, categoryNames: string[], dropCurrent: boolean) {
+  const t = await prisma.transaction.findUnique({ where: { id }, include: { category: true } });
+  if (!t) return { error: "not found" as const };
+
+  // Resolve requested names → categories (case-insensitive), preserving request order + uniqueness.
+  const wanted: { name: string; id: string }[] = [];
+  const seen = new Set<string>();
+  for (const raw of categoryNames) {
+    const cat = await prisma.category.findFirst({ where: { name: { equals: raw, mode: "insensitive" } } });
+    if (cat && !seen.has(cat.id)) { seen.add(cat.id); wanted.push({ name: cat.name, id: cat.id }); }
+  }
+
+  const ops: any[] = [];
+  if (dropCurrent) {
+    if (wanted.length === 0) return { error: "no categories" as const };
+    const [primary, ...rest] = wanted;
+    if (primary.id !== t.categoryId) {
+      ops.push(
+        prisma.transaction.update({
+          where: { id },
+          data: { categoryId: primary.id, categorized: true, categorySource: "manual" },
+        }),
+        prisma.categoryCorrection.create({
+          data: {
+            transactionId: id,
+            merchant: t.counterparty || t.description,
+            fromCategory: t.category?.name ?? null,
+            toCategory: primary.name,
+            fromSource: t.categorySource ?? null,
+          },
+        }),
+      );
+    }
+    ops.push(prisma.transactionTag.deleteMany({ where: { transactionId: id } }));
+    if (rest.length) {
+      ops.push(prisma.transactionTag.createMany({
+        data: rest.map((c) => ({ transactionId: id, categoryId: c.id })),
+        skipDuplicates: true,
+      }));
+    }
+  } else {
+    // Keep current primary; replace tag set with the requested extras (never tag the primary itself).
+    const extras = wanted.filter((c) => c.id !== t.categoryId);
+    ops.push(prisma.transactionTag.deleteMany({ where: { transactionId: id } }));
+    if (extras.length) {
+      ops.push(prisma.transactionTag.createMany({
+        data: extras.map((c) => ({ transactionId: id, categoryId: c.id })),
+        skipDuplicates: true,
+      }));
+    }
+  }
+
+  await prisma.$transaction(ops);
   return { detail: await getTransactionDetail(id) };
 }

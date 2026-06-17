@@ -17,3 +17,5 @@ tools/blender/_check/
 
 # database dumps — never commit (contains finance data)
 *.dump
+
+__pycache__/

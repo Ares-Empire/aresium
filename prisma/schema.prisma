@@ -40,6 +40,7 @@ model Transaction {
   counterparty String?
   category       Category? @relation(fields: [categoryId], references: [id])
   categoryId     String?
+  tags           TransactionTag[] // extra ("Add") categories this txn also shows under; never double-counted in totals
   categorized    Boolean   @default(false)
   categorySource String? // rule | llm | manual — manual/llm are never overwritten by rules
   recurring      Boolean   @default(false) // tagged by recurring-payment detection (a view, not a 2nd category)
@@ -64,6 +65,23 @@ model Category {
   excludeFromTotals Boolean        @default(false) // transfers/investments: stored but kept out of spending/income graphs
   rules             CategoryRule[]
   transactions      Transaction[]
+  tagged            TransactionTag[] // transactions "Add"-ed into this category as a secondary view
+}
+
+// Secondary category memberships ("Add" in the recategorise window). A transaction's
+// money is owned by exactly one primary Category (Transaction.categoryId) for all
+// totals/charts — these tag rows only make it ALSO appear under another category's own
+// breakdown (list + that category's own total), so the global total is never inflated.
+model TransactionTag {
+  id            String      @id @default(cuid())
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  transactionId String
+  category      Category    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId    String
+  createdAt     DateTime    @default(now())
+
+  @@unique([transactionId, categoryId])
+  @@index([categoryId])
 }
 
 model CategoryRule {
