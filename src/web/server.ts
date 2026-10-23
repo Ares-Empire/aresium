@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join, normalize, extname, resolve } from "node:path";
 import { prisma } from "../lib/db.js";
 import { buildDashboard } from "../data/dashboard.js";
+import { pulseLine } from "../data/pulse.js";
 import { getDashboardSource, getTransactionDetail, recategorizeTransaction, setTransactionTags } from "../data/queries.js";
 import { importContent } from "../import/core.js";
 import { categorizeAll } from "../sync/categorize.js";
@@ -99,6 +100,14 @@ export async function handleRequest(req: IncomingMessage, res: ServerResponse): 
       } else {
         redirect("/login");
       }
+      return;
+    }
+
+    if (url.pathname === "/api/pulse") {
+      // One line for the Empire hub's Aresium card (docs/API-DATA.md); same numbers as /api/data.
+      const line = pulseLine(buildDashboard(await getDashboardSource()), new Date());
+      res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+      res.end(JSON.stringify({ line }));
       return;
     }
 

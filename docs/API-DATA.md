@@ -109,6 +109,8 @@ After a change (import, recategorise, tags) clients fetch `/api/data` again.
 
 ## Other routes the clients use
 
+- `GET /api/pulse`: `{line}`, one line for the Empire hub's Aresium card: this calendar month's spending
+  ("€1,339 spent in October") or "Nothing imported for November yet" (`src/data/pulse.ts`).
 - `GET /api/transaction/:id`: one transaction's full record (`getTransactionDetail` in `src/data/queries.ts`).
 - `POST /api/transaction/:id/category` `{category}`: move it to one category (Switch). Returns the detail.
 - `POST /api/transaction/:id/tags` `{categories, dropCurrent}`: also list it under these categories (Add);
