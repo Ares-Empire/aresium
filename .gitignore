@@ -22,3 +22,6 @@ __pycache__/
 
 # Personal settings (names, home towns) — never commit
 config/personal.json
+
+# Codex run outputs (final messages)
+codex-runs/
