@@ -74,6 +74,10 @@ function page(content: string): string {
 
 const errHtml = (error: string) => (error ? `<p class="err">${esc(error)}</p>` : "");
 
+export function loginUnavailablePage(): string {
+  return page(`<p class="sub">Login service unavailable, try again in a minute.</p>`);
+}
+
 /** /login — the start screen: one button, plus a small sign-up link. */
 export function welcomePage(error = ""): string {
   return page(`<p class="sub">Log in with your Ares Empire account</p>

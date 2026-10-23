@@ -169,5 +169,5 @@ export function buildSampleSource(): DashboardSource {
     allDays.forEach((ds) => { bal += (dayNet[ds] || 0); balanceByDay[ds] = money(bal); });
   }
 
-  return { categories, months, transactions, balanceByDay, openingBalance };
+  return { categories, months, transactions, balanceByDay, openingBalance, databaseCategoryNames: categories.map((c) => c.name) };
 }

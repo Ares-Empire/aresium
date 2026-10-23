@@ -15,6 +15,7 @@ function fixture(): DashboardSource {
   ];
   return {
     months,
+    databaseCategoryNames: ["Food", "Theme", "Health", "Uncategorised", "Tax", "Income", "Transfer"],
     categories: [category("Food"), category("Theme"), category("Health"), category("Uncategorised"), category("Tax"), category("Income", "income"), category("Transfer", "transfer")],
     transactions: [
       txn("tagged", "2026-01-01", -10, "Food", ["Theme", "Theme", "Food", "Income"]),
@@ -127,7 +128,7 @@ test("equal income rows keep each month's own first-transaction order", async ()
 });
 
 test("an empty source gives an empty dashboard", () => {
-  const d = buildDashboard({ categories: [], months: [], transactions: [], balanceByDay: {}, openingBalance: 0 });
+  const d = buildDashboard({ categories: [], months: [], transactions: [], balanceByDay: {}, openingBalance: 0, databaseCategoryNames: [] });
   assert.deepEqual(d, {
     version: 2, months: [], categories: [], pick: { spend: [], income: [] }, incomeBuckets: [], transactions: [],
     total: { expense: 0, income: 0, categories: [], incomeBuckets: [] }, byMonth: {}, spend: {}, income: {},
@@ -183,5 +184,25 @@ test("dayExpenseRunning: running total of the month's spending, one value per da
     assert.equal(mo.dayExpenseRunning.length, m.days);
     let sum = 0;
     mo.dayExpense.forEach((v, i) => { sum += v; assert.ok(Math.abs(mo.dayExpenseRunning[i] - sum) < 0.011, `${m.key} day ${i + 1}`); });
+  }
+});
+
+test("pick excludes a synthesised Uncategorised but keeps a real one under the kind rules", () => {
+  for (const kind of ["spend", "income", "transfer"] as const) {
+    const source = fixture();
+    source.categories.find((c) => c.name === "Uncategorised")!.kind = kind;
+    source.databaseCategoryNames = source.databaseCategoryNames.filter((n) => n !== "Uncategorised");
+    const synthetic = buildDashboard(source);
+    assert.ok(synthetic.categories.some((c) => c.name === "Uncategorised"));
+    assert.ok(!synthetic.pick.spend.includes("Uncategorised"));
+    assert.ok(!synthetic.pick.income.includes("Uncategorised"));
+
+    source.databaseCategoryNames.push("Uncategorised");
+    const real = buildDashboard(source);
+    assert.equal(real.pick.spend.includes("Uncategorised"), kind === "spend");
+    assert.equal(real.pick.income.includes("Uncategorised"), kind !== "spend");
+    const { pick: syntheticPick, ...syntheticData } = synthetic;
+    const { pick: realPick, ...realData } = real;
+    assert.deepEqual(syntheticData, realData, "only pick may change; source category names must not leak into the payload");
   }
 });

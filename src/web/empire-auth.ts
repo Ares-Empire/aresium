@@ -21,7 +21,16 @@ const ALLOWED = new Set(
 );
 const CACHE_MS = 60_000;
 const CACHE_MAX = 1000;
-const cache = new Map<string, { ok: boolean; until: number }>();
+export type EmpireAccess =
+  | { outcome: "allowed" }
+  | { outcome: "denied"; status: 401 | 403; error: string }
+  | { outcome: "unavailable"; status: 503; error: string };
+
+const allowed = { outcome: "allowed" } as const;
+const unauthenticated = { outcome: "denied", status: 401, error: "unauthenticated" } as const;
+const forbidden = { outcome: "denied", status: 403, error: "This account has no access to Aresium." } as const;
+const unavailable = { outcome: "unavailable", status: 503, error: "Login service unavailable, try again in a minute." } as const;
+const cache = new Map<string, { access: Exclude<EmpireAccess, { outcome: "unavailable" }>; until: number }>();
 
 type EmpireRecord = { id?: unknown; approved?: unknown; services?: unknown };
 
@@ -33,9 +42,9 @@ function hasAccess(record: EmpireRecord | undefined): boolean {
 
 const cacheKey = (token: string) => createHash("sha256").update(token).digest("base64url"); // no raw tokens kept
 
-function remember(token: string, ok: boolean) {
+function remember(token: string, access: Exclude<EmpireAccess, { outcome: "unavailable" }>) {
   if (cache.size >= CACHE_MAX) cache.clear();
-  cache.set(cacheKey(token), { ok, until: Date.now() + CACHE_MS });
+  cache.set(cacheKey(token), { access, until: Date.now() + CACHE_MS });
 }
 
 async function pbPost(path: string, body: unknown, headers: Record<string, string> = {}) {
@@ -47,55 +56,61 @@ async function pbPost(path: string, body: unknown, headers: Record<string, strin
   });
 }
 
-/** True if `token` belongs to an approved Empire account allowed into Aresium. */
-export async function empireTokenOk(token: string | undefined): Promise<boolean> {
-  if (!token || ALLOWED.size === 0) return false;
+/** Check the token separately from account access; an outage must never log a client out. */
+export async function empireTokenAccess(token: string | undefined, clientIp?: string): Promise<EmpireAccess> {
+  if (!token) return unauthenticated;
   const hit = cache.get(cacheKey(token));
-  if (hit && hit.until > Date.now()) return hit.ok;
+  if (hit && hit.until > Date.now()) return hit.access;
 
-  let ok = false;
+  let access: Exclude<EmpireAccess, { outcome: "unavailable" }>;
   try {
-    const r = await pbPost("/api/collections/users/auth-refresh", {}, { Authorization: token });
+    const r = await pbPost("/api/collections/users/auth-refresh", {}, {
+      Authorization: token, ...(clientIp ? { "X-Forwarded-For": clientIp } : {}),
+    });
     if (r.ok) {
       const { record } = (await r.json()) as { record?: EmpireRecord };
-      ok = hasAccess(record);
-    } else if (r.status >= 500 || r.status === 429) {
-      return false; // auth server trouble: deny now, but don't cache it
+      if (!record || typeof record.id !== "string") return unavailable;
+      access = hasAccess(record) ? allowed : forbidden;
+    } else if (r.status === 400 || r.status === 401) {
+      access = unauthenticated; // PocketBase rejects an invalid/expired refresh token with 400
+    } else if (r.status === 403) {
+      access = forbidden; // PocketBase's approved/verified account rule
+    } else {
+      return unavailable; // 429, 5xx or an unexpected response: no usable check
     }
   } catch {
-    return false; // auth server unreachable: deny, don't cache
+    return unavailable; // unreachable, timed out or an unreadable response: don't cache
   }
-  remember(token, ok);
-  return ok;
+  remember(token, access);
+  return access;
 }
 
-/** True if `authorization` is "Bearer <token>" for an account allowed into Aresium. */
-export async function empireBearerOk(authorization: string | undefined): Promise<boolean> {
+/** Check an API client's Bearer token using the same outcomes as the website cookie. */
+export async function empireBearerAccess(authorization: string | undefined, clientIp?: string): Promise<EmpireAccess> {
   const m = /^Bearer\s+(\S+)$/i.exec(authorization ?? "");
-  return m ? empireTokenOk(m[1]) : false;
+  return m ? empireTokenAccess(m[1], clientIp) : unauthenticated;
 }
 
 /** Email + password login. Returns the token, or a message for the visitor. */
 export async function empireLogin(email: string, password: string, clientIp: string | undefined):
-  Promise<{ token: string } | { error: string }> {
-  let r: Response;
+  Promise<{ token: string } | Exclude<EmpireAccess, { outcome: "allowed" }>> {
   try {
     // X-Forwarded-For: so PocketBase rate-limits per visitor, not per Aresium server
-    r = await pbPost("/api/collections/users/auth-with-password", { identity: email, password },
+    const r = await pbPost("/api/collections/users/auth-with-password", { identity: email, password },
       clientIp ? { "X-Forwarded-For": clientIp } : {});
-  } catch {
-    return { error: "Login is unavailable right now. Try again in a minute." };
-  }
-  if (r.ok) {
-    const { token, record } = (await r.json()) as { token?: string; record?: EmpireRecord };
-    if (token && hasAccess(record)) {
-      remember(token, true);
-      return { token };
+    if (r.ok) {
+      const { token, record } = (await r.json()) as { token?: string; record?: EmpireRecord };
+      if (!token || !record || typeof record.id !== "string") return unavailable;
+      if (hasAccess(record)) {
+        remember(token, allowed);
+        return { token };
+      }
+      return forbidden;
     }
-    return { error: "This account has no access to Aresium." };
+    if (r.status === 400) return { outcome: "denied", status: 401, error: "Wrong email or password." };
+    if (r.status === 403) return { outcome: "denied", status: 403, error: "This account isn't active yet. Confirm your email, then wait for approval." };
+    return unavailable;
+  } catch {
+    return unavailable;
   }
-  if (r.status === 400) return { error: "Wrong email or password." };
-  if (r.status === 403) return { error: "This account isn't active yet. Confirm your email, then wait for approval." };
-  if (r.status === 429) return { error: "Too many attempts. Wait a minute and try again." };
-  return { error: "Login is unavailable right now. Try again in a minute." };
 }

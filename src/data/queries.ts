@@ -196,6 +196,9 @@ const CAT_META: Record<string, { icon: string; color: string }> = {
 };
 const MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
+const categoryMeta = (name: string, dbColor?: string) =>
+  Object.hasOwn(CAT_META, name) ? CAT_META[name] : { icon: "Tag", color: dbColor ?? "#9ca3af" };
+
 export async function getDashboardSource(): Promise<DashboardSource> {
   const txns = (await fetchWithCategory({})).filter((t) => !isPaypalBankFunding(t));
   const categoriesDb = await prisma.category.findMany();
@@ -210,16 +213,13 @@ export async function getDashboardSource(): Promise<DashboardSource> {
     net.set(name, (net.get(name) ?? 0) + Number(t.amount));
   }
 
-  const meta = (name: string, dbColor?: string) =>
-    CAT_META[name] ?? { icon: "Tag", color: dbColor ?? "#9ca3af" };
-
   const categories: Category[] = categoriesDb.map((c) => {
     const kind = c.excludeFromTotals ? "transfer" : (net.get(c.name) ?? 0) > 0 ? "income" : "spend";
-    const m = meta(c.name, c.color);
+    const m = categoryMeta(c.name, c.color);
     return { name: c.name, icon: m.icon, color: m.color, kind };
   });
   if (hasUncategorised) {
-    categories.push({ name: "Uncategorised", ...meta("Uncategorised"), kind: "spend" });
+    categories.push({ name: "Uncategorised", ...categoryMeta("Uncategorised"), kind: "spend" });
   }
 
   // --- transactions in the flat shape the UI expects ---
@@ -273,7 +273,7 @@ export async function getDashboardSource(): Promise<DashboardSource> {
     }
   }
 
-  return { categories, months, transactions, balanceByDay, openingBalance };
+  return { categories, months, transactions, balanceByDay, openingBalance, databaseCategoryNames: categoriesDb.map((c) => c.name) };
 }
 
 // ---- Single-transaction detail -----------------------------------------------
@@ -287,7 +287,7 @@ export async function getTransactionDetail(id: string) {
   });
   if (!t) return null;
   const catName = t.category?.name ?? "Uncategorised";
-  const accent = CAT_META[catName]?.color ?? t.category?.color ?? "#9ca3af";
+  const accent = categoryMeta(catName, t.category?.color).color;
   return {
     id: t.id,
     place: t.counterparty || t.description,

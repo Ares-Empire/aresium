@@ -12,6 +12,7 @@ export interface SourceTxn {
 export interface DashboardSource {
   categories: Category[]; months: Month[]; transactions: SourceTxn[];
   balanceByDay: Record<string, number>; openingBalance: number;
+  databaseCategoryNames: string[]; // recategorise targets; excludes dashboard-only categories
 }
 export interface Txn {
   id: string; date: string; day: number; month: MonthKey; amount: number;
@@ -148,9 +149,13 @@ export function buildDashboard(source: DashboardSource): Dashboard {
     if (ib !== -1) return 1;
     return a.localeCompare(b);
   });
+  const databaseNames = new Set(source.databaseCategoryNames);
+  // Database categories precede any synthesised names in the source. Keep each real choice once.
+  const choices = categories.filter((c, i) => databaseNames.has(c.name)
+    && categories.findIndex((other) => other.name === c.name) === i);
   const pick = {
-    spend: ordered(categories.filter((c) => c.kind === "spend").map((c) => c.name), total.categories.map((r) => r.name)),
-    income: ordered(categories.filter((c) => incomeKeep.has(c.name)).map((c) => c.name), total.incomeBuckets.map((r) => r.name)),
+    spend: ordered(choices.filter((c) => c.kind === "spend").map((c) => c.name), total.categories.map((r) => r.name)),
+    income: ordered(choices.filter((c) => incomeKeep.has(c.name)).map((c) => c.name), total.incomeBuckets.map((r) => r.name)),
   };
   return {
     version: 2, months, categories, pick,

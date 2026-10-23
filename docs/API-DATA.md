@@ -81,7 +81,9 @@ never below 0 (refunds inside a category do not make it negative), as in version
 - **Balance** is the bank's own balance, carried forward on days without a booking.
 - **Recategorise choices** (`pick`): money out (amount ≤ 0) can move among `spend` categories, money in among
   `income`/`transfer` categories and `Tax`. Each list starts with the categories in the order of their
-  all-time rows (`total.categories` / `total.incomeBuckets`), then the rest alphabetically.
+  all-time rows (`total.categories` / `total.incomeBuckets`), then the rest alphabetically. Only database
+  categories are offered: a synthesised `Uncategorised` is omitted from both lists, while a real database
+  category with that name remains eligible under the same kind rules.
 
 ## What clients do
 
@@ -108,7 +110,9 @@ After a change (import, recategorise, tags) clients fetch `/api/data` again.
 - `POST /api/transaction/:id/tags` `{categories, dropCurrent}`: also list it under these categories (Add);
   `dropCurrent: true` moves it out of its current one. Returns the detail.
 - `POST /api/import` `{files: [{name, content}]}`: bank/PayPal `.csv` or CAMT `.xml` as text, max 25 MB per
-  request. Returns `{results: [{name, added, total, account, skipped, error?}]}`; 409 while another import runs.
+  request (25 × 1024 × 1024 bytes, including the JSON envelope). Oversize requests return JSON
+  `413 {error}` naming the 25 MB limit. Returns `{results: [{name, added, total, account, skipped, error?}]}`;
+  409 while another import runs.
 
 ## Auth
 

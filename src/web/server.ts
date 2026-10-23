@@ -3,30 +3,19 @@
 // needed — the front-end uses React + Babel-standalone from a CDN, so editing the .jsx in
 // web/public/app is instant. Run: npm run web   (then open http://localhost:5173)
 import "dotenv/config";
-import { createServer, type IncomingMessage } from "node:http";
+import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import { dirname, join, normalize, extname } from "node:path";
+import { dirname, join, normalize, extname, resolve } from "node:path";
 import { prisma } from "../lib/db.js";
 import { buildDashboard } from "../data/dashboard.js";
 import { getDashboardSource, getTransactionDetail, recategorizeTransaction, setTransactionTags } from "../data/queries.js";
 import { importContent } from "../import/core.js";
 import { categorizeAll } from "../sync/categorize.js";
 import { sessionCookie, clearCookie, sessionToken } from "./auth.js";
-import { welcomePage, loginPage } from "./login-page.js";
-import { empireBearerOk, empireLogin, empireTokenOk } from "./empire-auth.js";
-
-// `max` caps the buffered body (bytes); on overflow the request is destroyed and the
-// promise resolves "" so the handler reports a clean error. Uploads need a larger cap
-// than the small JSON the rest of the API takes.
-function readBody(req: IncomingMessage, max = 1e6): Promise<string> {
-  return new Promise((resolve) => {
-    let data = "";
-    req.on("data", (c) => { data += c; if (data.length > max) req.destroy(); });
-    req.on("end", () => resolve(data));
-    req.on("error", () => resolve(""));
-  });
-}
+import { welcomePage, loginPage, loginUnavailablePage } from "./login-page.js";
+import { empireBearerAccess, empireLogin, empireTokenAccess } from "./empire-auth.js";
+import { BodyTooLargeError, readBody } from "./read-body.js";
 
 const IMPORT_MAX_BYTES = 25 * 1024 * 1024;   // generous for a year of PayPal/VR-Bank CSV
 let importing = false;                        // serialise imports (single-user tool)
@@ -46,7 +35,7 @@ const MIME: Record<string, string> = {
   ".webm": "video/webm", ".mp4": "video/mp4", ".mov": "video/quicktime",
 };
 
-const server = createServer(async (req, res) => {
+export async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
   try {
     const url = new URL(req.url ?? "/", `http://${req.headers.host}`);
 
@@ -61,19 +50,22 @@ const server = createServer(async (req, res) => {
       res.writeHead(303, cookie ? { "Set-Cookie": cookie, Location: location } : { Location: location });
       res.end();
     };
-    const loggedIn = () => empireTokenOk(sessionToken(req.headers.cookie));
+    // Caddy puts the visitor's address last in X-Forwarded-For.
+    const clientIp = String(req.headers["x-forwarded-for"] ?? "").split(",").pop()?.trim() || undefined;
+    const loggedIn = () => empireTokenAccess(sessionToken(req.headers.cookie), clientIp);
 
     if ((url.pathname === "/login" || url.pathname === "/login/email") && req.method === "GET") {
-      if (await loggedIn()) return redirect("/");
+      const access = await loggedIn();
+      if (access.outcome === "allowed") return redirect("/");
+      if (access.outcome === "unavailable") return html(503, loginUnavailablePage());
       return html(200, url.pathname === "/login" ? welcomePage() : loginPage());
     }
     if (url.pathname === "/login" && req.method === "POST") {
       const form = new URLSearchParams(await readBody(req, 10_000));
       const email = (form.get("email") ?? "").trim();
-      // Caddy puts the visitor's address last in X-Forwarded-For
-      const clientIp = String(req.headers["x-forwarded-for"] ?? "").split(",").pop()?.trim() || undefined;
       const result = await empireLogin(email, form.get("password") ?? "", clientIp);
       if ("token" in result) return redirect("/", sessionCookie(result.token));
+      if (result.outcome === "unavailable") return html(503, loginUnavailablePage());
       return html(401, loginPage(result.error, email));
     }
     if (url.pathname === "/logout") return redirect("/login", clearCookie());
@@ -81,17 +73,29 @@ const server = createServer(async (req, res) => {
     if (url.pathname === "/sso") {
       if (req.method === "POST") {
         const token = new URLSearchParams(await readBody(req, 10_000)).get("token") ?? "";
-        if (await empireTokenOk(token)) return redirect("/", sessionCookie(token));
+        const access = await empireTokenAccess(token, clientIp);
+        if (access.outcome === "allowed") return redirect("/", sessionCookie(token));
+        if (access.outcome === "unavailable") return html(503, loginUnavailablePage());
         return html(401, welcomePage("Your Empire account has no access to Aresium."));
       }
       return redirect("/login");
     }
 
     const isApi = url.pathname.startsWith("/api/");
-    if (!(await loggedIn()) && !(isApi && await empireBearerOk(req.headers.authorization))) {
+    let access = await loggedIn();
+    if (access.outcome !== "allowed" && isApi && req.headers.authorization) {
+      const bearer = await empireBearerAccess(req.headers.authorization, clientIp);
+      // Either credential can grant access. If neither does, preserve an unresolved session
+      // during an outage; otherwise retain an explicit account denial over a missing token.
+      if (bearer.outcome === "allowed" || bearer.outcome === "unavailable"
+        || (access.outcome !== "unavailable" && (bearer.status === 403 || access.status === 401))) access = bearer;
+    }
+    if (access.outcome !== "allowed") {
       if (isApi) {
-        res.writeHead(401, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
-        res.end(JSON.stringify({ error: "unauthenticated" }));
+        res.writeHead(access.status, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+        res.end(JSON.stringify({ error: access.error }));
+      } else if (access.outcome === "unavailable") {
+        html(503, loginUnavailablePage());
       } else {
         redirect("/login");
       }
@@ -112,7 +116,14 @@ const server = createServer(async (req, res) => {
       const headers = { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" };
       if (importing) { res.writeHead(409, headers); res.end(JSON.stringify({ error: "an import is already running" })); return; }
       let body: { files?: Array<{ name?: string; content?: string }> };
-      try { body = JSON.parse(await readBody(req, IMPORT_MAX_BYTES)); } catch { body = {}; }
+      try { body = JSON.parse(await readBody(req, IMPORT_MAX_BYTES)); } catch (e) {
+        if (e instanceof BodyTooLargeError) {
+          res.writeHead(413, headers);
+          res.end(JSON.stringify({ error: `Import exceeds the ${IMPORT_MAX_BYTES / (1024 * 1024)} MB request limit.` }));
+          return;
+        }
+        body = {};
+      }
       const files = Array.isArray(body.files) ? body.files : [];
       const valid = files.filter((f) => f && typeof f.name === "string" && typeof f.content === "string" && /\.(csv|xml)$/i.test(f.name));
       if (valid.length === 0) { res.writeHead(400, headers); res.end(JSON.stringify({ error: "no .csv/.xml files in request" })); return; }
@@ -193,16 +204,23 @@ const server = createServer(async (req, res) => {
     res.writeHead(200, { "Content-Type": MIME[extname(filePath).toLowerCase()] ?? "application/octet-stream" });
     res.end(body);
   } catch (e) {
+    if (e instanceof BodyTooLargeError) {
+      res.writeHead(413, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+      res.end(JSON.stringify({ error: e.message }));
+      return;
+    }
     const code = (e as NodeJS.ErrnoException).code;
     if (code === "ENOENT") { res.writeHead(404).end("Not found"); return; }
     console.error(e);
     res.writeHead(500).end("Server error");
   }
-});
+}
 
-server.listen(PORT, HOST, () => {
-  console.log(`Aresium dashboard → http://localhost:${PORT}`);
-  console.log(`(serving ${PUBLIC})`);
-});
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  createServer(handleRequest).listen(PORT, HOST, () => {
+    console.log(`Aresium dashboard → http://localhost:${PORT}`);
+    console.log(`(serving ${PUBLIC})`);
+  });
 
-process.on("SIGINT", async () => { await prisma.$disconnect(); process.exit(0); });
+  process.on("SIGINT", async () => { await prisma.$disconnect(); process.exit(0); });
+}
