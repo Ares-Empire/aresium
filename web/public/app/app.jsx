@@ -230,13 +230,10 @@ function App() {
   }, [state, go]);
   const pickMonth = useC((m) => go({ screen: "categoryMonth", cat: state.cat, monthKey: m.key, from: "category", income: state.income }), [state, go]);
 
-  // After a category change (Switch / Add): patch the in-memory transaction's primary
-  // category AND its secondary tags, then re-aggregate so every screen reflects it without
-  // a page reload. `detail` is the updated record returned by the API.
-  const onTxnRecategorized = useC((detail) => {
+  // Refresh the server-calculated figures after a category or tag change.
+  const onTxnRecategorized = useC(async (detail) => {
     if (!detail) return;
-    const arr = window.AresiumData && window.AresiumData.transactions;
-    if (arr) { const t = arr.find((x) => x.id === detail.id); if (t) { t.categoryName = detail.category; t.tags = detail.tags || []; } }
+    await window.AresiumData.refresh();
     setDataVer((v) => v + 1);
   }, []);
 

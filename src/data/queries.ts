@@ -6,6 +6,7 @@
 // - "expenses" are returned as POSITIVE magnitudes (money spent), excluding
 //   excludeFromTotals categories (Transfer). "income" is positive money in.
 // - "balance" is the VR Bank Kontostand (carried forward over gaps).
+import type { Category, DashboardSource } from "./dashboard.js";
 import { prisma } from "../lib/db.js";
 
 const ym = (d: Date) => d.toISOString().slice(0, 7);
@@ -160,7 +161,7 @@ export async function getCategoryMonth(name: string, month: string) {
 }
 
 // ---- Dashboard payload --------------------------------------------------------
-// One flat snapshot the front-end aggregates client-side (see web/public/app/data.js).
+// Version 1 source snapshot, passed to the pure server-side dashboard builder.
 // Mirrors the shape of the design's mock data so the UI code is unchanged: it reads
 // only `window.AresiumData`. New imports/categories flow through automatically — the
 // dashboard always reflects whatever is currently in Postgres.
@@ -195,7 +196,7 @@ const CAT_META: Record<string, { icon: string; color: string }> = {
 };
 const MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-export async function getDashboardData() {
+export async function getDashboardSource(): Promise<DashboardSource> {
   const txns = (await fetchWithCategory({})).filter((t) => !isPaypalBankFunding(t));
   const categoriesDb = await prisma.category.findMany();
   const today = new Date();
@@ -212,7 +213,7 @@ export async function getDashboardData() {
   const meta = (name: string, dbColor?: string) =>
     CAT_META[name] ?? { icon: "Tag", color: dbColor ?? "#9ca3af" };
 
-  const categories = categoriesDb.map((c) => {
+  const categories: Category[] = categoriesDb.map((c) => {
     const kind = c.excludeFromTotals ? "transfer" : (net.get(c.name) ?? 0) > 0 ? "income" : "spend";
     const m = meta(c.name, c.color);
     return { name: c.name, icon: m.icon, color: m.color, kind };

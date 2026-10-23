@@ -24,7 +24,9 @@
     "summary": "tsx scripts/summary.ts",
     "show": "tsx scripts/show.ts",
     "uncat": "tsx scripts/uncategorised.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "sample": "tsx scripts/build-sample.ts",
+    "test": "tsx --test src/**/*.test.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.2.1",

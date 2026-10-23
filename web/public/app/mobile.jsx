@@ -184,12 +184,10 @@
       }
     }, []);
 
-    // After a category change (Switch / Add): patch the in-memory txn's primary category
-    // AND its secondary tags, then re-aggregate everywhere. `detail` = updated API record.
-    const onRecat = useCallback((detail) => {
+    // Refresh the server-calculated figures after a category or tag change.
+    const onRecat = useCallback(async (detail) => {
       if (!detail) return;
-      const arr = D.transactions;
-      if (arr) { const t = arr.find((x) => x.id === detail.id); if (t) { t.categoryName = detail.category; t.tags = detail.tags || []; } }
+      await window.AresiumData.refresh();
       setDataVer((v) => v + 1);
     }, []);
 

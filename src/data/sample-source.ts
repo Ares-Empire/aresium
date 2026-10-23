@@ -1,11 +1,9 @@
-/* Aresium — mock financial data (German student profile).
-   All amounts in EUR. Negative = spend, positive = credit.
-   Swap these arrays for real data later; the UI reads only from window.AresiumData. */
-(function () {
-  "use strict";
+import type { Category, DashboardSource, Month, SourceTxn } from "./dashboard.js";
 
+// The original deterministic offline generator, with its seed and order preserved.
+export function buildSampleSource(): DashboardSource {
   // ---- deterministic RNG so the dataset is stable across reloads ----
-  function mulberry32(a) {
+  function mulberry32(a: number) {
     return function () {
       a |= 0; a = (a + 0x6D2B79F5) | 0;
       let t = Math.imul(a ^ (a >>> 15), 1 | a);
@@ -15,15 +13,15 @@
   }
   const rng = mulberry32(20260611);
   const rand = () => rng();
-  const rr = (a, b) => a + (b - a) * rand();
-  const ri = (a, b) => Math.floor(rr(a, b + 1));
-  const pick = (arr) => arr[Math.floor(rand() * arr.length)];
-  const chance = (p) => rand() < p;
-  const money = (n) => Math.round(n * 100) / 100;
-  const pad = (n) => String(n).padStart(2, "0");
+  const rr = (a: number, b: number) => a + (b - a) * rand();
+  const ri = (a: number, b: number) => Math.floor(rr(a, b + 1));
+  const pick = <T>(arr: T[]): T => arr[Math.floor(rand() * arr.length)];
+  const chance = (p: number) => rand() < p;
+  const money = (n: number) => Math.round(n * 100) / 100;
+  const pad = (n: number) => String(n).padStart(2, "0");
 
   // ---- categories ----
-  const categories = [
+  const categories: Category[] = [
     { name: "Groceries",      icon: "ShoppingCart",  color: "#26E07A", kind: "spend" },
     { name: "Rent",           icon: "House",         color: "#6366FF", kind: "spend" },
     { name: "Travel",         icon: "TrainFront",    color: "#13C8E8", kind: "spend" },
@@ -46,15 +44,13 @@
     { name: "Basis",          icon: "Users",         color: "#2BB0FF", kind: "income" },
     { name: "Transfer",       icon: "Repeat",        color: "#9AA6B8", kind: "transfer" },
   ];
-  const catByName = {};
-  categories.forEach((c) => (catByName[c.name] = c));
 
   // ---- month range: last 10 months ending June 2026 (June partial) ----
   const MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const daysInMonth = (y, m) => new Date(y, m + 1, 0).getDate();
+  const daysInMonth = (y: number, m: number) => new Date(y, m + 1, 0).getDate();
   const TODAY = { y: 2026, m: 5, d: 11 }; // June 11, 2026
 
-  const months = [];
+  const months: Month[] = [];
   {
     let y = 2025, m = 8; // September 2025
     for (let i = 0; i < 10; i++) {
@@ -91,11 +87,11 @@
   };
 
   // ---- transaction generation ----
-  const transactions = [];
-  const add = (y, m, d, amount, categoryName, place, city) => {
-    transactions.push({ date: `${y}-${pad(m + 1)}-${pad(d)}`, amount: money(amount), categoryName, place, city });
+  const transactions: SourceTxn[] = [];
+  const add = (y: number, m: number, d: number, amount: number, categoryName: string, place: string, city: string) => {
+    transactions.push({ id: `sample-${String(transactions.length + 1).padStart(4, "0")}`, tags: [], date: `${y}-${pad(m + 1)}-${pad(d)}`, amount: money(amount), categoryName, place, city });
   };
-  const dCap = (mo, d) => Math.min(d, mo.days); // clamp to data window
+  const dCap = (mo: Month, d: number) => Math.min(d, mo.days); // clamp to data window
 
   months.forEach((mo, idx) => {
     const { year: y, month: m } = mo;
@@ -148,25 +144,30 @@
     }
   });
 
+  // Fixed Add examples consume no random numbers and leave amounts/order unchanged.
+  transactions.filter((t) => t.categoryName === "Groceries" && t.amount < 0).slice(0, 5)
+    .forEach((t) => t.tags.push("Restaurants"));
+  transactions.find((t) => t.categoryName === "Fitness" && t.amount < 0)!.tags.push("Income");
+  transactions.find((t) => t.categoryName === "Basis" && t.amount > 0)!.tags.push("Transfer");
+  transactions.find((t) => t.categoryName === "Income" && t.amount > 0)!.tags.push("Basis");
+
   // sort by date (stable)
   transactions.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
 
   // ---- balances ----
   const openingBalance = 1480;
-  const balanceByDay = {}; // dateStr -> running balance after that day
+  const balanceByDay: Record<string, number> = {}; // dateStr -> running balance after that day
   {
     // build ordered list of every in-window day
-    const allDays = [];
+    const allDays: string[] = [];
     months.forEach((mo) => {
       for (let d = 1; d <= mo.days; d++) allDays.push(`${mo.key}-${pad(d)}`);
     });
-    const dayNet = {};
+    const dayNet: Record<string, number> = {};
     transactions.forEach((t) => { dayNet[t.date] = (dayNet[t.date] || 0) + t.amount; });
     let bal = openingBalance;
     allDays.forEach((ds) => { bal += (dayNet[ds] || 0); balanceByDay[ds] = money(bal); });
   }
 
-  // Raw source only — the shared builder in data.js turns this into window.AresiumData.
-  // (This is the offline fallback used when the dashboard is opened without the server.)
-  window.AresiumMockSource = { categories, months, transactions, balanceByDay, openingBalance };
-})();
+  return { categories, months, transactions, balanceByDay, openingBalance };
+}

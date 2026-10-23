@@ -1,5 +1,5 @@
 // Tiny zero-dependency web server for the dashboard: serves web/public statically and
-// exposes GET /api/data → getDashboardData() (live aggregation over Postgres). No bundler
+// exposes GET /api/data → buildDashboard(getDashboardSource()) (version 2). No bundler
 // needed — the front-end uses React + Babel-standalone from a CDN, so editing the .jsx in
 // web/public/app is instant. Run: npm run web   (then open http://localhost:5173)
 import "dotenv/config";
@@ -8,7 +8,8 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join, normalize, extname } from "node:path";
 import { prisma } from "../lib/db.js";
-import { getDashboardData, getTransactionDetail, recategorizeTransaction, setTransactionTags } from "../data/queries.js";
+import { buildDashboard } from "../data/dashboard.js";
+import { getDashboardSource, getTransactionDetail, recategorizeTransaction, setTransactionTags } from "../data/queries.js";
 import { importContent } from "../import/core.js";
 import { categorizeAll } from "../sync/categorize.js";
 import { sessionCookie, clearCookie, sessionToken } from "./auth.js";
@@ -98,7 +99,7 @@ const server = createServer(async (req, res) => {
     }
 
     if (url.pathname === "/api/data") {
-      const data = await getDashboardData();
+      const data = buildDashboard(await getDashboardSource());
       res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
       res.end(JSON.stringify(data));
       return;
