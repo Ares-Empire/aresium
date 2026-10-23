@@ -113,4 +113,13 @@ After a change (import, recategorise, tags) clients fetch `/api/data` again.
 ## Auth
 
 As every `/api/*` route: the website's session cookie, or `Authorization: Bearer <Empire token>` from the
-iPhone app (`src/web/empire-auth.ts`).
+iPhone app (`src/web/empire-auth.ts`). Every `/api/*` route answers a failed check with one of three statuses
+(agreed 2026-10-23 after the pre-TestFlight council), each with a JSON body `{error}`:
+
+| Status | Means | Client does |
+|---|---|---|
+| **401** | No token, or the Empire rejects it (expired, password changed) | log out |
+| **403** | The token is valid but the account may not use Aresium (not approved, `aresium` not in its services, not in `EMPIRE_ALLOWED_USERS`) | log out and say why |
+| **503** | The Empire could not be asked (down, timeout, rate-limited) | keep the session and the data, say "try again" |
+
+The server never turns "could not check" into 401: an outage must not log anyone out.
