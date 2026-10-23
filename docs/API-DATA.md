@@ -55,6 +55,7 @@ interface Totals {
 interface MonthData extends Totals {
   endBalance: number;                // bank balance on the month's last day (today for the current month)
   dayExpense: number[];              // one value per day, length = month.days
+  dayExpenseRunning: number[];       // running total of dayExpense through the month (added 2026-10-23)
   dayIncome: number[];
   dayBalance: number[];
 }

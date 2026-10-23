@@ -24,7 +24,7 @@ export interface Totals {
   incomeBuckets: { name: string; total: number }[];
 }
 export interface MonthData extends Totals {
-  endBalance: number; dayExpense: number[]; dayIncome: number[]; dayBalance: number[];
+  endBalance: number; dayExpense: number[]; dayExpenseRunning: number[]; dayIncome: number[]; dayBalance: number[];
 }
 export interface Series { months: number[]; days: Record<MonthKey, number[]> }
 export interface Dashboard {
@@ -62,7 +62,7 @@ export function buildDashboard(source: DashboardSource): Dashboard {
     return [mo.key, {
       expense: 0, income: 0, categories: [], incomeBuckets: [],
       endBalance: balanceByDay[`${mo.key}-${String(mo.days).padStart(2, "0")}`],
-      dayExpense: new Array<number>(mo.days).fill(0), dayIncome: new Array<number>(mo.days).fill(0), dayBalance,
+      dayExpense: new Array<number>(mo.days).fill(0), dayExpenseRunning: [], dayIncome: new Array<number>(mo.days).fill(0), dayBalance,
     }];
   }));
   const add = (map: Map<string, number>, name: string, amount: number) => map.set(name, (map.get(name) || 0) + amount);
@@ -127,6 +127,9 @@ export function buildDashboard(source: DashboardSource): Dashboard {
   months.forEach((m, i) => {
     const mo = byMonth[m.key];
     mo.expense = money(mo.expense); mo.income = money(mo.income);
+    // Running total of money out through the month, summed before rounding (the widget's line).
+    let running = 0;
+    mo.dayExpenseRunning = mo.dayExpense.map((v) => money(running += v));
     mo.dayExpense = mo.dayExpense.map(money); mo.dayIncome = mo.dayIncome.map(money);
     mo.categories = categoryRows(categoryMonths[i]); mo.incomeBuckets = incomeRows(incomeMonths[i]);
   });

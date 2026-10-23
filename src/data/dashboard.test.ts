@@ -167,3 +167,13 @@ test("pick lists: spend rows first in total order, the rest alphabetical; income
   assert.deepEqual(new Set(d.pick.spend), new Set(d.categories.filter((c) => c.kind === "spend").map((c) => c.name)));
   for (const n of d.pick.income) assert.ok(n === "Tax" || kind.get(n) !== "spend", n);
 });
+
+test("dayExpenseRunning: running total of the month's spending, one value per day", () => {
+  const d = buildDashboard(fixture());
+  for (const m of d.months) {
+    const mo = d.byMonth[m.key];
+    assert.equal(mo.dayExpenseRunning.length, m.days);
+    let sum = 0;
+    mo.dayExpense.forEach((v, i) => { sum += v; assert.ok(Math.abs(mo.dayExpenseRunning[i] - sum) < 0.011, `${m.key} day ${i + 1}`); });
+  }
+});
