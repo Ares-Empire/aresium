@@ -42,7 +42,7 @@ The modern, stylish part. **Next.js + Tailwind + shadcn/ui + Tremor**.
 ## Phase 6 — iPhone app + Empire accounts (planned 2026-10-23)
 
 Native SwiftUI app, installed via TestFlight. App code lives in
-[`empire-ios`](https://github.com/carlsenares/empire-ios); the plan is in ares-empire
+[`empire-ios`](https://github.com/Ares-Empire/empire-ios); the plan is in ares-empire
 `docs/IPHONE-APPS.md` and `docs/ACCOUNTS.md`.
 
 - [ ] Accept an **Empire account** login for the API (replaces the single password)
