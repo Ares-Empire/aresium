@@ -1,6 +1,6 @@
 # `GET /api/data`: the dashboard data (version 2)
 
-**Status:** contract agreed 2026-10-23, being built (`prompts/01-server-calc.md`). Clients: the website
+**Status:** live since 2026-10-23 (`prompts/01-server-calc.md`). Real data at the switch: 2,785 values identical to version 1; gzip size 30 KB → 39 KB. Clients: the website
 (`web/public/app/data.js`) and the iPhone app (`empire-ios`, Aresium).
 
 ## Why version 2

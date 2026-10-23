@@ -1,6 +1,6 @@
 # 01: Dashboard calculations move to the server (`/api/data` version 2)
 
-Status: draft
+Status: merged 2026-10-23 (after one round of decisions: dropped unused openingBalance/balanceByDay, sample got ids + tags). Real data: 2,785 values, 0 mismatches.
 Branch: `codex/01-server-calc` · Worktree: `../aresium-01-server-calc` · Model: `gpt-6.1-sol`, effort `high`
 
 ## Goal
