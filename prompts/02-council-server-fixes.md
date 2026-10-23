@@ -1,6 +1,6 @@
 # 02: Server fixes from the pre-TestFlight council
 
-Status: draft
+Status: merged and deployed 2026-10-23.
 Branch: `codex/02-council-server` · Worktree: `../aresium-02-council-server` · Model: `gpt-6.1-sol`, effort `high`
 
 ## Goal
