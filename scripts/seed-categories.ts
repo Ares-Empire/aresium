@@ -2,11 +2,18 @@
 // recreates them. Rules are intentionally high-precision (few false matches);
 // the LLM categoriser handles everything they don't catch. Edit and re-run freely.
 //
-//   npm run seed       # reset categories/rules, detach transactions for re-categorising
+//   npm run seed                   # reset categories/rules, detach transactions for re-categorising
+//   npm run seed -- --rules-only   # only rebuild the rules; keeps every transaction's category + tags
 import "dotenv/config";
 import { prisma } from "../src/lib/db.js";
 
-type Cat = { name: string; color: string; icon: string; exclude?: boolean; priority?: number; patterns: string[] };
+// `alsoTag`: patterns that also tag the match into a second category (no double-counting,
+// see TransactionTag). They get priority + 1 so they beat the same category's plain patterns
+// (e.g. "claude sub" → Development + Subscriptions beats plain "anthropic" → Development).
+type Cat = {
+  name: string; color: string; icon: string; exclude?: boolean; priority?: number; patterns: string[];
+  alsoTag?: { category: string; patterns: string[] };
+};
 
 const CATEGORIES: Cat[] = [
   { name: "Groceries", color: "#22c55e", icon: "🛒", patterns: ["rewe", "edeka", "aldi", "lidl", "penny", "netto ", "kaufland", "tegut", "hit 0", "hit fil", "interspar", "eurospar", "spar dankt", "spar markt", "denns", "dennree", "famila", "norma", "nahkauf", "e-center", "e center", "globus sb"] },
@@ -23,7 +30,10 @@ const CATEGORIES: Cat[] = [
   { name: "Fitness", color: "#f43f5e", icon: "🏋️", patterns: ["clever fit", "cleverfit", "finion", "mcfit", "fitx", "fitnessstudio", "urban sports", "body & soul", "kletterhalle", "boulder"] },
   { name: "Personal care", color: "#d946ef", icon: "💇", patterns: ["friseur", "hairstyl", "hairst.", "barber", "kosmetik", "nagelstudio", "movemodernverve"] },
   { name: "Subscriptions", color: "#ef4444", icon: "📺", patterns: ["netflix", "spotify", "disney", "youtube premium", "amazon prime", "dazn", "audible", "icloud", "google one", "notion", "patreon", "twitch", "playstation", "nintendo", "xbox"] },
-  { name: "Development", color: "#0ea5e9", icon: "🧑‍💻", patterns: ["anthropic", "claude.ai", "openai", "chatgpt", "hetzner", "github", "vercel", "namecheap", "digitalocean", "cloudflare", "supabase", "railway.app", "cursor "] },
+  // One-off dev/AI spend (API credits, lookups) → Development only. Recurring dev costs
+  // (servers, domains, AI/tool subscriptions) → Development, also tagged Subscriptions.
+  { name: "Development", color: "#0ea5e9", icon: "🧑‍💻", patterns: ["anthropic", "openai", "leakcheck", "have i been pwned"],
+    alsoTag: { category: "Subscriptions", patterns: ["claude sub", "claude.ai", "chatgpt", "github", "cursor ", "hetzner", "netcup", "namecheap", "vercel", "digitalocean", "cloudflare", "supabase", "railway.app", "webshare"] } },
   { name: "Trash", color: "#71717a", icon: "🗑️", patterns: ["onlyfans", "fanvue", "ccbill", "coppervex", "roblox", "fotoservice"] },
   { name: "Memberships", color: "#f59e0b", icon: "🤝", patterns: ["die linke", "mitgliedsbeitrag", "parteibeitrag", "spende", "greenpeace", "amnesty", "gewerkschaft"] },
   // priority 5: "who" (identity) rules beat "what" (merchant keyword) rules,
@@ -31,28 +41,59 @@ const CATEGORIES: Cat[] = [
   { name: "Basis", color: "#16a34a", icon: "👨‍👩‍👧", priority: 5, patterns: ["kindergeld"] },
   { name: "Tax", color: "#78716c", icon: "🧾", priority: 5, patterns: ["steuerverwaltung", "finanzamt", "einkommenst", "steuererstattung"] },
   { name: "Income", color: "#84cc16", icon: "💰", priority: 5, patterns: ["gehalt", "lohn", "stipendium", "bafög", "bafoeg", "erfrischungsgeld", "honorar"] },
-  { name: "Transfer", color: "#94a3b8", icon: "🔁", exclude: true, priority: 5, patterns: ["paypal europe", "paypal (europe", "patrik breeck", "union investment", "uniondepot", "bankgutschrift auf paypal", "von nutzer eingeleitete abbuchung", "umbuchung", "eigenübertrag", "sparplan", "tagesgeld"] },
+  { name: "Transfer", color: "#94a3b8", icon: "🔁", exclude: true, priority: 5, patterns: ["paypal europe", "paypal (europe", "patrik breeck", "union investment", "uniondepot", "bankgutschrift auf paypal", "bank deposit to pp account", "von nutzer eingeleitete abbuchung", "umbuchung", "eigenübertrag", "sparplan", "tagesgeld"] },
 ];
 
-async function main() {
-  // Reset: detach transactions, then rebuild the taxonomy from scratch.
-  await prisma.transaction.updateMany({
-    data: { categoryId: null, categorized: false, categorySource: null },
-  });
-  await prisma.categoryRule.deleteMany();
-  await prisma.category.deleteMany();
+async function createRules(c: Cat, categoryId: string, idByName: Map<string, string>) {
+  const priority = c.priority ?? 0;
+  const data = c.patterns.map((pattern) => ({ categoryId, pattern, priority }));
+  if (c.alsoTag) {
+    const alsoTagId = idByName.get(c.alsoTag.category);
+    if (!alsoTagId) throw new Error(`${c.name}: alsoTag category "${c.alsoTag.category}" is not defined`);
+    data.push(...c.alsoTag.patterns.map((pattern) => ({ categoryId, pattern, priority: priority + 1, alsoTagId })));
+  }
+  await prisma.categoryRule.createMany({ data });
+}
 
-  for (const c of CATEGORIES) {
-    const cat = await prisma.category.create({
-      data: { name: c.name, color: c.color, icon: c.icon, excludeFromTotals: c.exclude ?? false },
+async function main() {
+  const rulesOnly = process.argv.includes("--rules-only");
+  const idByName = new Map<string, string>();
+
+  if (rulesOnly) {
+    // Keep categories (and so every transaction's category + tags); only replace the rules.
+    // Categories missing from the DB are created; existing ones are left untouched.
+    for (const c of CATEGORIES) {
+      const cat = await prisma.category.upsert({
+        where: { name: c.name },
+        update: {},
+        create: { name: c.name, color: c.color, icon: c.icon, excludeFromTotals: c.exclude ?? false },
+      });
+      idByName.set(c.name, cat.id);
+    }
+    await prisma.categoryRule.deleteMany();
+  } else {
+    // Reset: detach transactions, then rebuild the taxonomy from scratch.
+    await prisma.transaction.updateMany({
+      data: { categoryId: null, categorized: false, categorySource: null },
     });
-    await prisma.categoryRule.createMany({
-      data: c.patterns.map((pattern) => ({ categoryId: cat.id, pattern, priority: c.priority ?? 0 })),
-    });
+    await prisma.categoryRule.deleteMany();
+    await prisma.category.deleteMany();
+    for (const c of CATEGORIES) {
+      const cat = await prisma.category.create({
+        data: { name: c.name, color: c.color, icon: c.icon, excludeFromTotals: c.exclude ?? false },
+      });
+      idByName.set(c.name, cat.id);
+    }
   }
 
+  for (const c of CATEGORIES) await createRules(c, idByName.get(c.name)!, idByName);
+
   const rules = await prisma.categoryRule.count();
-  console.log(`Reset done. ${CATEGORIES.length} categories, ${rules} rules. Run \`npm run import\` or \`npm run categorize\` to apply.`);
+  console.log(
+    rulesOnly
+      ? `Rules rebuilt: ${rules} rules across ${CATEGORIES.length} categories. Existing categorisations untouched.`
+      : `Reset done. ${CATEGORIES.length} categories, ${rules} rules. Run \`npm run import\` or \`npm run categorize\` to apply.`,
+  );
   await prisma.$disconnect();
 }
 

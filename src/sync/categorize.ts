@@ -2,6 +2,7 @@ import { prisma } from "../lib/db.js";
 
 // Rule-based categorisation: for every not-yet-categorised transaction, find the
 // highest-priority rule whose pattern appears in "description + counterparty".
+// A rule with `alsoTag` additionally tags the transaction into that second category.
 // An LLM fallback for the leftovers can be added later (see docs/ROADMAP.md).
 export async function categorizeAll(): Promise<void> {
   const rules = await prisma.categoryRule.findMany({ orderBy: { priority: "desc" } });
@@ -18,7 +19,17 @@ export async function categorizeAll(): Promise<void> {
     if (rule) {
       await prisma.transaction.update({
         where: { id: tx.id },
-        data: { categoryId: rule.categoryId, categorized: true, categorySource: "rule" },
+        data: {
+          categoryId: rule.categoryId,
+          categorized: true,
+          categorySource: "rule",
+          ...(rule.alsoTagId && rule.alsoTagId !== rule.categoryId
+            ? { tags: { connectOrCreate: {
+                where: { transactionId_categoryId: { transactionId: tx.id, categoryId: rule.alsoTagId } },
+                create: { categoryId: rule.alsoTagId },
+              } } }
+            : {}),
+        },
       });
       matched++;
     }

@@ -29,6 +29,9 @@ const SKIP_TYPES = new Set([
   "Reserve Release",
 ]);
 
+// Top-ups from the bank account that fund a purchase (they mirror the bank-side debit).
+const FUNDING_TYPE = /bankgutschrift auf paypal|bank deposit to pp account/i;
+
 export function parsePaypalCsv(content: string): ParsedFile {
   const rows = parse(content, {
     columns: true,
@@ -71,8 +74,10 @@ export function parsePaypalCsv(content: string): ParsedFile {
       bookingDate: parseDateFlexible(pick(row, COLS.date) ?? ""),
       amount: parseAmount(pick(row, COLS.net) ?? pick(row, COLS.gross) ?? "0"),
       currency: ccy,
-      // Merchant name drives categorisation; fall back to the PayPal type (e.g. funding rows).
-      description: name || type,
+      // Merchant name drives categorisation; fall back to the PayPal type. Bank-funding rows
+      // always use the type: PayPal sometimes fills in the merchant's name on them, which
+      // made merchant rules grab the top-up instead of the "Transfer" rule.
+      description: FUNDING_TYPE.test(type) ? type : name || type,
       counterparty: name || pick(row, COLS.from) || null,
       raw: row,
     });

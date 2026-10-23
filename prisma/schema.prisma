@@ -63,7 +63,8 @@ model Category {
   color             String         @default("#64748b")
   icon              String?
   excludeFromTotals Boolean        @default(false) // transfers/investments: stored but kept out of spending/income graphs
-  rules             CategoryRule[]
+  rules             CategoryRule[] @relation("RuleCategory")
+  alsoTagRules      CategoryRule[] @relation("RuleAlsoTag")
   transactions      Transaction[]
   tagged            TransactionTag[] // transactions "Add"-ed into this category as a secondary view
 }
@@ -86,10 +87,14 @@ model TransactionTag {
 
 model CategoryRule {
   id         String   @id @default(cuid())
-  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  category   Category @relation("RuleCategory", fields: [categoryId], references: [id], onDelete: Cascade)
   categoryId String
   pattern    String // case-insensitive substring matched against description + counterparty
   priority   Int      @default(0)
+  // Optional secondary category the match is ALSO tagged into (a TransactionTag),
+  // e.g. a Hetzner server bill: primary Development, also shown under Subscriptions.
+  alsoTag    Category? @relation("RuleAlsoTag", fields: [alsoTagId], references: [id], onDelete: SetNull)
+  alsoTagId  String?
 }
 
 // Append-only log of manual category changes. The learning signal: the LLM pass
