@@ -173,24 +173,14 @@ function TxnDetailModal({ id, onClose, onChanged }) {
   // Called by the separate recategorise window after a successful Switch/Add: refresh the
   // detail shown here and let the app patch its in-memory copy + re-aggregate every screen.
   const onApplied = (d) => { setData(d); if (onChanged) onChanged(d); };
-  // Picker shows only the side that matches the item: a positive (income) txn
-  // moves among income categories, a negative (expense) txn among spending ones —
-  // each in the same order as its tab.
+  // Picker shows only the side that matches the item: a positive (income) txn moves among
+  // income categories, a negative (expense) txn among spending ones. The server decides the
+  // choices and their order (`pick` in /api/data, docs/API-DATA.md).
   const D2 = window.AresiumData || {};
-  const allCats = D2.categories || [];
   const isIncomeItem = !!(data && data.amount > 0);
-  const incomeKeep = new Set(["Tax"]);
-  allCats.forEach((c) => { if (c.kind === "income" || c.kind === "transfer") incomeKeep.add(c.name); });
-  const orderNames = (data
-    ? (isIncomeItem ? (D2.incomeTotalsAll ? D2.incomeTotalsAll() : []) : (D2.categoryTotalsAll ? D2.categoryTotalsAll() : []))
-    : []).map((r) => r.name);
-  const pickList = (data ? allCats.filter((c) => (isIncomeItem ? incomeKeep.has(c.name) : c.kind === "spend")) : [])
-    .slice().sort((a, b) => {
-      const ia = orderNames.indexOf(a.name), ib = orderNames.indexOf(b.name);
-      if (ia !== -1 && ib !== -1) return ia - ib;
-      if (ia !== -1) return -1; if (ib !== -1) return 1;
-      return a.name.localeCompare(b.name);
-    });
+  const pickList = data && D2.pick
+    ? (isIncomeItem ? D2.pick.income : D2.pick.spend).map((n) => D2.catByName[n]).filter(Boolean)
+    : [];
 
   const rows = data ? [
     ["Source", data.source],

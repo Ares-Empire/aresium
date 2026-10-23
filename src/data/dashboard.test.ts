@@ -156,3 +156,14 @@ test("adapter refresh updates the captured object after edits", async () => {
   assert.equal(listed[0].id, "tagged");
   assert.equal(listed[0].tagged, true);
 });
+
+test("pick lists: spend rows first in total order, the rest alphabetical; income side only income/transfer/Tax", () => {
+  const d = buildDashboard(fixture());
+  const rows = d.total.categories.map((r) => r.name);
+  assert.deepEqual(d.pick.spend.slice(0, rows.length), rows);
+  const rest = d.pick.spend.slice(rows.length);
+  assert.deepEqual(rest, [...rest].sort((a, b) => a.localeCompare(b)));
+  const kind = new Map(d.categories.map((c) => [c.name, c.kind]));
+  assert.deepEqual(new Set(d.pick.spend), new Set(d.categories.filter((c) => c.kind === "spend").map((c) => c.name)));
+  for (const n of d.pick.income) assert.ok(n === "Tax" || kind.get(n) !== "spend", n);
+});

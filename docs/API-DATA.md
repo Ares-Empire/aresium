@@ -29,6 +29,7 @@ interface Dashboard {
   byMonth: Record<MonthKey, MonthData>;   // every month in `months`
   spend: Record<string, Series>;      // every category in `categories`
   income: Record<string, Series>;     // every bucket in `incomeBuckets`
+  pick: { spend: string[]; income: string[] };   // recategorise choices, in display order (added 2026-10-23)
 }
 
 interface Month { key: MonthKey; label: string; short: string; year: number; month: number; days: number; partial: boolean }
@@ -77,6 +78,9 @@ never below 0 (refunds inside a category do not make it negative), as in version
   `Other`. Tagged income/transfer/Tax categories add further buckets. `incomeBuckets` carries the icon and
   colour for each, including `Refunds` and `Other`.
 - **Balance** is the bank's own balance, carried forward on days without a booking.
+- **Recategorise choices** (`pick`): money out (amount ≤ 0) can move among `spend` categories, money in among
+  `income`/`transfer` categories and `Tax`. Each list starts with the categories in the order of their
+  all-time rows (`total.categories` / `total.incomeBuckets`), then the rest alphabetically.
 
 ## What clients do
 
@@ -92,7 +96,18 @@ Only lookups, filters and sorting for display:
 | A category's transactions in a month | `transactions` with `month == key` and `categoriesIn` containing it, sorted by `day`; "tagged" when `categoryName` differs |
 | An income bucket's transactions in a month | same with `incomeBuckets`; "tagged" when `incomeBuckets[0]` differs |
 
+| Categories to offer when recategorising a transaction | `pick.income` if its amount > 0, else `pick.spend` |
+
 After a change (import, recategorise, tags) clients fetch `/api/data` again.
+
+## Other routes the clients use
+
+- `GET /api/transaction/:id`: one transaction's full record (`getTransactionDetail` in `src/data/queries.ts`).
+- `POST /api/transaction/:id/category` `{category}`: move it to one category (Switch). Returns the detail.
+- `POST /api/transaction/:id/tags` `{categories, dropCurrent}`: also list it under these categories (Add);
+  `dropCurrent: true` moves it out of its current one. Returns the detail.
+- `POST /api/import` `{files: [{name, content}]}`: bank/PayPal `.csv` or CAMT `.xml` as text, max 25 MB per
+  request. Returns `{results: [{name, added, total, account, skipped, error?}]}`; 409 while another import runs.
 
 ## Auth
 

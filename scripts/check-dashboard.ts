@@ -66,7 +66,8 @@ export async function checkDashboard(source: DashboardSource) {
     }
   };
   // openingBalance and balanceByDay are excluded because no UI file reads either key.
-  const interfaceKeys = (data: Interface) => Object.keys(data).filter((key) => key !== "openingBalance" && key !== "balanceByDay");
+  // `pick` is new in version 2 (it replaced logic in panels.jsx) and is compared separately below.
+  const interfaceKeys = (data: Interface) => Object.keys(data).filter((key) => key !== "openingBalance" && key !== "balanceByDay" && key !== "pick");
   compare("interface keys", interfaceKeys(old).sort(), interfaceKeys(next).sort());
   for (const key of interfaceKeys(old)) {
     if (typeof old[key] !== "function") { compare(key, old[key], next[key]); continue; }
@@ -76,6 +77,22 @@ export async function checkDashboard(source: DashboardSource) {
       const b = await next[key](...structuredClone(args));
       compare(`${key} argument set ${i + 1}`, a, b);
     }
+  }
+  // Recategorise choices: the old panels.jsx code (verbatim, on the old interface) vs the server's `pick`.
+  for (const isIncomeItem of [false, true]) {
+    const allCats = old.categories || [];
+    const incomeKeep = new Set(["Tax"]);
+    allCats.forEach((c: any) => { if (c.kind === "income" || c.kind === "transfer") incomeKeep.add(c.name); });
+    const orderNames = (isIncomeItem ? old.incomeTotalsAll() : old.categoryTotalsAll()).map((r: any) => r.name);
+    const oldList = allCats.filter((c: any) => (isIncomeItem ? incomeKeep.has(c.name) : c.kind === "spend"))
+      .slice().sort((a: any, b: any) => {
+        const ia = orderNames.indexOf(a.name), ib = orderNames.indexOf(b.name);
+        if (ia !== -1 && ib !== -1) return ia - ib;
+        if (ia !== -1) return -1; if (ib !== -1) return 1;
+        return a.name.localeCompare(b.name);
+      });
+    const newList = (isIncomeItem ? next.pick.income : next.pick.spend).map((n: string) => next.catByName[n]).filter(Boolean);
+    compare(`pick ${isIncomeItem ? "income" : "spend"}`, oldList, newList);
   }
   // Refresh must update the original object, and preserve the complete interface.
   compare("keys after refresh", interfaceKeys(old).sort(), interfaceKeys(next).sort());

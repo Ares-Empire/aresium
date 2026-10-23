@@ -31,6 +31,7 @@ export interface Dashboard {
   version: 2; months: Month[]; categories: Category[]; incomeBuckets: Category[]; transactions: Txn[];
   overview: { expense: number[]; income: number[]; balance: number[] };
   total: Totals; byMonth: Record<MonthKey, MonthData>; spend: Record<string, Series>; income: Record<string, Series>;
+  pick: { spend: string[]; income: string[] };
 }
 
 const money = (n: number) => Math.round(n * 100) / 100;
@@ -135,8 +136,21 @@ export function buildDashboard(source: DashboardSource): Dashboard {
       for (const m of months) series.days[m.key] = series.days[m.key].map(round);
     }
   }
+  // Recategorise choices: money out moves among spend categories, money in among income/transfer
+  // categories (+ Tax); each list in the order of its all-time rows, the rest alphabetically.
+  const ordered = (names: string[], order: string[]) => names.slice().sort((a, b) => {
+    const ia = order.indexOf(a), ib = order.indexOf(b);
+    if (ia !== -1 && ib !== -1) return ia - ib;
+    if (ia !== -1) return -1;
+    if (ib !== -1) return 1;
+    return a.localeCompare(b);
+  });
+  const pick = {
+    spend: ordered(categories.filter((c) => c.kind === "spend").map((c) => c.name), total.categories.map((r) => r.name)),
+    income: ordered(categories.filter((c) => incomeKeep.has(c.name)).map((c) => c.name), total.incomeBuckets.map((r) => r.name)),
+  };
   return {
-    version: 2, months, categories,
+    version: 2, months, categories, pick,
     incomeBuckets: [...income.keys()].map((name) => catByName.get(name) ?? INCOME_META[name]
       ?? { name, icon: "Tag", color: "#34E27A", kind: "income" }),
     transactions, total, byMonth, spend: Object.fromEntries(spend), income: Object.fromEntries(income),

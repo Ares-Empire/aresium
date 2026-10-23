@@ -38,7 +38,7 @@
     const incomeBucketOf = (t) => !t.categoryName || t.categoryName === "Uncategorised" ? "Other"
       : primaryBucketByCategory[t.categoryName] || (t.categoryName === "Tax" ? "Tax" : "Refunds");
     return {
-      categories, catByName, months, transactions,
+      categories, catByName, months, transactions, pick: data.pick,
       monthExpense: (key) => data.byMonth[key] ? data.byMonth[key].expense : 0,
       monthEndBalance: (key) => data.byMonth[key] ? data.byMonth[key].endBalance : 0,
       dayExpenseSeries: (key) => data.byMonth[key].dayExpense,
