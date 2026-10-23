@@ -79,6 +79,10 @@ never below 0 (refunds inside a category do not make it negative), as in version
   `Other`. Tagged income/transfer/Tax categories add further buckets. `incomeBuckets` carries the icon and
   colour for each, including `Refunds` and `Other`.
 - **Balance** is the bank's own balance, carried forward on days without a booking.
+- **Foreign currency** (PayPal, decided 2026-10-24): a purchase in another currency counts at its euro cost (the
+  euro row of PayPal's "Allgemeine Währungsumrechnung" with the purchase's code), keeping its category; both
+  conversion rows are left out of every figure (`src/data/paypal-fx.ts`). Without a euro row the rows stay as they
+  are and the server logs the code. Every amount the API sends is in euros.
 - **Recategorise choices** (`pick`): money out (amount ≤ 0) can move among `spend` categories, money in among
   `income`/`transfer` categories and `Tax`. Each list starts with the categories in the order of their
   all-time rows (`total.categories` / `total.incomeBuckets`), then the rest alphabetically. Only database

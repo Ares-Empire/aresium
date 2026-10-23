@@ -8,6 +8,7 @@
 // - "balance" is the VR Bank Kontostand (carried forward over gaps).
 import type { Category, DashboardSource } from "./dashboard.js";
 import { prisma } from "../lib/db.js";
+import { foldPaypalConversions } from "./paypal-fx.js";
 
 const ym = (d: Date) => d.toISOString().slice(0, 7);
 const ymd = (d: Date) => d.toISOString().slice(0, 10);
@@ -200,7 +201,9 @@ const categoryMeta = (name: string, dbColor?: string) =>
   Object.hasOwn(CAT_META, name) ? CAT_META[name] : { icon: "Tag", color: dbColor ?? "#9ca3af" };
 
 export async function getDashboardSource(): Promise<DashboardSource> {
-  const txns = (await fetchWithCategory({})).filter((t) => !isPaypalBankFunding(t));
+  const fx = foldPaypalConversions((await fetchWithCategory({})).filter((t) => !isPaypalBankFunding(t)));
+  if (fx.unmatched.length) console.warn(`PayPal: no euro conversion found for ${fx.unmatched.length} foreign-currency payment(s): ${fx.unmatched.join(", ")}`);
+  const txns = fx.rows;
   const categoriesDb = await prisma.category.findMany();
   const today = new Date();
 
