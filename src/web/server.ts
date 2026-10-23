@@ -11,9 +11,9 @@ import { prisma } from "../lib/db.js";
 import { getDashboardData, getTransactionDetail, recategorizeTransaction, setTransactionTags } from "../data/queries.js";
 import { importContent } from "../import/core.js";
 import { categorizeAll } from "../sync/categorize.js";
-import { authEnabled, hasValidSession, verifyPassword, sessionCookie, clearCookie, ssoVerify } from "./auth.js";
-import { loginPage } from "./login-page.js";
-import { empireBearerOk } from "./empire-auth.js";
+import { sessionCookie, clearCookie, sessionToken } from "./auth.js";
+import { welcomePage, loginPage } from "./login-page.js";
+import { empireBearerOk, empireLogin, empireTokenOk } from "./empire-auth.js";
 
 // `max` caps the buffered body (bytes); on overflow the request is destroyed and the
 // promise resolves "" so the handler reports a clean error. Uploads need a larger cap
@@ -49,53 +49,50 @@ const server = createServer(async (req, res) => {
   try {
     const url = new URL(req.url ?? "/", `http://${req.headers.host}`);
 
-    // ---- authentication (single password + signed session cookie) ----
-    // GET /login → page; POST /login → set cookie; /logout → clear. Everything else is
-    // gated when auth is configured. /login & /logout must stay reachable unauthenticated.
-    if (url.pathname === "/login" && req.method === "GET") {
-      res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" });
-      res.end(loginPage());
-      return;
+    // ---- authentication: Empire accounts (see empire-auth.ts) ----
+    // /login, /login/email, /sso and /logout stay reachable without a session; everything else
+    // needs one. Pages need the session cookie; the API also takes a Bearer token (iPhone app).
+    const html = (status: number, body: string) => {
+      res.writeHead(status, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" });
+      res.end(body);
+    };
+    const redirect = (location: string, cookie?: string) => {
+      res.writeHead(303, cookie ? { "Set-Cookie": cookie, Location: location } : { Location: location });
+      res.end();
+    };
+    const loggedIn = () => empireTokenOk(sessionToken(req.headers.cookie));
+
+    if ((url.pathname === "/login" || url.pathname === "/login/email") && req.method === "GET") {
+      if (await loggedIn()) return redirect("/");
+      return html(200, url.pathname === "/login" ? welcomePage() : loginPage());
     }
     if (url.pathname === "/login" && req.method === "POST") {
-      const password = new URLSearchParams(await readBody(req)).get("password") ?? "";
-      if (verifyPassword(password)) {
-        res.writeHead(303, { "Set-Cookie": sessionCookie(), Location: "/" });
-        res.end();
-      } else {
-        await new Promise((r) => setTimeout(r, 500)); // small delay slows brute-forcing
-        res.writeHead(401, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" });
-        res.end(loginPage("Incorrect password."));
+      const form = new URLSearchParams(await readBody(req, 10_000));
+      const email = (form.get("email") ?? "").trim();
+      // Caddy puts the visitor's address last in X-Forwarded-For
+      const clientIp = String(req.headers["x-forwarded-for"] ?? "").split(",").pop()?.trim() || undefined;
+      const result = await empireLogin(email, form.get("password") ?? "", clientIp);
+      if ("token" in result) return redirect("/", sessionCookie(result.token));
+      return html(401, loginPage(result.error, email));
+    }
+    if (url.pathname === "/logout") return redirect("/login", clearCookie());
+    // Hand-off from the hub: it POSTs the visitor's Empire token here, so there's no second login.
+    if (url.pathname === "/sso") {
+      if (req.method === "POST") {
+        const token = new URLSearchParams(await readBody(req, 10_000)).get("token") ?? "";
+        if (await empireTokenOk(token)) return redirect("/", sessionCookie(token));
+        return html(401, welcomePage("Your Empire account has no access to Aresium."));
       }
-      return;
+      return redirect("/login");
     }
-    if (url.pathname === "/logout") {
-      res.writeHead(303, { "Set-Cookie": clearCookie(), Location: "/login" });
-      res.end();
-      return;
-    }
-    // Empire SSO hand-off: a valid token from the hub starts a session with no second login.
-    // Must stay reachable before the gate (like /login). Invalid/expired → normal login page.
-    if (url.pathname === "/sso" && req.method === "GET") {
-      if (ssoVerify(url.searchParams.get("token") ?? undefined)) {
-        res.writeHead(303, { "Set-Cookie": sessionCookie(), Location: "/" });
-      } else {
-        res.writeHead(303, { Location: "/login" });
-      }
-      res.end();
-      return;
-    }
-    // gate every other route once auth is configured. The API also accepts an Empire login
-    // (Bearer token, used by the iPhone app); pages still need the website session.
+
     const isApi = url.pathname.startsWith("/api/");
-    if (authEnabled() && !hasValidSession(req.headers.cookie)
-        && !(isApi && await empireBearerOk(req.headers.authorization))) {
+    if (!(await loggedIn()) && !(isApi && await empireBearerOk(req.headers.authorization))) {
       if (isApi) {
         res.writeHead(401, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
         res.end(JSON.stringify({ error: "unauthenticated" }));
       } else {
-        res.writeHead(303, { Location: "/login" });
-        res.end();
+        redirect("/login");
       }
       return;
     }

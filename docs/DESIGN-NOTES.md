@@ -132,29 +132,17 @@ breakpoint; (2) MobileApp shell + state; (3) start screen (toggles + swipeable
 embedded list + ARESIUM band + graph reveal); (4) drill screens (months / over-time
 graph / activities) reusing the modal; (5) mobile CSS. Reuse data layer + chart + modal.
 
-## 4. Custom login screen (replaces nginx basic-auth) — ✅ in-app auth built
+## 4. Login — Empire accounts (since 2026-10-23)
 
-**Built (app side):** single password + a stateless, HMAC-signed session cookie (30-day),
-zero deps (Node crypto: scrypt for the password, HMAC-SHA256 for the cookie).
-- `src/web/auth.ts` — hashing, cookie issue/verify, `authEnabled()`.
-- `src/web/login-page.ts` — branded `/login` page (self-contained, no external assets).
-- `src/web/server.ts` — `GET/POST /login`, `/logout`, and a gate on every other route
-  (browser → 303 `/login`; `/api/*` → 401). Cookie is HttpOnly + Secure + SameSite=Lax.
-- `scripts/set-password.ts` (`npm run set-password`) — writes `AUTH_PASSWORD_HASH` +
-  generates `AUTH_SESSION_SECRET` into `.env`.
-
-**Safety design:** the gate is enforced ONLY when both env vars are set. Until then the
-server logs through unchanged — so deploying the code can't lock anyone out, and nginx
-basic-auth keeps protecting the app in the meantime. Tested end-to-end (unauth redirect,
-401 on API, wrong-password 401, valid/tampered/expired cookie, logout).
-
-**Rollout (no exposure window — do in this order):**
-1. `npm run set-password` → set the password (hash + secret land in `.env`).
-2. `systemctl restart aresium` → the gate activates.
-3. Visit the site (still behind basic-auth) and confirm the in-app login works.
-4. ONLY THEN remove `auth_basic` (+ `auth_basic_user_file`) from the aresium server
-   block in the shared `insureai_nginx` vhost and reload nginx. Now the in-app login is
-   the sole gate. (This nginx edit is on shared infra — done by the operator, not in repo.)
-
-Optional follow-ups: a logout button in the UI (route exists at `/logout`); DB-backed
-sessions if instant global revocation is ever wanted.
+The single password is gone. Aresium uses **Empire accounts** (PocketBase at
+auth.ares-empire.de; see ares-empire `docs/ACCOUNTS.md`).
+- `src/web/empire-auth.ts` — login against the Empire, and the token check: approved, has the
+  `aresium` service, and listed in `EMPIRE_ALLOWED_USERS` (Aresium still holds one person's
+  data). Re-checked with the Empire every minute, so un-approving someone locks them out.
+- `src/web/auth.ts` — the session cookie (HttpOnly, Secure, SameSite=Lax, 30 days) holds the token.
+- `src/web/login-page.ts` — `/login` (start screen: *Log in* button + sign-up link) and
+  `/login/email` (email + password). Sign-up and password reset live on the hub.
+- `src/web/server.ts` — `POST /login`, `/logout`, `POST /sso` (the hub hands over the token,
+  so coming from the hub needs no second login), and the gate: pages need the cookie; `/api/*`
+  also accepts `Authorization: Bearer <token>` (iPhone app).
+- If the accounts server is down, nobody gets in (deny, never open).
