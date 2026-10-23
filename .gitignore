@@ -19,3 +19,6 @@ tools/blender/_check/
 *.dump
 
 __pycache__/
+
+# Personal settings (names, home towns) — never commit
+config/personal.json

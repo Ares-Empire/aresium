@@ -1,7 +1,8 @@
 // Extracts city + country from VR Bank card-payment descriptions, which embed the
 // place either as "<merchant> DEU Hamburg EUR 5,90 Umsatz vom ..." or as
-// ".../München/DE 04.02.2026 ...".
+// ".../Hamburg/DE 04.02.2026 ...".
 import { prisma } from "../lib/db.js";
+import { personal } from "../lib/personal.js";
 
 const C3: Record<string, string> = {
   DEU: "DE", AUT: "AT", ESP: "ES", ITA: "IT", FRA: "FR", CHE: "CH", NLD: "NL",
@@ -18,7 +19,7 @@ export function extractLocation(text: string): Loc {
   // Format A: "... DEU Hamburg EUR ..."
   let m = t.match(/\b([A-Z]{3})\s+(.+?)\s+EUR\b/);
   if (m && C3[m[1]]) return { country: C3[m[1]], city: cleanCity(m[2]) };
-  // Format B: ".../München/DE ..." (city is the token before the 2-letter country)
+  // Format B: ".../Hamburg/DE ..." (city is the token before the 2-letter country)
   m = t.match(/\/([^/]{2,40})\/([A-Z]{2})(?:[/\s]|$)/);
   if (m && C2.has(m[2])) return { country: m[2], city: cleanCity(m[1]) };
   return {};
@@ -29,15 +30,14 @@ function cleanCity(raw: string): string {
 }
 
 const stripDiacritics = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
-const HOME_TOKENS: string[] = []; // see config/personal.json
 
 // A transaction is "at home" if it has no location (online/direct debit) or is in
-// one of the home cities. Anything in a foreign country, or a different German city, is "away".
+// one of the home cities (config/personal.json). Anything in a foreign country, or a different German city, is "away".
 export function isHome(loc: Loc): boolean {
   if (!loc.country) return true;
   if (loc.country !== "DE") return false;
   const c = stripDiacritics(loc.city ?? "");
-  return HOME_TOKENS.some((tok) => c.includes(tok));
+  return personal.homeTokens.some((tok) => c.includes(tok));
 }
 
 export async function applyLocations(): Promise<number> {

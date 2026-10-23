@@ -3,18 +3,21 @@
 // and lets the model pick a category (or propose a new one). Sets categorySource='llm',
 // so manual edits are never touched and rules stay authoritative for what they match.
 import { prisma } from "../lib/db.js";
+import { personal } from "../lib/personal.js";
 
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 const MODEL = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
 const BATCH = 25;
 
-const SYSTEM = `You categorise bank/PayPal transactions for a German student who lives in their home city.
+const HOME = personal.homeCities.join(", ") || "their home city";
+
+const SYSTEM = `You categorise bank/PayPal transactions for a German student who lives in ${HOME}.
 Assign each transaction to exactly ONE category from the provided "categories" list.
 Guidelines:
 - USER CORRECTIONS (HIGHEST PRIORITY): the user message includes a "corrections" list of {merchant, category} the user has manually assigned. These are ground truth. If a transaction's counterparty or description clearly refers to the same merchant as a corrections entry, assign that correction's category — this overrides every guideline below.
 - ESSENTIALS WIN OVER LOCATION: categorise essentials by merchant type even on a trip — a supermarket is always "Groceries", a pharmacy "Health", a drugstore "Drogerie". Groceries bought during a holiday are still "Groceries", never "Vacation".
 - "placeType" (when present) is what the merchant actually IS, resolved from OpenStreetMap — trust it over the raw name. restaurant→"Restaurants", bar/pub→"Drinking", cafe→"Restaurants", museum/attraction/entertainment→leisure (Travel/Vacation if onTrip, else "Non-essentials"), bakery→"Restaurants" or "Groceries", fuel→"Travel", fitness→"Fitness", clothes→"Clothes". placeType="unknown" means the lookup found nothing — fall back to the name.
-- TRIPS: "onTrip": true means it happened away from the home cities (their home cities). "tripKind" tells you which:
+- TRIPS: "onTrip": true means it happened away from the home cities (${HOME}). "tripKind" tells you which:
     • "vacation" → a multi-day stay. Discretionary spending there (restaurants, bars, attractions, hotels, local transport, souvenirs) is "Vacation".
     • "travel" → a single en-route stop. Such spending, plus all long-distance transport (Deutsche Bahn/DB, flights, coaches), is "Travel".
   Long-distance transport is ALWAYS "Travel" even on a vacation.

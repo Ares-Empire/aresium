@@ -6,6 +6,7 @@
 //   npm run seed -- --rules-only   # only rebuild the rules; keeps every transaction's category + tags
 import "dotenv/config";
 import { prisma } from "../src/lib/db.js";
+import { personal } from "../src/lib/personal.js";
 
 // `alsoTag`: patterns that also tag the match into a second category (no double-counting,
 // see TransactionTag). They get priority + 1 so they beat the same category's plain patterns
@@ -37,16 +38,18 @@ const CATEGORIES: Cat[] = [
   { name: "Trash", color: "#71717a", icon: "🗑️", patterns: ["onlyfans", "fanvue", "ccbill", "coppervex", "roblox", "fotoservice"] },
   { name: "Memberships", color: "#f59e0b", icon: "🤝", patterns: ["die linke", "mitgliedsbeitrag", "parteibeitrag", "spende", "greenpeace", "amnesty", "gewerkschaft"] },
   // priority 5: "who" (identity) rules beat "what" (merchant keyword) rules,
-  // e.g. money from a parent with "Miete und Unterhalt" is Basis, not Rent.
+  // e.g. money from a parent with "Miete und Unterhalt" in the text is Basis, not Rent.
+  // Names of people (family, yourself, landlord) live in config/personal.json → extraRules.
   { name: "Basis", color: "#16a34a", icon: "👨‍👩‍👧", priority: 5, patterns: ["kindergeld"] },
   { name: "Tax", color: "#78716c", icon: "🧾", priority: 5, patterns: ["steuerverwaltung", "finanzamt", "einkommenst", "steuererstattung"] },
   { name: "Income", color: "#84cc16", icon: "💰", priority: 5, patterns: ["gehalt", "lohn", "stipendium", "bafög", "bafoeg", "erfrischungsgeld", "honorar"] },
-  { name: "Transfer", color: "#94a3b8", icon: "🔁", exclude: true, priority: 5, patterns: ["paypal europe", "paypal (europe", "patrik breeck", "union investment", "uniondepot", "bankgutschrift auf paypal", "bank deposit to pp account", "von nutzer eingeleitete abbuchung", "umbuchung", "eigenübertrag", "sparplan", "tagesgeld"] },
+  { name: "Transfer", color: "#94a3b8", icon: "🔁", exclude: true, priority: 5, patterns: ["paypal europe", "paypal (europe", "union investment", "uniondepot", "bankgutschrift auf paypal", "bank deposit to pp account", "von nutzer eingeleitete abbuchung", "umbuchung", "eigenübertrag", "sparplan", "tagesgeld"] },
 ];
 
 async function createRules(c: Cat, categoryId: string, idByName: Map<string, string>) {
   const priority = c.priority ?? 0;
-  const data = c.patterns.map((pattern) => ({ categoryId, pattern, priority }));
+  const patterns = [...c.patterns, ...(personal.extraRules[c.name] ?? [])];
+  const data = patterns.map((pattern) => ({ categoryId, pattern, priority }));
   if (c.alsoTag) {
     const alsoTagId = idByName.get(c.alsoTag.category);
     if (!alsoTagId) throw new Error(`${c.name}: alsoTag category "${c.alsoTag.category}" is not defined`);
@@ -56,6 +59,8 @@ async function createRules(c: Cat, categoryId: string, idByName: Map<string, str
 }
 
 async function main() {
+  const unknown = Object.keys(personal.extraRules).filter((n) => !CATEGORIES.some((c) => c.name === n));
+  if (unknown.length) throw new Error(`config/personal.json extraRules: unknown categories ${unknown.join(", ")}`);
   const rulesOnly = process.argv.includes("--rules-only");
   const idByName = new Map<string, string>();
 

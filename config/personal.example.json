@@ -1,0 +1,10 @@
+{
+  "_comment": "Copy to config/personal.json (git-ignored) and fill in your own values. Everything personal lives there, never in the code.",
+  "homeCities": ["Berlin"],
+  "homeTokens": ["berlin"],
+  "extraRules": {
+    "Basis": ["jane doe"],
+    "Transfer": ["your own name"],
+    "Rent": ["your landlord"]
+  }
+}
