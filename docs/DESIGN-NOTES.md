@@ -15,75 +15,8 @@ background morphs between themes — and the mirror when leaving red. Self-conta
 Tunables in `CFG` (timeline, hero offset/scale, swap point). Both `app.jsx` and `mobile.jsx`
 call it from their red toggles.
 
-The poured-paint pipeline below (`paint.js` + `assets/paint-pour.webm`) is **retained but no
-longer wired** to the toggle — kept in case we want it back or as an alternate mode.
-
-### (archived) Real "poured paint" transition — GPU fluid sim + video
-
-**Implemented in `web/public/app/paint.js`** (`window.AresiumPaint`): a genuine real-time
-**height-field fluid simulation** on the GPU — red paint is poured at the top, flows down
-under gravity, fingers into drips, covers the screen, then drains to reveal the recoloured
-UI. `app.jsx`/`mobile.jsx` call `AresiumPaint.pour({onCovered, onDone})` (theme swaps at
-`onCovered`). Self-contained; falls back to the CSS curtain when WebGL / float targets are
-unavailable or `prefers-reduced-motion`.
-
-How it works (grounded in the thin-film literature — lubrication approximation, flux ∝ h³,
-which drives the drip-fingering instability):
-- **Sim** (ping-pong FBOs, single-channel thickness `h`, half-float→byte fallback):
-  semi-Lagrangian gravity advection with thickness-dependent speed (~h²), anisotropic
-  diffusion (rounds drips), a noisy top source (uneven pour streams seed fingering), and a
-  coverage "floor" band that guarantees opacity for the hidden theme swap then recedes to
-  reveal it top-first.
-- **Render** (wet shading): normals from ∇h → diffuse + tight Blinn-Phong specular + Fresnel
-  rim; **Beer–Lambert** pigment (`1−e^(−k·h)`) so thin edges are translucent and thick
-  centres opaque deep red; normal-based **refraction** of the outgoing theme colour at the
-  wet edges.
-
-Validated headlessly (headless-gl + xvfb): shaders compile/link, full timeline runs with
-zero GL errors, paint renders, `onCovered`/`onDone` fire. All look/feel constants live in
-`CFG` at the top of `paint.js`.
-
-**Reality check / chosen direction for hyper-realism:** a real-time shader tops out at
-*stylised*, not photoreal. To get "a bucket of red paint poured over the screen," the
-realistic path is a **pre-rendered alpha paint-pour clip** played as a transparent overlay
-that reveals the new screen — because it's real/offline-rendered footage, it actually looks
-real. `paint.js` now tries that **video first** (`VIDEO` config → `web/public/assets/
-paint-pour.webm`, VP9+alpha), and falls back to the GPU sim, then the CSS curtain, when the
-asset is absent — so it upgrades the moment the clip is dropped in, no code change.
-
-Pipeline: `tools/blender/paint_pour.py` (Mantaflow liquid pour, rendered over transparent
-film) → ffmpeg to VP9+alpha `.webm` → set `VIDEO.coverAt` to the full-coverage timestamp.
-See `web/public/assets/README.md` for the asset contract. The GPU sim remains the no-asset
-fallback.
-
-**Original state (replaced):** a CSS curtain — a red-gradient panel that slides
-top→bottom, with an SVG turbulence/displacement/goo filter warping its leading edge
-(`.paint` in `web/public/index.html`, now the fallback). Read as a *warped sheet sliding
-down*, not as paint. No real body, flow, or lighting.
-
-**The goal:** it should look like a bucket of rich red paint is actually poured
-over the screen and **flows down** — 3D body, viscous/smooth motion, drip
-tendrils, and **lighting/specular that matches** (wet, glossy surface).
-
-**Why CSS can't do it:** CSS filters distort a static shape; they can't simulate
-fluid that accumulates, flows around, pools, and drips with thickness + light.
-That needs a per-frame simulation on the GPU.
-
-**The actual approach (WebGL, no npm deps — a single self-contained canvas
-overlay triggered on red-mode toggle):**
-- **Height-field fluid sim** in a fragment shader: a paint "thickness" field that
-  is poured in at the top and advected downward under gravity + viscosity, with
-  surface tension so edges form rounded lips and tendrils (drips).
-- **3D / lighting:** derive a normal map from the height field; apply directional
-  light + specular for the wet, glossy look; tint with the rich red.
-- **Smoothness:** simulate at a modest resolution, render full-res; ~1–2 s pour,
-  then hold/recede. Pre-warm the GL context so the first run isn't janky.
-- **Alternatives considered:** (a) a pre-rendered alpha video of a real paint
-  pour — most photoreal, but a heavy asset and the colour is baked in; (b) a
-  Lottie/AE animation — lighter but still not interactive/lit. The shader route
-  keeps it dependency-free and theme-tintable.
-- **Effort:** a few focused hours; isolate as one `paint.js` canvas module so it
-  can't affect the rest of the app. Respect `prefers-reduced-motion`.
+The earlier poured-paint transition (GPU fluid sim, Blender-rendered video) was removed on 2026-10-23;
+it is in the git history if ever needed.
 
 ## 2. Aresium (red) mode polish
 

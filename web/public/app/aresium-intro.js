@@ -1,6 +1,6 @@
 /* Aresium — wordmark intro transition (window.AresiumIntro).
 
-   Replaces the paint pour for the red/Aresium-mode toggle. The big "ARESIUM" wordmark
+   The red/Aresium-mode toggle. The big "ARESIUM" wordmark
    flies up from below to a centred HERO, vibrates as it lands, then settles down into its
    home (the bottom band) while the background smoothly morphs between themes. Exiting plays
    the mirror: the word lifts off the band to the hero, vibrates, and flies off below as the

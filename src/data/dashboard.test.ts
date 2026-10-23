@@ -3,7 +3,6 @@ import { test } from "node:test";
 import { readFile } from "node:fs/promises";
 import { createContext, runInContext } from "node:vm";
 import { buildDashboard, type Category, type DashboardSource, type SourceTxn } from "./dashboard.js";
-import { checkDashboard } from "../../scripts/check-dashboard.js";
 
 const category = (name: string, kind: Category["kind"] = "spend"): Category => ({ name, kind, icon: "Tag", color: "#123456" });
 const txn = (id: string, date: string, amount: number, categoryName: string, tags: string[] = []): SourceTxn =>
@@ -86,12 +85,10 @@ test("builder leaves its source untouched", () => {
   assert.deepEqual(source, before);
 });
 
-test("every adapter result equals legacy for tagged, refunded and partial data", async () => {
-  const result = await checkDashboard(fixture());
-  assert.equal(result.mismatches, 0, result.firstMismatches.join("\n"));
-});
-
-test("addition order, cent rounding, income ties and out-of-window bookings match legacy", async () => {
+// The values below were produced by the old browser calculation (web/public/app/data.js before /api/data
+// version 2) and matched by buildDashboard when the switch was checked on 2026-10-23; they pin its addition
+// order, cent rounding, income-row ties and bookings outside a partial month.
+test("addition order, cent rounding, income ties and out-of-window bookings keep the old results", () => {
   const source = fixture();
   source.categories.push(category("Second income", "income"));
   source.transactions.push(
@@ -105,8 +102,16 @@ test("addition order, cent rounding, income ties and out-of-window bookings matc
     txn("cancel", "2026-01-02", 1e14, "Food"),
     txn("last", "2026-02-01", -0.005, "Food"),
   );
-  const result = await checkDashboard(source);
-  assert.equal(result.mismatches, 0, result.firstMismatches.join("\n"));
+  const d = buildDashboard(source);
+  assert.deepEqual(d.total.incomeBuckets.map((b) => [b.name, b.total]),
+    [["Refunds", 100000000000015], ["Income", 244], ["Second income", 200], ["Tax", 35], ["Transfer", 29], ["Other", 7]]);
+  assert.deepEqual(d.byMonth["2026-02"].incomeBuckets.map((b) => [b.name, b.total]),
+    [["Income", 109], ["Second income", 100], ["Transfer", 9]]);
+  assert.deepEqual([d.total.expense, d.byMonth["2026-01"].expense, d.byMonth["2026-02"].expense], [-8.99, -12, 3.01]);
+  assert.deepEqual(d.byMonth["2026-02"].dayExpense, [0.01, 2, 0]);
+  assert.deepEqual(d.byMonth["2026-02"].dayExpenseRunning, [0.01, 2.01, 2.01]);
+  assert.deepEqual(d.spend.Food.months, [10, 3.01]);
+  assert.deepEqual(d.total.categories, [{ name: "Food", total: 13.01 }, { name: "Theme", total: 12 }]);
 });
 
 test("equal income rows keep each month's own first-transaction order", async () => {
@@ -121,11 +126,14 @@ test("equal income rows keep each month's own first-transaction order", async ()
   assert.deepEqual(d.byMonth["2026-02"].incomeBuckets.map((b) => b.name), ["Income", "Transfer"]);
 });
 
-test("empty source preserves the legacy interface", async () => {
-  const result = await checkDashboard({ categories: [], months: [], transactions: [], balanceByDay: {}, openingBalance: 0 });
-  assert.equal(result.mismatches, 0, result.firstMismatches.join("\n"));
+test("an empty source gives an empty dashboard", () => {
+  const d = buildDashboard({ categories: [], months: [], transactions: [], balanceByDay: {}, openingBalance: 0 });
+  assert.deepEqual(d, {
+    version: 2, months: [], categories: [], pick: { spend: [], income: [] }, incomeBuckets: [], transactions: [],
+    total: { expense: 0, income: 0, categories: [], incomeBuckets: [] }, byMonth: {}, spend: {}, income: {},
+    overview: { expense: [], income: [], balance: [] },
+  });
 });
-
 
 test("adapter refresh updates the captured object after edits", async () => {
   const source = fixture();
