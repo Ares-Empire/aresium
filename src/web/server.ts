@@ -13,6 +13,7 @@ import { importContent } from "../import/core.js";
 import { categorizeAll } from "../sync/categorize.js";
 import { authEnabled, hasValidSession, verifyPassword, sessionCookie, clearCookie, ssoVerify } from "./auth.js";
 import { loginPage } from "./login-page.js";
+import { empireBearerOk } from "./empire-auth.js";
 
 // `max` caps the buffered body (bytes); on overflow the request is destroyed and the
 // promise resolves "" so the handler reports a clean error. Uploads need a larger cap
@@ -84,9 +85,12 @@ const server = createServer(async (req, res) => {
       res.end();
       return;
     }
-    // gate every other route once auth is configured
-    if (authEnabled() && !hasValidSession(req.headers.cookie)) {
-      if (url.pathname.startsWith("/api/")) {
+    // gate every other route once auth is configured. The API also accepts an Empire login
+    // (Bearer token, used by the iPhone app); pages still need the website session.
+    const isApi = url.pathname.startsWith("/api/");
+    if (authEnabled() && !hasValidSession(req.headers.cookie)
+        && !(isApi && await empireBearerOk(req.headers.authorization))) {
+      if (isApi) {
         res.writeHead(401, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
         res.end(JSON.stringify({ error: "unauthenticated" }));
       } else {
