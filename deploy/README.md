@@ -1,4 +1,4 @@
-# Deploying the language update
+# Deploying Aresium
 
 For the lead to run after review/merge. No database migration, seed, environment change or proxy
 change is needed. The server serves the static files directly; there is no frontend bundle.
