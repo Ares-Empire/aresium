@@ -154,7 +154,7 @@ function TxnDetailModal({ id, onClose, onChanged }) {
     if (!id) return;
     setData(null); setErr(false); setRecat(false);
     let alive = true;
-    fetch("/api/transaction/" + encodeURIComponent(id))
+    fetch("/api/transaction/" + encodeURIComponent(id), { headers: { "Accept-Language": "en" } })
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
       .then((d) => { if (alive) setData(d); })
       .catch(() => { if (alive) setErr(true); });
@@ -302,7 +302,7 @@ function RecategorizeModal({ data, pickList, isIncomeItem, onClose, onApplied })
 
   const submit = (url, body) => {
     setSaving(true); setErr(false);
-    fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+    fetch(url, { method: "POST", headers: { "Content-Type": "application/json", "Accept-Language": "en" }, body: JSON.stringify(body) })
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((d) => { onApplied(d); onClose(); })
       .catch(() => { setErr(true); setSaving(false); });

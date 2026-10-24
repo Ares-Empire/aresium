@@ -11,6 +11,7 @@ import { parseCamt } from "./camt.js";
 import { parsePaypalCsv } from "./paypal-csv.js";
 import { parseVrBankCsv } from "./vrbank-csv.js";
 import type { ParsedFile } from "./types.js";
+import { ImportFileError } from "./errors.js";
 
 export function looksLikePaypal(content: string): boolean {
   const head = (content.split(/\r?\n/)[0] ?? "").toLowerCase();
@@ -25,8 +26,13 @@ export function looksLikePaypal(content: string): boolean {
 // Parse by extension; CSV type (VR Bank vs PayPal) is auto-detected from the header.
 export function parseContent(filename: string, content: string): ParsedFile | null {
   const ext = extname(filename).toLowerCase();
-  if (ext === ".xml") return parseCamt(content);
-  if (ext === ".csv") return looksLikePaypal(content) ? parsePaypalCsv(content) : parseVrBankCsv(content);
+  try {
+    if (ext === ".xml") return parseCamt(content);
+    if (ext === ".csv") return looksLikePaypal(content) ? parsePaypalCsv(content) : parseVrBankCsv(content);
+  } catch (error) {
+    if (error instanceof ImportFileError) throw error;
+    throw new ImportFileError("invalidFile");
+  }
   return null;
 }
 

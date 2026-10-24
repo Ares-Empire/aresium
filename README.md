@@ -50,3 +50,10 @@ npm run db:studio             # browse the data
 Full export walkthrough: [`docs/SETUP-IMPORT.md`](docs/SETUP-IMPORT.md).
 Design + Hetzner notes: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 Plan: [`docs/ROADMAP.md`](docs/ROADMAP.md).
+
+## Dashboard API and languages
+
+The current dashboard is served by `npm run web` (`src/web/server.ts`, static files in `web/public`).
+API text for the iPhone app supports English and German via `Accept-Language`; the website stays
+English. See [the API contract](docs/API-DATA.md#language), the wording in `src/lib/texts.ts`, and
+[deployment steps](deploy/README.md). Run `npm ci`, `npm test` and `npm run typecheck` before deploying.

@@ -1,11 +1,12 @@
 // Parser for VR Bank / Volksbank "Umsätze exportieren → CSV" (semicolon-delimited,
 // German number/date format). Column names vary between VR branches/versions, so we
-// match against several candidates. If the amount column can't be found, it throws
-// and prints the headers so the mapping can be extended.
+// match against several candidates. Missing required columns produce a typed error
+// so the API can explain the failure in the request language.
 import { parse } from "csv-parse/sync";
 import { createHash } from "node:crypto";
 import { parseAmount, parseDateFlexible, pick } from "./util.js";
 import type { NormalizedTxn, ParsedFile } from "./types.js";
+import { ImportFileError } from "./errors.js";
 
 const COLS = {
   ownIban: ["IBAN Auftragskonto", "Auftragskonto", "Kontonummer Auftragskonto"],
@@ -51,10 +52,7 @@ export function parseVrBankCsv(content: string): ParsedFile {
   const hasAmount = COLS.amount.some((c) => headers.includes(c));
   const hasDate = COLS.booking.some((c) => headers.includes(c));
   if (!hasAmount || !hasDate) {
-    throw new Error(
-      `VR Bank CSV: missing required columns.\nFound headers: ${headers.join(" | ")}\n` +
-        `Send me this header line and I'll add the mapping.`,
-    );
+    throw new ImportFileError("bankColumns");
   }
 
   let iban: string | undefined;

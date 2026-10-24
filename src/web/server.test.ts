@@ -60,7 +60,7 @@ test("every API route shares the 401/403/503 JSON auth gate", async (t) => {
     }
     const missing = await request(path);
     assert.equal(missing.status, 401);
-    assert.deepEqual(JSON.parse(missing.body), { error: "unauthenticated" });
+    assert.deepEqual(JSON.parse(missing.body), { error: "Please log in again." });
   }
 });
 
@@ -72,7 +72,7 @@ test("allowed bearer and session credentials pass the gate and refresh forwards 
   for (const credential of [{ authorization: "Bearer test-server-bearer" }, { cookie: "aresium_session=test-server-cookie" }]) {
     const result = await request("/api/import", { ...credential, "x-forwarded-for": "192.0.2.1, 192.0.2.2" }, [Buffer.from("{}")]);
     assert.equal(result.status, 400); // passed auth; empty import rejected before any DB work
-    assert.deepEqual(JSON.parse(result.body), { error: "no .csv/.xml files in request" });
+    assert.deepEqual(JSON.parse(result.body), { error: "Choose a .csv or .xml file to import." });
     assert.equal(result.headers["set-cookie"], undefined);
   }
   assert.equal(fetch.mock.callCount(), 2);
@@ -168,4 +168,193 @@ test("oversized import sends JSON 413 with the 25 MB limit, including multibyte 
     assert.match(String(result.headers["content-type"]), /application\/json/);
     assert.deepEqual(JSON.parse(result.body), { error: "Import exceeds the 25 MB request limit." });
   }
+});
+
+const { prisma } = await import("../lib/db.js");
+
+// Prisma's proxy methods need assignment rather than mock.method (see queries.test.ts).
+function replaceQuery<T extends object, K extends keyof T>(t: import("node:test").TestContext, target: T, key: K, implementation: unknown) {
+  const original = target[key];
+  target[key] = implementation as T[K];
+  t.after(() => { target[key] = original; });
+}
+const jsonBody = (value: unknown) => [Buffer.from(JSON.stringify(value))];
+const languageHeaders = (language: string) => ({ authorization: "Bearer test-language-approved", "accept-language": language });
+function assertError(result: Awaited<ReturnType<typeof request>>, status: number, language: string, error: string) {
+  assert.equal(result.status, status);
+  assert.equal(result.headers["content-language"], language);
+  assert.match(result.headers["content-type"], /application\/json/);
+  assert.deepEqual(JSON.parse(result.body), { error });
+}
+
+test("API auth errors follow the request language, including cached denials", async (t) => {
+  for (const status of [401, 403, 503]) {
+    const fetch = t.mock.method(globalThis, "fetch", async () => authResponse(status));
+    for (const language of ["en", "de", "en"] as const) {
+      const result = await request("/api/data", {
+        authorization: `Bearer test-language-auth-${status}`, "accept-language": language,
+      });
+      const messages = {
+        en: { 401: "Please log in again.", 403: "This account has no access to Aresium.", 503: "Login service unavailable, try again in a minute." },
+        de: { 401: "Bitte melde dich erneut an.", 403: "Dieses Konto hat keinen Zugang zu Aresium.", 503: "Anmeldedienst nicht erreichbar, versuch es in einer Minute noch einmal." },
+      };
+      assertError(result, status, language, messages[language][status as 401 | 403 | 503]);
+    }
+    assert.equal(fetch.mock.callCount(), status === 503 ? 3 : 1);
+    fetch.mock.restore();
+  }
+  assertError(await request("/api/data", { "accept-language": "de" }), 401, "de", "Bitte melde dich erneut an.");
+});
+
+test("API headers use the negotiated language and English fallback", async () => {
+  for (const [header, language] of [
+    [undefined, "en"], ["de", "de"], ["de-DE", "de"], ["de-DE,de;q=0.9,en;q=0.8", "de"],
+    ["en", "en"], ["en-GB,de;q=0.5", "en"], ["fr", "en"], ["de;q=unreadable", "en"],
+    ["en;q=0.5,de;q=0.8", "de"], ["en;q=0.8,de;q=0.8", "en"], ["de;q=0.8,en;q=0.8", "de"],
+  ]) {
+    assertError(await request("/api/pulse", { "accept-language": header }), 401, language!,
+      language === "de" ? "Bitte melde dich erneut an." : "Please log in again.");
+  }
+});
+
+test("import validation and request size errors are sentences in both languages", async (t) => {
+  t.mock.method(globalThis, "fetch", async () => authResponse(200));
+  for (const language of ["en", "de"] as const) {
+    for (const body of [{}, { files: [] }, { files: [{ name: "sample.txt", content: "sample" }] }]) {
+      assertError(await request("/api/import", languageHeaders(language), jsonBody(body)), 400, language,
+        language === "de" ? "Wähle eine .csv- oder .xml-Datei zum Importieren." : "Choose a .csv or .xml file to import.");
+    }
+    assertError(await request("/api/import", languageHeaders(language), [Buffer.alloc(25 * 1024 * 1024 + 1)]), 413, language,
+      language === "de" ? "Der Import überschreitet die Grenze von 25 MB pro Anfrage." : "Import exceeds the 25 MB request limit.");
+    assertError(await request("/api/transaction/sample/category", languageHeaders(language), [Buffer.alloc(1e6 + 1)]), 413, language,
+      language === "de" ? "Diese Anfrage ist zu groß." : "This request is too large.");
+  }
+});
+
+test("each file's parser and database failures are translated without exposing raw errors", async (t) => {
+  t.mock.method(globalThis, "fetch", async () => authResponse(200));
+  t.mock.method(console, "log", () => {});
+  replaceQuery(t, prisma.categoryRule, "findMany", async () => []);
+  replaceQuery(t, prisma.account, "upsert", async () => { throw new Error("Synthetic internal database error"); });
+  const cases = [
+    ["root.xml", "<Other/>", "This file is not a CAMT bank statement.", "Diese Datei ist kein CAMT-Kontoauszug."],
+    ["type.xml", "<Document><Other/></Document>", "Use a CAMT.052 or CAMT.053 bank statement.", "Verwende einen Kontoauszug im Format CAMT.052 oder CAMT.053."],
+    ["paypal.csv", "Transaction ID,Name\ntest-id,Sample", "Required columns are missing from the PayPal CSV file.", "In der PayPal-CSV-Datei fehlen erforderliche Spalten."],
+    ["bank.csv", "Unknown;Header\nSample;Value", "Required columns are missing from the VR Bank CSV file.", "In der VR-Bank-CSV-Datei fehlen erforderliche Spalten."],
+    ["broken.csv", 'Transaction ID,Net\n"unclosed', "This file could not be read. Check the export and try again.", "Diese Datei konnte nicht gelesen werden. Prüfe den Export und versuch es noch einmal."],
+    ["database.csv", "Transaction ID,Net\n", "This file could not be imported. Try again in a minute.", "Diese Datei konnte nicht importiert werden. Versuch es in einer Minute noch einmal."],
+  ];
+  for (const language of ["en", "de"] as const) {
+    const result = await request("/api/import", languageHeaders(language), jsonBody({ files: cases.map(([name, content]) => ({ name, content })) }));
+    assert.equal(result.status, 200);
+    assert.equal(result.headers["content-language"], language);
+    assert.deepEqual(JSON.parse(result.body).results, cases.map(([name, _content, english, german]) => ({
+      name, added: 0, total: 0, account: null, skipped: false, error: language === "de" ? german : english,
+    })));
+  }
+});
+
+test("a running import returns a translated 409 and releases the lock afterward", async (t) => {
+  t.mock.method(globalThis, "fetch", async () => authResponse(200));
+  t.mock.method(console, "log", () => {});
+  let started!: () => void, release!: () => void;
+  const entered = new Promise<void>((resolve) => { started = resolve; });
+  const hold = new Promise<void>((resolve) => { release = resolve; });
+  replaceQuery(t, prisma.account, "upsert", async () => { started(); await hold; return { id: "test-account" }; });
+  replaceQuery(t, prisma.transaction, "findMany", async () => []);
+  replaceQuery(t, prisma.categoryRule, "findMany", async () => []);
+  const first = request("/api/import", languageHeaders("de"), jsonBody({ files: [{ name: "sample.csv", content: "Transaction ID,Net\n" }] }));
+  try {
+    await entered;
+    for (const language of ["en", "de"] as const) {
+      assertError(await request("/api/import", languageHeaders(language), jsonBody({})), 409, language,
+        language === "de" ? "Ein Import läuft bereits." : "An import is already running.");
+    }
+  } finally { release(); }
+  const completed = await first;
+  assert.equal(completed.status, 200);
+  assert.equal(completed.headers["content-language"], "de");
+  assert.deepEqual(JSON.parse(completed.body), { results: [{ name: "sample.csv", added: 0, total: 0, account: "PayPal", skipped: false }] });
+  assert.equal((await request("/api/import", languageHeaders("en"), jsonBody({}))).status, 400);
+});
+
+test("transaction lookup, recategorise and tag errors follow the request language", async (t) => {
+  t.mock.method(globalThis, "fetch", async () => authResponse(200));
+  let found = false;
+  replaceQuery(t, prisma.transaction, "findUnique", async () => found ? { id: "sample" } : null);
+  replaceQuery(t, prisma.category, "findFirst", async () => null);
+  for (const language of ["en", "de"] as const) {
+    found = false;
+    for (const [path, body] of [
+      ["/api/transaction/sample", undefined],
+      ["/api/transaction/sample/category", { category: "Sample category" }],
+      ["/api/transaction/sample/tags", { categories: [] }],
+    ] as const) {
+      assertError(await request(path, languageHeaders(language), body ? jsonBody(body) : undefined), 404, language,
+        language === "de" ? "Buchung nicht gefunden." : "Transaction not found.");
+    }
+    found = true;
+    for (const [suffix, body, english, german] of [
+      ["category", { category: "Missing" }, "Category not found.", "Kategorie nicht gefunden."],
+      ["tags", { categories: [], dropCurrent: true }, "Choose at least one category.", "Wähle mindestens eine Kategorie."],
+      ["category", {}, "Choose a transaction and a category.", "Wähle eine Buchung und eine Kategorie."],
+      ["tags", {}, "Choose a transaction and its categories.", "Wähle eine Buchung und ihre Kategorien."],
+    ] as const) {
+      assertError(await request(`/api/transaction/sample/${suffix}`, languageHeaders(language), jsonBody(body)), 400, language,
+        language === "de" ? german : english);
+    }
+  }
+});
+
+test("pulse follows the request language while dashboard and old stored detail stay identical", async (t) => {
+  t.mock.method(globalThis, "fetch", async () => authResponse(200));
+  const now = new Date();
+  const category = { name: "Sample category", color: "#123456", excludeFromTotals: false };
+  const row = {
+    id: "test-old-row", bookingDate: new Date(Date.UTC(now.getFullYear(), now.getMonth(), 1, 12)),
+    amount: -1339.32, category, tags: [], balance: 100, description: "Old English transaction text",
+    account: { name: "Sample account" }, raw: { Note: "Old English note" },
+  };
+  let rows = [row];
+  replaceQuery(t, prisma.transaction, "findMany", async () => rows);
+  replaceQuery(t, prisma.category, "findMany", async () => [category]);
+  replaceQuery(t, prisma.transaction, "findUnique", async () => row);
+  const englishData = await request("/api/data", languageHeaders("en"));
+  const germanData = await request("/api/data", languageHeaders("de"));
+  assert.equal(germanData.status, 200);
+  assert.equal(germanData.body, englishData.body);
+  const englishDetail = await request("/api/transaction/test-old-row", languageHeaders("en"));
+  const germanDetail = await request("/api/transaction/test-old-row", languageHeaders("de"));
+  assert.equal(germanDetail.status, 200);
+  assert.equal(germanDetail.body, englishDetail.body);
+  assert.equal(JSON.parse(germanDetail.body).description, row.description);
+  assert.equal(JSON.parse(germanDetail.body).account, "Sample account");
+  for (const empty of [false, true]) {
+    rows = empty ? [] : [row];
+    for (const language of ["en", "de"] as const) {
+      const result = await request("/api/pulse", languageHeaders(language));
+      assert.equal(result.status, 200);
+      assert.equal(result.headers["content-language"], language);
+      assert.match(JSON.parse(result.body).line, empty
+        ? (language === "de" ? /^Für .+ noch nichts importiert$/ : /^Nothing imported for .+ yet$/)
+        : (language === "de" ? /^1\.339 € im .+ ausgegeben$/ : /^€1,339 spent in .+$/));
+    }
+  }
+});
+
+test("unexpected API failures return a translated JSON sentence", async (t) => {
+  t.mock.method(globalThis, "fetch", async () => authResponse(200));
+  replaceQuery(t, prisma.transaction, "findUnique", async () => { throw new Error("Synthetic database failure"); });
+  for (const language of ["en", "de"] as const) {
+    assertError(await request("/api/transaction/sample", languageHeaders(language)), 500, language,
+      language === "de" ? "Etwas ist schiefgegangen. Versuch es in einer Minute noch einmal." : "Something went wrong. Try again in a minute.");
+  }
+});
+
+test("German browser headers keep login pages in English", async () => {
+  const result = await request("/login/email", { "accept-language": "de" });
+  assert.equal(result.status, 200);
+  assert.equal(result.headers["content-language"], "en");
+  assert.match(result.body, /<form/);
+  assert.ok(result.body.includes("Log in"));
 });

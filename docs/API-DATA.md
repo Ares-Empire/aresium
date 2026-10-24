@@ -3,6 +3,23 @@
 **Status:** live since 2026-10-23 (`prompts/01-server-calc.md`). Real data at the switch: 2,785 values identical to version 1; gzip size 30 KB → 39 KB. Clients: the website
 (`web/public/app/data.js`) and the iPhone app (`empire-ios`, Aresium).
 
+## Language
+
+Send `Accept-Language: en` or `de`. Among English/German tags (including regional tags), the highest
+`q` wins; equal weights use the first tag. Unsupported or malformed entries are ignored; missing,
+unreadable or unsupported headers fall back to English. Tags with `q=0` are not selected.
+
+`/api/pulse`'s `line`, API authentication errors (401/403/503), import errors (409/413/400 and each
+`results[].error`), and transaction/category/tag errors follow this language. API responses set
+`Content-Language: en` or `de`. German pulse lines use German month names and whole-euro formatting
+(e.g. `1.339 € im Oktober ausgegeben`). Statuses, keys and numeric values stay the same.
+
+`/api/data` stays unchanged: month `label` and `short` remain English; clients format months from
+`year` and the zero-based `month`. Category/account names, transaction text and original records are
+never translated, including old stored rows. The website explicitly requests English for its API
+calls; its pages, login flow and the Telegram bot remain English. All API wording lives in
+`src/lib/texts.ts`.
+
 ## Why version 2
 
 Version 1 sent the raw transactions and let the browser calculate every total, chart line and list

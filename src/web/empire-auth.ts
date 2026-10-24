@@ -13,6 +13,7 @@
 //                         Empty → nobody gets in.
 //   EMPIRE_AUTH_URL       optional, default http://127.0.0.1:8090 (same server, no TLS hop).
 import { createHash } from "node:crypto";
+import { text } from "../lib/texts.js";
 
 const SERVICE = "aresium";
 const AUTH_URL = (process.env.EMPIRE_AUTH_URL || "http://127.0.0.1:8090").replace(/\/+$/, "");
@@ -28,8 +29,8 @@ export type EmpireAccess =
 
 const allowed = { outcome: "allowed" } as const;
 const unauthenticated = { outcome: "denied", status: 401, error: "unauthenticated" } as const;
-const forbidden = { outcome: "denied", status: 403, error: "This account has no access to Aresium." } as const;
-const unavailable = { outcome: "unavailable", status: 503, error: "Login service unavailable, try again in a minute." } as const;
+const forbidden = { outcome: "denied", status: 403, error: text("forbidden", "en") } as const;
+const unavailable = { outcome: "unavailable", status: 503, error: text("authUnavailable", "en") } as const;
 const cache = new Map<string, { access: Exclude<EmpireAccess, { outcome: "unavailable" }>; until: number }>();
 
 type EmpireRecord = { id?: unknown; approved?: unknown; services?: unknown };

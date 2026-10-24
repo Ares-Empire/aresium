@@ -7,6 +7,7 @@
 import { parse } from "csv-parse/sync";
 import { parseAmount, parseDateFlexible, pick } from "./util.js";
 import type { NormalizedTxn, ParsedFile } from "./types.js";
+import { ImportFileError } from "./errors.js";
 
 const COLS = {
   date: ["Date", "Datum"],
@@ -48,10 +49,7 @@ export function parsePaypalCsv(content: string): ParsedFile {
   const hasId = COLS.id.some((c) => headers.includes(c));
   const hasAmount = [...COLS.net, ...COLS.gross].some((c) => headers.includes(c));
   if (!hasId || !hasAmount) {
-    throw new Error(
-      `PayPal CSV: missing required columns.\nFound headers: ${headers.join(", ")}\n` +
-        `Send me this header line and I'll add the mapping.`,
-    );
+    throw new ImportFileError("paypalColumns");
   }
 
   let currency = "EUR";

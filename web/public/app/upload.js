@@ -24,7 +24,7 @@
 
     const res = await fetch("/api/import", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "Accept-Language": "en" },
       body: JSON.stringify({ files }),
     });
     if (!res.ok) {

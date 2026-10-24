@@ -4,6 +4,7 @@ import { XMLParser } from "fast-xml-parser";
 import { createHash } from "node:crypto";
 import { parseAmount } from "./util.js";
 import type { NormalizedTxn, ParsedFile } from "./types.js";
+import { ImportFileError } from "./errors.js";
 
 const parser = new XMLParser({
   ignoreAttributes: false,
@@ -27,11 +28,11 @@ function textOf(node: unknown): string {
 export function parseCamt(xml: string): ParsedFile {
   const doc = parser.parse(xml);
   const root = doc.Document;
-  if (!root) throw new Error("not a CAMT document (missing <Document> root)");
+  if (!root) throw new ImportFileError("camtDocument");
 
   // camt.053 → BkToCstmrStmt/Stmt ; camt.052 → BkToCstmrAcctRpt/Rpt
   const container = root.BkToCstmrStmt || root.BkToCstmrAcctRpt;
-  if (!container) throw new Error("unsupported CAMT type (expected camt.052 or camt.053)");
+  if (!container) throw new ImportFileError("camtType");
   const statements = arr(container.Stmt || container.Rpt);
 
   const transactions: NormalizedTxn[] = [];

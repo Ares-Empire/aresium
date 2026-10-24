@@ -74,6 +74,7 @@
     try {
       const xhr = new XMLHttpRequest();
       xhr.open("GET", "/api/data", false);
+      xhr.setRequestHeader("Accept-Language", "en");
       xhr.send(null);
       status = xhr.status;
       if (xhr.status === 200) {
@@ -97,7 +98,7 @@
     Object.assign(window.AresiumData, built);
   }
   async function refresh() {
-    const res = await fetch("/api/data", { cache: "no-store" });
+    const res = await fetch("/api/data", { cache: "no-store", headers: { "Accept-Language": "en" } });
     if (!res.ok) throw new Error("data refresh failed (" + res.status + ")");
     applyDashboard(await res.json());
   }

@@ -16,6 +16,8 @@ import { categorizeAll } from "../sync/categorize.js";
 import { sessionCookie, clearCookie, sessionToken } from "./auth.js";
 import { welcomePage, loginPage, loginUnavailablePage } from "./login-page.js";
 import { empireBearerAccess, empireLogin, empireTokenAccess } from "./empire-auth.js";
+import { requestLanguage, text } from "../lib/texts.js";
+import { importErrorText } from "../import/errors.js";
 import { BodyTooLargeError, readBody } from "./read-body.js";
 
 const IMPORT_MAX_BYTES = 25 * 1024 * 1024;   // generous for a year of PayPal/VR-Bank CSV
@@ -37,6 +39,13 @@ const MIME: Record<string, string> = {
 };
 
 export async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
+  res.setHeader("Content-Language", "en"); // Website pages stay English.
+  const language = requestLanguage(req.headers["accept-language"]);
+  const headers = { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", "Content-Language": language };
+  const apiError = (status: number, error: string) => {
+    res.writeHead(status, headers);
+    res.end(JSON.stringify({ error }));
+  };
   try {
     const url = new URL(req.url ?? "/", `http://${req.headers.host}`);
 
@@ -44,7 +53,7 @@ export async function handleRequest(req: IncomingMessage, res: ServerResponse): 
     // /login, /login/email, /sso and /logout stay reachable without a session; everything else
     // needs one. Pages need the session cookie; the API also takes a Bearer token (iPhone app).
     const html = (status: number, body: string) => {
-      res.writeHead(status, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" });
+      res.writeHead(status, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store", "Content-Language": "en" });
       res.end(body);
     };
     const redirect = (location: string, cookie?: string) => {
@@ -93,8 +102,7 @@ export async function handleRequest(req: IncomingMessage, res: ServerResponse): 
     }
     if (access.outcome !== "allowed") {
       if (isApi) {
-        res.writeHead(access.status, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
-        res.end(JSON.stringify({ error: access.error }));
+        apiError(access.status, text(access.status === 401 ? "unauthenticated" : access.status === 403 ? "forbidden" : "authUnavailable", language));
       } else if (access.outcome === "unavailable") {
         html(503, loginUnavailablePage());
       } else {
@@ -105,15 +113,15 @@ export async function handleRequest(req: IncomingMessage, res: ServerResponse): 
 
     if (url.pathname === "/api/pulse") {
       // One line for the Empire hub's Aresium card (docs/API-DATA.md); same numbers as /api/data.
-      const line = pulseLine(buildDashboard(await getDashboardSource()), new Date());
-      res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+      const line = pulseLine(buildDashboard(await getDashboardSource()), new Date(), language);
+      res.writeHead(200, headers);
       res.end(JSON.stringify({ line }));
       return;
     }
 
     if (url.pathname === "/api/data") {
       const data = buildDashboard(await getDashboardSource());
-      res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+      res.writeHead(200, headers);
       res.end(JSON.stringify(data));
       return;
     }
@@ -122,20 +130,19 @@ export async function handleRequest(req: IncomingMessage, res: ServerResponse): 
     // Body: { files: [{ name, content }] }. The front-end reads files as text, so this
     // is plain JSON (no multipart). Same auth gate as the rest of the site.
     if (req.method === "POST" && url.pathname === "/api/import") {
-      const headers = { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" };
-      if (importing) { res.writeHead(409, headers); res.end(JSON.stringify({ error: "an import is already running" })); return; }
+      if (importing) { res.writeHead(409, headers); res.end(JSON.stringify({ error: text("importRunning", language) })); return; }
       let body: { files?: Array<{ name?: string; content?: string }> };
       try { body = JSON.parse(await readBody(req, IMPORT_MAX_BYTES)); } catch (e) {
         if (e instanceof BodyTooLargeError) {
           res.writeHead(413, headers);
-          res.end(JSON.stringify({ error: `Import exceeds the ${IMPORT_MAX_BYTES / (1024 * 1024)} MB request limit.` }));
+          res.end(JSON.stringify({ error: text("importTooLarge", language) }));
           return;
         }
         body = {};
       }
-      const files = Array.isArray(body.files) ? body.files : [];
+      const files = Array.isArray(body?.files) ? body.files : [];
       const valid = files.filter((f) => f && typeof f.name === "string" && typeof f.content === "string" && /\.(csv|xml)$/i.test(f.name));
-      if (valid.length === 0) { res.writeHead(400, headers); res.end(JSON.stringify({ error: "no .csv/.xml files in request" })); return; }
+      if (valid.length === 0) { res.writeHead(400, headers); res.end(JSON.stringify({ error: text("noFiles", language) })); return; }
 
       importing = true;
       try {
@@ -144,7 +151,7 @@ export async function handleRequest(req: IncomingMessage, res: ServerResponse): 
           try {
             results.push(await importContent(f.name as string, f.content as string));
           } catch (e) {
-            results.push({ name: f.name, added: 0, total: 0, account: null, skipped: false, error: (e as Error).message });
+            results.push({ name: f.name, added: 0, total: 0, account: null, skipped: false, error: importErrorText(e, language) });
           }
         }
         await categorizeAll();
@@ -159,14 +166,13 @@ export async function handleRequest(req: IncomingMessage, res: ServerResponse): 
     // POST /api/transaction/:id/category  → manually recategorise + log the correction
     if (req.method === "POST" && url.pathname.startsWith("/api/transaction/") && url.pathname.endsWith("/category")) {
       const id = decodeURIComponent(url.pathname.slice("/api/transaction/".length, -"/category".length));
-      const headers = { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" };
       let category: string | undefined;
-      try { category = JSON.parse(await readBody(req)).category; } catch { /* invalid body */ }
-      if (!id || !category) { res.writeHead(400, headers); res.end(JSON.stringify({ error: "id and category required" })); return; }
+      try { category = JSON.parse(await readBody(req)).category; } catch (e) { if (e instanceof BodyTooLargeError) throw e; /* invalid body */ }
+      if (!id || !category) { res.writeHead(400, headers); res.end(JSON.stringify({ error: text("categoryRequired", language) })); return; }
       const result = await recategorizeTransaction(id, category);
-      if ("error" in result) {
+      if (result.error) {
         res.writeHead(result.error === "not found" ? 404 : 400, headers);
-        res.end(JSON.stringify({ error: result.error }));
+        res.end(JSON.stringify({ error: text(result.error, language) }));
         return;
       }
       res.writeHead(200, headers);
@@ -179,14 +185,13 @@ export async function handleRequest(req: IncomingMessage, res: ServerResponse): 
     // dropCurrent moves it out of its current primary into categories[0] + tags the rest.
     if (req.method === "POST" && url.pathname.startsWith("/api/transaction/") && url.pathname.endsWith("/tags")) {
       const id = decodeURIComponent(url.pathname.slice("/api/transaction/".length, -"/tags".length));
-      const headers = { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" };
       let categories: unknown, dropCurrent = false;
-      try { const b = JSON.parse(await readBody(req)); categories = b.categories; dropCurrent = !!b.dropCurrent; } catch { /* invalid body */ }
-      if (!id || !Array.isArray(categories)) { res.writeHead(400, headers); res.end(JSON.stringify({ error: "id and categories required" })); return; }
+      try { const b = JSON.parse(await readBody(req)); categories = b.categories; dropCurrent = !!b.dropCurrent; } catch (e) { if (e instanceof BodyTooLargeError) throw e; /* invalid body */ }
+      if (!id || !Array.isArray(categories)) { res.writeHead(400, headers); res.end(JSON.stringify({ error: text("categoriesRequired", language) })); return; }
       const result = await setTransactionTags(id, categories as string[], dropCurrent);
-      if ("error" in result) {
+      if (result.error) {
         res.writeHead(result.error === "not found" ? 404 : 400, headers);
-        res.end(JSON.stringify({ error: result.error }));
+        res.end(JSON.stringify({ error: text(result.error, language) }));
         return;
       }
       res.writeHead(200, headers);
@@ -197,8 +202,7 @@ export async function handleRequest(req: IncomingMessage, res: ServerResponse): 
     if (url.pathname.startsWith("/api/transaction/")) {
       const id = decodeURIComponent(url.pathname.slice("/api/transaction/".length));
       const detail = id ? await getTransactionDetail(id) : null;
-      const headers = { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" };
-      if (!detail) { res.writeHead(404, headers); res.end(JSON.stringify({ error: "not found" })); return; }
+      if (!detail) { res.writeHead(404, headers); res.end(JSON.stringify({ error: text("not found", language) })); return; }
       res.writeHead(200, headers);
       res.end(JSON.stringify(detail));
       return;
@@ -214,8 +218,11 @@ export async function handleRequest(req: IncomingMessage, res: ServerResponse): 
     res.end(body);
   } catch (e) {
     if (e instanceof BodyTooLargeError) {
-      res.writeHead(413, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
-      res.end(JSON.stringify({ error: e.message }));
+      apiError(413, text("requestTooLarge", language));
+      return;
+    }
+    if (req.url?.startsWith("/api/")) {
+      apiError(500, text("serverError", language));
       return;
     }
     const code = (e as NodeJS.ErrnoException).code;
