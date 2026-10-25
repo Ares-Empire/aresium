@@ -351,6 +351,15 @@ test("unexpected API failures return a translated JSON sentence", async (t) => {
   }
 });
 
+test("login pages link the privacy policy and imprint on the hub", async () => {
+  for (const path of ["/login", "/login/email"]) {
+    const result = await request(path);
+    assert.equal(result.status, 200);
+    assert.ok(result.body.includes('<a href="https://www.ares-empire.de/privacy">Privacy</a>'), path);
+    assert.ok(result.body.includes('<a href="https://www.ares-empire.de/imprint">Imprint</a>'), path);
+  }
+});
+
 test("German browser headers keep login pages in English", async () => {
   const result = await request("/login/email", { "accept-language": "de" });
   assert.equal(result.status, 200);

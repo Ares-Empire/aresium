@@ -60,6 +60,9 @@ function page(content: string): string {
   .alt { margin: 16px 0 0; font-size: 13px; color: #8b91a0; }
   .alt a { color: #ff5c73; text-decoration: none; }
   .alt a:hover { text-decoration: underline; }
+  .legal { margin: 18px 0 0; font-size: 11px; color: #6b7080; }
+  .legal a { color: #8b91a0; text-decoration: none; }
+  .legal a:hover { color: #ff5c73; }
 </style>
 </head>
 <body>
@@ -67,6 +70,7 @@ function page(content: string): string {
     <img class="mark" src="${MARK}" alt="Aresium" />
     <h1>Aresium</h1>
     ${content}
+    <p class="legal"><a href="${EMPIRE}/privacy">Privacy</a> · <a href="${EMPIRE}/imprint">Imprint</a></p>
   </main>
 </body>
 </html>`;
