@@ -75,7 +75,7 @@ html[data-theme="red"] body {
 #root { height: 100%; position: relative; z-index: 1; }
 .app {
   height: 100%; display: flex; flex-direction: column;
-  max-width: none; margin: 0 auto; padding: 20px 22px 24px; position: relative; z-index: 1;
+  max-width: none; margin: 0 auto; padding: 20px 22px 5px; position: relative; z-index: 1;   /* bottom: see .legal */
 }
 button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
 
@@ -401,6 +401,13 @@ button.txn-row:disabled { cursor: default; }
 /* during the wordmark intro transition the overlay owns the word; hide the real band(s) */
 .ares-intro-running .aresium-band, .ares-intro-running .mob-band { visibility: hidden; }
 
+/* ---------- privacy policy + imprint (pages on the hub) ----------
+   The page's last line, right-aligned. Its margin and height plus .app's 5px bottom padding make the
+   old 24px padding, so the grid and the red-mode band do not move. */
+.legal { flex: none; align-self: flex-end; margin-top: 5px; font-size: 11px; line-height: 14px; letter-spacing: 0.01em; color: var(--ink-3); }
+.legal a { color: var(--ink-3); text-decoration: none; transition: color .18s; }
+.legal a:hover { color: var(--ink-2); }
+
 /* ---------- responsive / mobile ---------- */
 @media (max-width: 860px) {
   .app { padding: 14px 14px 16px; height: auto; min-height: 100%; }
@@ -487,6 +494,11 @@ button.txn-row:disabled { cursor: default; }
 /* drill screens reuse the panel lists directly on the wall (no card) */
 .mob-drill { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .mob-cat-graph { flex: 1; min-height: 0; position: relative; padding: 6px 8px 4px; }
+
+/* privacy policy + imprint, centred above the band; the links' padding is their tap area */
+.mob-legal { flex: none; text-align: center; padding: 4px 0 0; font-size: 11px; line-height: 14px; letter-spacing: 0.01em; color: var(--ink-3); }
+.mob-legal a { display: inline-block; padding: 8px 2px; color: var(--ink-3); text-decoration: none; }
+.mob-legal a:active { color: var(--ink-2); }
 
 /* the always-on big ARESIUM word, theme-aware, taps to toggle Aresium (red) mode */
 .mob-band {

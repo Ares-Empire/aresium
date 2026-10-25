@@ -15,7 +15,7 @@
 (function () {
   const { useState, useEffect, useRef, useCallback, useMemo } = React;
   const D = window.AresiumData;
-  const { CategoryListPanel, MonthListPanel, TransactionsPanel, TxnDetailModal, fmtMoney } = window;
+  const { CategoryListPanel, MonthListPanel, TransactionsPanel, TxnDetailModal, LegalLinks, fmtMoney } = window;
   const AnimatedChart = window.AnimatedChart;
   const lucideSvg = window.lucideSvg;
 
@@ -321,6 +321,9 @@
             </div>
           )}
         </main>
+
+        {/* above the band, so the band stays on the bottom edge where the red-mode word lands */}
+        <LegalLinks className="mob-legal" />
 
         <button className="mob-band" onClick={toggleRed} aria-label={theme === "red" ? "Exit Aresium mode" : "Enter Aresium mode"}>
           <div className="aresium-word" aria-hidden="true">{"ARESIUM".split("").map((ch, i) => <span key={i}>{ch}</span>)}</div>

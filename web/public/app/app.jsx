@@ -355,6 +355,8 @@ function App() {
           <div className="aresium-word">{"ARESIUM".split("").map((ch, i) => <span key={i}>{ch}</span>)}</div>
         </div>
       )}
+
+      <LegalLinks className="legal" />
     </div>
   );
 }

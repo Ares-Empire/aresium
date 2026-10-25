@@ -390,4 +390,14 @@ function RecategorizeModal({ data, pickList, isIncomeItem, onClose, onApplied })
   );
 }
 
-Object.assign(window, { PanelHeader, CategoryListPanel, MonthListPanel, TransactionsPanel, MonthCombinedPanel, TabbedPanel, TxnDetailModal, fmtMoney });
+// The privacy policy and imprint, on the hub (one controller runs every Empire site). English like the rest of the
+// website, same tab as on the hub's login page; used by the desktop (app.jsx) and the phone layout (mobile.jsx).
+function LegalLinks({ className }) {
+  return (
+    <footer className={className}>
+      <a href="https://www.ares-empire.de/privacy">Privacy</a> · <a href="https://www.ares-empire.de/imprint">Imprint</a>
+    </footer>
+  );
+}
+
+Object.assign(window, { PanelHeader, CategoryListPanel, MonthListPanel, TransactionsPanel, MonthCombinedPanel, TabbedPanel, TxnDetailModal, LegalLinks, fmtMoney });
