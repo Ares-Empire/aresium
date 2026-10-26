@@ -9,7 +9,6 @@
 import type { Category as DbCategory } from "@prisma/client";
 import type { Category, DashboardSource } from "./dashboard.js";
 import { prisma } from "../lib/db.js";
-import { foldPaypalConversions, isPaypalBankFunding } from "../engine/paypal.js";
 import { buildDashboardSource, unmatchedPaypalConversions, UNCATEGORISED, type DashboardSourceInput } from "../engine/source.js";
 
 const ym = (d: Date) => d.toISOString().slice(0, 7);
@@ -189,7 +188,6 @@ const CAT_META: Record<string, { icon: string; color: string }> = {
   Transfer: { icon: "Repeat", color: "#9AA6B8" },
   Uncategorised: { icon: UNCATEGORISED.icon, color: UNCATEGORISED.color },
 };
-const MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 const categoryMeta = (name: string, dbColor?: string) =>
   Object.hasOwn(CAT_META, name) ? CAT_META[name] : { icon: "Tag", color: dbColor ?? "#9ca3af" };
@@ -236,89 +234,6 @@ export async function getDashboardSource(): Promise<DashboardSource> {
   const { source, unmatched } = dashboardSourceFromRows(await fetchSourceRows(), new Date());
   warnUnmatched(unmatched);
   return source;
-}
-
-// LEGACY: the body getDashboardSource had before the engine computed the source, kept only for
-// scripts/check-source-parity.ts. It takes the fetched rows and the time as arguments, so the check runs both paths
-// on the same rows. Delete it (and the check) once the check prints "identical" on the server.
-export function getDashboardSourceLegacy(rows: SourceRows, today: Date): { source: DashboardSource; unmatched: string[] } {
-  const fx = foldPaypalConversions(rows.transactions.filter((t) => !isPaypalBankFunding(t)));
-  const txns = fx.rows;
-  const categoriesDb = rows.categories;
-
-  // --- per-category net, to classify income vs spend (transfer = excludeFromTotals) ---
-  const net = new Map<string, number>();
-  let hasUncategorised = false;
-  for (const t of txns) {
-    const name = t.category?.name ?? "Uncategorised";
-    if (!t.category) hasUncategorised = true;
-    net.set(name, (net.get(name) ?? 0) + Number(t.amount));
-  }
-
-  const categories: Category[] = categoriesDb.map((c) => {
-    const kind = c.excludeFromTotals ? "transfer" : (net.get(c.name) ?? 0) > 0 ? "income" : "spend";
-    const m = categoryMeta(c.name, c.color);
-    return { name: c.name, icon: m.icon, color: m.color, kind };
-  });
-  if (hasUncategorised) {
-    categories.push({ name: "Uncategorised", ...categoryMeta("Uncategorised"), kind: "spend" });
-  }
-
-  // --- transactions in the flat shape the UI expects ---
-  const transactions = txns.map((t) => ({
-    id: t.id,
-    date: ymd(t.bookingDate),
-    amount: Number(t.amount),
-    categoryName: t.category?.name ?? "Uncategorised",
-    tags: t.tags.map((tt) => tt.category.name), // extra ("Add") categories — shown there, never re-summed into totals
-    place: t.counterparty || t.description,
-    city: t.city ?? "",
-  }));
-
-  // --- month list spanning the data range ---
-  const months: {
-    key: string; label: string; short: string; year: number; month: number; days: number; partial: boolean;
-  }[] = [];
-  if (txns.length) {
-    const first = txns[0].bookingDate; // ordered asc by fetchWithCategory
-    const last = txns[txns.length - 1].bookingDate;
-    let y = first.getUTCFullYear(), m = first.getUTCMonth();
-    while (y < last.getUTCFullYear() || (y === last.getUTCFullYear() && m <= last.getUTCMonth())) {
-      const isCurrent = y === today.getUTCFullYear() && m === today.getUTCMonth();
-      months.push({
-        key: `${y}-${String(m + 1).padStart(2, "0")}`,
-        label: `${MONTH_ABBR[m]} ${y}`,
-        short: MONTH_ABBR[m],
-        year: y, month: m,
-        days: isCurrent ? today.getUTCDate() : daysInMonth(y, m + 1),
-        partial: isCurrent,
-      });
-      m++; if (m > 11) { m = 0; y++; }
-    }
-  }
-
-  // --- balance for every day in range (forward-filled from bank's Saldo) ---
-  const balanceByDay: Record<string, number> = {};
-  let openingBalance = 0;
-  if (months.length) {
-    const balAt = new Map<string, number>(); // ymd -> last known balance that day
-    for (const t of txns) if (t.balance != null) balAt.set(ymd(t.bookingDate), Number(t.balance));
-    const firstKnown = txns.find((t) => t.balance != null);
-    openingBalance = firstKnown ? Number(firstKnown.balance) : 0;
-    let bal = openingBalance;
-    for (const mo of months) {
-      for (let d = 1; d <= mo.days; d++) {
-        const ds = `${mo.key}-${String(d).padStart(2, "0")}`;
-        if (balAt.has(ds)) bal = balAt.get(ds)!;
-        balanceByDay[ds] = bal;
-      }
-    }
-  }
-
-  return {
-    source: { categories, months, transactions, balanceByDay, openingBalance, databaseCategoryNames: categoriesDb.map((c) => c.name) },
-    unmatched: fx.unmatched,
-  };
 }
 
 // ---- Single-transaction detail -----------------------------------------------
