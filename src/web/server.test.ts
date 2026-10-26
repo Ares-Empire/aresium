@@ -413,3 +413,65 @@ test("the front page offers the app and the demo, not a login; the login form st
   assert.equal(form.status, 200);
   assert.match(form.body, /<form/);
 });
+
+const phoneUser = { id: "test-phone-user", approved: true, services: ["aresium"] };
+
+test("GET /api/mode answers server for the owner list and phone for other accounts with the service", async (t) => {
+  const logged = ["log", "info", "warn", "error"].map((name) => t.mock.method(console, name as "log", () => {}));
+  t.mock.method(globalThis, "fetch", async (_url: unknown, init?: RequestInit) => {
+    const token = (init?.headers as Record<string, string>).Authorization;
+    return authResponse(200, token.includes("phone") ? phoneUser : approved);
+  });
+  for (const [credential, mode] of [
+    [{ authorization: "Bearer test-mode-owner" }, "server"],
+    [{ authorization: "Bearer test-mode-phone" }, "phone"],
+    [{ cookie: "aresium_session=test-mode-owner-cookie" }, "server"],
+    // The app's Bearer token is the one that counts when both are sent.
+    [{ cookie: "aresium_session=test-mode-owner-cookie", authorization: "Bearer test-mode-phone" }, "phone"],
+  ] as const) {
+    const result = await request("/api/mode", credential);
+    assert.equal(result.status, 200);
+    assert.match(String(result.headers["content-type"]), /application\/json/);
+    assert.equal(result.headers["cache-control"], "no-store");
+    assert.equal(result.headers["set-cookie"], undefined);
+    assert.deepEqual(JSON.parse(result.body), { mode });
+  }
+  for (const method of logged) assert.equal(method.mock.callCount(), 0);
+});
+
+test("/api/mode is the only route open beyond the owner list: every other route still refuses a phone account", async (t) => {
+  t.mock.method(globalThis, "fetch", async () => authResponse(200, phoneUser));
+  for (const path of ["/api/data", "/api/pulse", "/api/import", "/api/transaction/test", "/api/transaction/test/category", "/api/transaction/test/tags", "/api/unknown"]) {
+    const result = await request(path, { authorization: "Bearer test-mode-phone-elsewhere" }, path === "/api/import" ? [Buffer.from("{}")] : undefined);
+    assert.equal(result.status, 403, path);
+  }
+  const page = await request("/", { cookie: "aresium_session=test-mode-phone-page" });
+  assert.equal(page.status, 303);
+  assert.equal(page.headers.location, "/login");
+  assert.deepEqual(JSON.parse((await request("/api/mode", { authorization: "Bearer test-mode-phone-elsewhere" })).body), { mode: "phone" });
+});
+
+test("/api/mode refusals carry the Empire's codes and follow the request language", async (t) => {
+  const missing = await request("/api/mode", { "accept-language": "de" });
+  assert.equal(missing.status, 401);
+  assert.equal(missing.headers["content-language"], "de");
+  assert.deepEqual(JSON.parse(missing.body), { error: "Bitte melde dich erneut an.", code: "unauthorized" });
+  for (const [answer, status, code, english] of [
+    [() => authResponse(401), 401, "unauthorized", "Please log in again."],
+    [() => authResponse(200, { ...phoneUser, services: ["arestemis"] }), 403, "no_access", "This account has no access to Aresium."],
+    [() => authResponse(200, { ...phoneUser, approved: false }), 403, "no_access", "This account has no access to Aresium."],
+    [() => authResponse(403), 403, "no_access", "This account has no access to Aresium."],
+    [() => authResponse(503), 503, "unavailable", "Login service unavailable, try again in a minute."],
+  ] as const) {
+    const fetch = t.mock.method(globalThis, "fetch", async () => answer());
+    const result = await request("/api/mode", { authorization: "Bearer test-mode-refused", "accept-language": "en" });
+    assert.equal(result.status, status);
+    assert.equal(result.headers["content-language"], "en");
+    assert.deepEqual(JSON.parse(result.body), { error: english, code });
+    fetch.mock.restore();
+  }
+  const fetch = t.mock.method(globalThis, "fetch", async () => authResponse(200));
+  assert.deepEqual(JSON.parse((await request("/api/mode", { authorization: "Basic test-mode-basic" })).body),
+    { error: "Please log in again.", code: "unauthorized" });
+  assert.equal(fetch.mock.callCount(), 0);
+});

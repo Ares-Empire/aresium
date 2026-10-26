@@ -10,7 +10,9 @@
 // Config (.env, never committed):
 //   EMPIRE_ALLOWED_USERS  comma-separated PocketBase user ids. Aresium holds one person's data
 //                         until it becomes multi-user, so only these accounts get in.
-//                         Empty → nobody gets in.
+//                         Empty → nobody gets in. The one exception is GET /api/mode (empireMode):
+//                         it answers every approved account with the service, "server" for these
+//                         accounts and "phone" for the others (their data stays on their iPhone).
 //   EMPIRE_AUTH_URL       optional, default http://127.0.0.1:8090 (same server, no TLS hop).
 import { createHash } from "node:crypto";
 import { text } from "../lib/texts.js";
@@ -35,10 +37,12 @@ const cache = new Map<string, { access: Exclude<EmpireAccess, { outcome: "unavai
 
 type EmpireRecord = { id?: unknown; approved?: unknown; services?: unknown };
 
+// An approved account with the aresium service may use the app; only the owner list's accounts may use the server.
+function hasService(record: EmpireRecord | undefined): boolean {
+  return record?.approved === true && Array.isArray(record.services) && record.services.includes(SERVICE);
+}
 function hasAccess(record: EmpireRecord | undefined): boolean {
-  return record?.approved === true
-    && Array.isArray(record.services) && record.services.includes(SERVICE)
-    && typeof record.id === "string" && ALLOWED.has(record.id);
+  return hasService(record) && typeof record?.id === "string" && ALLOWED.has(record.id);
 }
 
 const cacheKey = (token: string) => createHash("sha256").update(token).digest("base64url"); // no raw tokens kept
@@ -57,39 +61,68 @@ async function pbPost(path: string, body: unknown, headers: Record<string, strin
   });
 }
 
-/** Check the token separately from account access; an outage must never log a client out. */
-export async function empireTokenAccess(token: string | undefined, clientIp?: string): Promise<EmpireAccess> {
-  if (!token) return unauthenticated;
-  const hit = cache.get(cacheKey(token));
-  if (hit && hit.until > Date.now()) return hit.access;
+type TokenCheck = "owner" | "member" | "no-access" | "unauthenticated" | "unavailable";
 
-  let access: Exclude<EmpireAccess, { outcome: "unavailable" }>;
+// Ask the Empire whose token this is. "member": approved with the service, not on the owner list. Caches and logs
+// nothing; empireTokenAccess caches its own answer.
+async function checkToken(token: string, clientIp?: string): Promise<TokenCheck> {
   try {
     const r = await pbPost("/api/collections/users/auth-refresh", {}, {
       Authorization: token, ...(clientIp ? { "X-Forwarded-For": clientIp } : {}),
     });
     if (r.ok) {
       const { record } = (await r.json()) as { record?: EmpireRecord };
-      if (!record || typeof record.id !== "string") return unavailable;
-      access = hasAccess(record) ? allowed : forbidden;
-    } else if (r.status === 400 || r.status === 401) {
-      access = unauthenticated; // PocketBase rejects an invalid/expired refresh token with 400
-    } else if (r.status === 403) {
-      access = forbidden; // PocketBase's approved/verified account rule
-    } else {
-      return unavailable; // 429, 5xx or an unexpected response: no usable check
+      if (!record || typeof record.id !== "string") return "unavailable";
+      return hasAccess(record) ? "owner" : hasService(record) ? "member" : "no-access";
     }
+    if (r.status === 400 || r.status === 401) return "unauthenticated"; // PocketBase rejects an invalid/expired refresh token with 400
+    if (r.status === 403) return "no-access"; // PocketBase's approved/verified account rule
+    return "unavailable"; // 429, 5xx or an unexpected response: no usable check
   } catch {
-    return unavailable; // unreachable, timed out or an unreadable response: don't cache
+    return "unavailable"; // unreachable, timed out or an unreadable response
   }
+}
+
+/** Check the token separately from account access; an outage must never log a client out. */
+export async function empireTokenAccess(token: string | undefined, clientIp?: string): Promise<EmpireAccess> {
+  if (!token) return unauthenticated;
+  const hit = cache.get(cacheKey(token));
+  if (hit && hit.until > Date.now()) return hit.access;
+
+  const check = await checkToken(token, clientIp);
+  if (check === "unavailable") return unavailable; // don't cache
+  const access = check === "owner" ? allowed : check === "unauthenticated" ? unauthenticated : forbidden;
   remember(token, access);
   return access;
 }
 
+/** The token in an `Authorization: Bearer <token>` header, or undefined. */
+export function bearerToken(authorization: string | undefined): string | undefined {
+  return /^Bearer\s+(\S+)$/i.exec(authorization ?? "")?.[1];
+}
+
 /** Check an API client's Bearer token using the same outcomes as the website cookie. */
 export async function empireBearerAccess(authorization: string | undefined, clientIp?: string): Promise<EmpireAccess> {
-  const m = /^Bearer\s+(\S+)$/i.exec(authorization ?? "");
-  return m ? empireTokenAccess(m[1], clientIp) : unauthenticated;
+  const token = bearerToken(authorization);
+  return token ? empireTokenAccess(token, clientIp) : unauthenticated;
+}
+
+export type EmpireMode = { outcome: "allowed"; mode: "server" | "phone" } | Exclude<EmpireAccess, { outcome: "allowed" }>;
+
+/**
+ * GET /api/mode: "server" for an account on the owner list, "phone" for any other approved account with the aresium
+ * service; 401 for a missing or rejected token, 403 without the service, 503 when the Empire cannot be asked. Asks the
+ * Empire every time and keeps nothing: no cache entry, no log line.
+ */
+export async function empireMode(token: string | undefined, clientIp?: string): Promise<EmpireMode> {
+  if (!token) return unauthenticated;
+  switch (await checkToken(token, clientIp)) {
+    case "owner": return { outcome: "allowed", mode: "server" };
+    case "member": return { outcome: "allowed", mode: "phone" };
+    case "no-access": return forbidden;
+    case "unauthenticated": return unauthenticated;
+    case "unavailable": return unavailable;
+  }
 }
 
 /** Email + password login. Returns the token, or a message for the visitor. */

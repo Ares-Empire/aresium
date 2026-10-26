@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { foldPaypalConversions } from "./paypal-fx.js";
+import { foldPaypalConversions, isPaypalBankFunding } from "./paypal.js";
 
 type R = { externalId: string | null; currency: string; amount: number; raw: Record<string, string>; place?: string; category?: string };
 const purchase = (id: string, ccy: string, amount: number, extra: Partial<R> = {}): R =>
@@ -40,4 +40,15 @@ test("English PayPal exports (Type / Reference Txn ID) work the same", () => {
 test("a foreign-currency refund takes its positive euro leg", () => {
   const rows = [purchase("R", "USD", 20, { raw: { Typ: "Rückzahlung" } }), conversion("C1", "R", "USD", -20), conversion("C2", "R", "EUR", 18.1)];
   assert.deepEqual(foldPaypalConversions(rows).rows.map((r) => [r.currency, r.amount]), [["EUR", 18.1]]);
+});
+
+test("bank funding rows are found by their text or their original row; purchases and bank lines are not", () => {
+  assert.equal(isPaypalBankFunding({ description: "Bankgutschrift auf PayPal-Konto" }), true);
+  assert.equal(isPaypalBankFunding({ description: "Märchenladen", raw: { Typ: "Bankgutschrift auf PayPal-Konto" } }), true);
+  assert.equal(isPaypalBankFunding({ description: "BANKGUTSCHRIFT AUF PAYPAL-KONTO" }), true);
+  for (const t of [
+    { description: "Märchenladen", raw: { Typ: "Allgemeine Zahlung" } },
+    { description: "PayPal Europe S.a.r.l. et Cie S.C.A", raw: null },
+    { description: "Fiktivbüro" },
+  ]) assert.equal(isPaypalBankFunding(t), false, t.description);
 });

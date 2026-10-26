@@ -6,21 +6,14 @@
 // - "expenses" are returned as POSITIVE magnitudes (money spent), excluding
 //   excludeFromTotals categories (Transfer). "income" is positive money in.
 // - "balance" is the VR Bank Kontostand (carried forward over gaps).
+import type { Category as DbCategory } from "@prisma/client";
 import type { Category, DashboardSource } from "./dashboard.js";
 import { prisma } from "../lib/db.js";
-import { foldPaypalConversions } from "./paypal-fx.js";
+import { buildDashboardSource, unmatchedPaypalConversions, UNCATEGORISED, type DashboardSourceInput } from "../engine/source.js";
 
 const ym = (d: Date) => d.toISOString().slice(0, 7);
 const ymd = (d: Date) => d.toISOString().slice(0, 10);
 const daysInMonth = (y: number, m: number) => new Date(Date.UTC(y, m, 0)).getUTCDate();
-
-// "Bankgutschrift auf PayPal-Konto" = your bank funding a PayPal payment (money
-// moving bank→PayPal), NOT income. The real expense is the separate PayPal payment
-// row, so these funding legs are pure noise — excluded from all dashboard figures.
-function isPaypalBankFunding(t: { description: string; raw: unknown }): boolean {
-  const hay = (t.description + " " + JSON.stringify(t.raw ?? "")).toLowerCase();
-  return hay.includes("bankgutschrift auf paypal");
-}
 
 export type CategoryTotal = {
   name: string;
@@ -193,90 +186,54 @@ const CAT_META: Record<string, { icon: string; color: string }> = {
   Income: { icon: "Wallet", color: "#25E07A" },
   Basis: { icon: "Users", color: "#2BB0FF" },
   Transfer: { icon: "Repeat", color: "#9AA6B8" },
-  Uncategorised: { icon: "CircleHelp", color: "#9ca3af" },
+  Uncategorised: { icon: UNCATEGORISED.icon, color: UNCATEGORISED.color },
 };
-const MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 const categoryMeta = (name: string, dbColor?: string) =>
   Object.hasOwn(CAT_META, name) ? CAT_META[name] : { icon: "Tag", color: dbColor ?? "#9ca3af" };
 
+// The database's rows for the dashboard, in booking-date order.
+export type SourceRows = { transactions: TxnWithCat[]; categories: DbCategory[] };
+export async function fetchSourceRows(): Promise<SourceRows> {
+  return { transactions: await fetchWithCategory({}), categories: await prisma.category.findMany() };
+}
+
+// Database rows → the engine's plain input. Icons and colours (CAT_META) are applied here, on the server.
+function sourceInput({ transactions, categories }: SourceRows, now: Date): DashboardSourceInput {
+  return {
+    transactions: transactions.map((t) => ({
+      id: t.id,
+      externalId: t.externalId,
+      date: t.bookingDate.toISOString(),
+      amount: Number(t.amount),
+      currency: t.currency,
+      balance: t.balance != null ? Number(t.balance) : null,
+      description: t.description,
+      counterparty: t.counterparty,
+      city: t.city,
+      raw: t.raw,
+      category: t.category?.name ?? null,
+      tags: t.tags.map((tt) => tt.category.name),
+    })),
+    categories: categories.map((c) => ({ name: c.name, ...categoryMeta(c.name, c.color), excludeFromTotals: c.excludeFromTotals })),
+    today: now.toISOString().slice(0, 10),
+  };
+}
+
+// Database rows → the dashboard source, computed by the shared engine (src/engine/source.ts).
+export function dashboardSourceFromRows(rows: SourceRows, now: Date): { source: DashboardSource; unmatched: string[] } {
+  const input = sourceInput(rows, now);
+  return { source: buildDashboardSource(input), unmatched: unmatchedPaypalConversions(input.transactions) };
+}
+
+const warnUnmatched = (unmatched: string[]) => {
+  if (unmatched.length) console.warn(`PayPal: no euro conversion found for ${unmatched.length} foreign-currency payment(s): ${unmatched.join(", ")}`);
+};
+
 export async function getDashboardSource(): Promise<DashboardSource> {
-  const fx = foldPaypalConversions((await fetchWithCategory({})).filter((t) => !isPaypalBankFunding(t)));
-  if (fx.unmatched.length) console.warn(`PayPal: no euro conversion found for ${fx.unmatched.length} foreign-currency payment(s): ${fx.unmatched.join(", ")}`);
-  const txns = fx.rows;
-  const categoriesDb = await prisma.category.findMany();
-  const today = new Date();
-
-  // --- per-category net, to classify income vs spend (transfer = excludeFromTotals) ---
-  const net = new Map<string, number>();
-  let hasUncategorised = false;
-  for (const t of txns) {
-    const name = t.category?.name ?? "Uncategorised";
-    if (!t.category) hasUncategorised = true;
-    net.set(name, (net.get(name) ?? 0) + Number(t.amount));
-  }
-
-  const categories: Category[] = categoriesDb.map((c) => {
-    const kind = c.excludeFromTotals ? "transfer" : (net.get(c.name) ?? 0) > 0 ? "income" : "spend";
-    const m = categoryMeta(c.name, c.color);
-    return { name: c.name, icon: m.icon, color: m.color, kind };
-  });
-  if (hasUncategorised) {
-    categories.push({ name: "Uncategorised", ...categoryMeta("Uncategorised"), kind: "spend" });
-  }
-
-  // --- transactions in the flat shape the UI expects ---
-  const transactions = txns.map((t) => ({
-    id: t.id,
-    date: ymd(t.bookingDate),
-    amount: Number(t.amount),
-    categoryName: t.category?.name ?? "Uncategorised",
-    tags: t.tags.map((tt) => tt.category.name), // extra ("Add") categories — shown there, never re-summed into totals
-    place: t.counterparty || t.description,
-    city: t.city ?? "",
-  }));
-
-  // --- month list spanning the data range ---
-  const months: {
-    key: string; label: string; short: string; year: number; month: number; days: number; partial: boolean;
-  }[] = [];
-  if (txns.length) {
-    const first = txns[0].bookingDate; // ordered asc by fetchWithCategory
-    const last = txns[txns.length - 1].bookingDate;
-    let y = first.getUTCFullYear(), m = first.getUTCMonth();
-    while (y < last.getUTCFullYear() || (y === last.getUTCFullYear() && m <= last.getUTCMonth())) {
-      const isCurrent = y === today.getUTCFullYear() && m === today.getUTCMonth();
-      months.push({
-        key: `${y}-${String(m + 1).padStart(2, "0")}`,
-        label: `${MONTH_ABBR[m]} ${y}`,
-        short: MONTH_ABBR[m],
-        year: y, month: m,
-        days: isCurrent ? today.getUTCDate() : daysInMonth(y, m + 1),
-        partial: isCurrent,
-      });
-      m++; if (m > 11) { m = 0; y++; }
-    }
-  }
-
-  // --- balance for every day in range (forward-filled from bank's Saldo) ---
-  const balanceByDay: Record<string, number> = {};
-  let openingBalance = 0;
-  if (months.length) {
-    const balAt = new Map<string, number>(); // ymd -> last known balance that day
-    for (const t of txns) if (t.balance != null) balAt.set(ymd(t.bookingDate), Number(t.balance));
-    const firstKnown = txns.find((t) => t.balance != null);
-    openingBalance = firstKnown ? Number(firstKnown.balance) : 0;
-    let bal = openingBalance;
-    for (const mo of months) {
-      for (let d = 1; d <= mo.days; d++) {
-        const ds = `${mo.key}-${String(d).padStart(2, "0")}`;
-        if (balAt.has(ds)) bal = balAt.get(ds)!;
-        balanceByDay[ds] = bal;
-      }
-    }
-  }
-
-  return { categories, months, transactions, balanceByDay, openingBalance, databaseCategoryNames: categoriesDb.map((c) => c.name) };
+  const { source, unmatched } = dashboardSourceFromRows(await fetchSourceRows(), new Date());
+  warnUnmatched(unmatched);
+  return source;
 }
 
 // ---- Single-transaction detail -----------------------------------------------
