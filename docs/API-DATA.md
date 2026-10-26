@@ -98,8 +98,13 @@ never below 0 (refunds inside a category do not make it negative), as in version
 - **Balance** is the bank's own balance, carried forward on days without a booking.
 - **Foreign currency** (PayPal, decided 2026-10-24): a purchase in another currency counts at its euro cost (the
   euro row of PayPal's "Allgemeine Währungsumrechnung" with the purchase's code), keeping its category; both
-  conversion rows are left out of every figure (`src/data/paypal-fx.ts`). Without a euro row the rows stay as they
-  are and the server logs the code. Every amount the API sends is in euros.
+  conversion rows are left out of every figure (`src/engine/paypal.ts`). Without a euro row the rows stay as they
+  are and the server logs the code. Every amount the API sends is in euros. PayPal's bank-funding rows
+  ("Bankgutschrift auf PayPal-Konto") are left out too: the purchase is the PayPal row itself.
+- **Where it is computed** (2026-10-27): stored payments → the dashboard's source is the shared engine's
+  `buildDashboardSource` (`src/engine/source.ts`), then `buildDashboard`. The server maps its rows to the engine's
+  plain input and adds the categories' icons and colours (`getDashboardSource` in `src/data/queries.ts`); the iPhone
+  app in phone mode runs the same two functions on the payments it stores.
 - **Recategorise choices** (`pick`): money out (amount ≤ 0) can move among `spend` categories, money in among
   `income`/`transfer` categories and `Tax`. Each list starts with the categories in the order of their
   all-time rows (`total.categories` / `total.incomeBuckets`), then the rest alphabetically. Only database
@@ -126,6 +131,8 @@ After a change (import, recategorise, tags) clients fetch `/api/data` again.
 
 ## Other routes the clients use
 
+- `GET /api/mode`: `{"mode":"server"}` or `{"mode":"phone"}`, which mode the iPhone app uses for this account (see
+  "Mode" below).
 - `GET /api/pulse`: `{line}`, one line for the Empire hub's Aresium card: this calendar month's spending
   ("€1,339 spent in October") or "Nothing imported for November yet" (`src/data/pulse.ts`).
 - `GET /api/transaction/:id`: one transaction's full record (`getTransactionDetail` in `src/data/queries.ts`).
@@ -137,11 +144,29 @@ After a change (import, recategorise, tags) clients fetch `/api/data` again.
   `413 {error}` naming the 25 MB limit. Returns `{results: [{name, added, total, account, skipped, error?}]}`;
   409 while another import runs.
 
+## Mode: `GET /api/mode`
+
+Added 2026-10-27 (`empire-ios/prompts/12-engine-source-transfers.md`; plan: `ares-empire/docs/ARESIUM-FOR-OTHERS.md`
+→ "One app, two modes"). The iPhone app asks once after a login which mode the account uses:
+
+| Answer | For |
+|---|---|
+| `200 {"mode":"server"}` | an account in `EMPIRE_ALLOWED_USERS` (Patrik): the server holds the data, the app uses the routes above |
+| `200 {"mode":"phone"}` | any other approved account with the `aresium` service: the data stays on the iPhone and the engine computes there; every other route refuses this account (403) |
+| `401 {error, code: "unauthorized"}` | no token, or the Empire rejects it |
+| `403 {error, code: "no_access"}` | the account is not approved or lacks the `aresium` service |
+| `503 {error, code: "unavailable"}` | the Empire could not be asked |
+
+It is the only route that does not require the owner list; the list decides only the answer. Credential: the
+`Authorization: Bearer` token when the header is sent, else the website's session cookie. The route asks the Empire
+every time (no cache entry either way) and stores and logs nothing about the account. `error` follows the request
+language; `code` is the Empire's error code (`ares-empire/docs/API-EMPIRE.md` → Errors), never translated.
+
 ## Auth
 
 As every `/api/*` route: the website's session cookie, or `Authorization: Bearer <Empire token>` from the
-iPhone app (`src/web/empire-auth.ts`). Every `/api/*` route answers a failed check with one of three statuses
-(agreed 2026-10-23 after the pre-TestFlight council), each with a JSON body `{error}`:
+iPhone app (`src/web/empire-auth.ts`). Every `/api/*` route except `/api/mode` (above) answers a failed check with one
+of three statuses (agreed 2026-10-23 after the pre-TestFlight council), each with a JSON body `{error}`:
 
 | Status | Means | Client does |
 |---|---|---|

@@ -6,21 +6,15 @@
 // - "expenses" are returned as POSITIVE magnitudes (money spent), excluding
 //   excludeFromTotals categories (Transfer). "income" is positive money in.
 // - "balance" is the VR Bank Kontostand (carried forward over gaps).
+import type { Category as DbCategory } from "@prisma/client";
 import type { Category, DashboardSource } from "./dashboard.js";
 import { prisma } from "../lib/db.js";
-import { foldPaypalConversions } from "./paypal-fx.js";
+import { foldPaypalConversions, isPaypalBankFunding } from "../engine/paypal.js";
+import { buildDashboardSource, unmatchedPaypalConversions, UNCATEGORISED, type DashboardSourceInput } from "../engine/source.js";
 
 const ym = (d: Date) => d.toISOString().slice(0, 7);
 const ymd = (d: Date) => d.toISOString().slice(0, 10);
 const daysInMonth = (y: number, m: number) => new Date(Date.UTC(y, m, 0)).getUTCDate();
-
-// "Bankgutschrift auf PayPal-Konto" = your bank funding a PayPal payment (money
-// moving bank→PayPal), NOT income. The real expense is the separate PayPal payment
-// row, so these funding legs are pure noise — excluded from all dashboard figures.
-function isPaypalBankFunding(t: { description: string; raw: unknown }): boolean {
-  const hay = (t.description + " " + JSON.stringify(t.raw ?? "")).toLowerCase();
-  return hay.includes("bankgutschrift auf paypal");
-}
 
 export type CategoryTotal = {
   name: string;
@@ -193,19 +187,64 @@ const CAT_META: Record<string, { icon: string; color: string }> = {
   Income: { icon: "Wallet", color: "#25E07A" },
   Basis: { icon: "Users", color: "#2BB0FF" },
   Transfer: { icon: "Repeat", color: "#9AA6B8" },
-  Uncategorised: { icon: "CircleHelp", color: "#9ca3af" },
+  Uncategorised: { icon: UNCATEGORISED.icon, color: UNCATEGORISED.color },
 };
 const MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 const categoryMeta = (name: string, dbColor?: string) =>
   Object.hasOwn(CAT_META, name) ? CAT_META[name] : { icon: "Tag", color: dbColor ?? "#9ca3af" };
 
+// The database's rows for the dashboard, in booking-date order.
+export type SourceRows = { transactions: TxnWithCat[]; categories: DbCategory[] };
+export async function fetchSourceRows(): Promise<SourceRows> {
+  return { transactions: await fetchWithCategory({}), categories: await prisma.category.findMany() };
+}
+
+// Database rows → the engine's plain input. Icons and colours (CAT_META) are applied here, on the server.
+function sourceInput({ transactions, categories }: SourceRows, now: Date): DashboardSourceInput {
+  return {
+    transactions: transactions.map((t) => ({
+      id: t.id,
+      externalId: t.externalId,
+      date: t.bookingDate.toISOString(),
+      amount: Number(t.amount),
+      currency: t.currency,
+      balance: t.balance != null ? Number(t.balance) : null,
+      description: t.description,
+      counterparty: t.counterparty,
+      city: t.city,
+      raw: t.raw,
+      category: t.category?.name ?? null,
+      tags: t.tags.map((tt) => tt.category.name),
+    })),
+    categories: categories.map((c) => ({ name: c.name, ...categoryMeta(c.name, c.color), excludeFromTotals: c.excludeFromTotals })),
+    today: now.toISOString().slice(0, 10),
+  };
+}
+
+// Database rows → the dashboard source, computed by the shared engine (src/engine/source.ts).
+export function dashboardSourceFromRows(rows: SourceRows, now: Date): { source: DashboardSource; unmatched: string[] } {
+  const input = sourceInput(rows, now);
+  return { source: buildDashboardSource(input), unmatched: unmatchedPaypalConversions(input.transactions) };
+}
+
+const warnUnmatched = (unmatched: string[]) => {
+  if (unmatched.length) console.warn(`PayPal: no euro conversion found for ${unmatched.length} foreign-currency payment(s): ${unmatched.join(", ")}`);
+};
+
 export async function getDashboardSource(): Promise<DashboardSource> {
-  const fx = foldPaypalConversions((await fetchWithCategory({})).filter((t) => !isPaypalBankFunding(t)));
-  if (fx.unmatched.length) console.warn(`PayPal: no euro conversion found for ${fx.unmatched.length} foreign-currency payment(s): ${fx.unmatched.join(", ")}`);
+  const { source, unmatched } = dashboardSourceFromRows(await fetchSourceRows(), new Date());
+  warnUnmatched(unmatched);
+  return source;
+}
+
+// LEGACY: the body getDashboardSource had before the engine computed the source, kept only for
+// scripts/check-source-parity.ts. It takes the fetched rows and the time as arguments, so the check runs both paths
+// on the same rows. Delete it (and the check) once the check prints "identical" on the server.
+export function getDashboardSourceLegacy(rows: SourceRows, today: Date): { source: DashboardSource; unmatched: string[] } {
+  const fx = foldPaypalConversions(rows.transactions.filter((t) => !isPaypalBankFunding(t)));
   const txns = fx.rows;
-  const categoriesDb = await prisma.category.findMany();
-  const today = new Date();
+  const categoriesDb = rows.categories;
 
   // --- per-category net, to classify income vs spend (transfer = excludeFromTotals) ---
   const net = new Map<string, number>();
@@ -276,7 +315,10 @@ export async function getDashboardSource(): Promise<DashboardSource> {
     }
   }
 
-  return { categories, months, transactions, balanceByDay, openingBalance, databaseCategoryNames: categoriesDb.map((c) => c.name) };
+  return {
+    source: { categories, months, transactions, balanceByDay, openingBalance, databaseCategoryNames: categoriesDb.map((c) => c.name) },
+    unmatched: fx.unmatched,
+  };
 }
 
 // ---- Single-transaction detail -----------------------------------------------

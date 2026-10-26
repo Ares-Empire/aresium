@@ -15,7 +15,7 @@ import { importContent } from "../import/core.js";
 import { categorizeAll } from "../sync/categorize.js";
 import { sessionCookie, clearCookie, sessionToken } from "./auth.js";
 import { welcomePage, loginPage, loginUnavailablePage } from "./login-page.js";
-import { empireBearerAccess, empireLogin, empireTokenAccess } from "./empire-auth.js";
+import { bearerToken, empireBearerAccess, empireLogin, empireMode, empireTokenAccess } from "./empire-auth.js";
 import { requestLanguage, text } from "../lib/texts.js";
 import { importErrorText } from "../import/errors.js";
 import { BodyTooLargeError, readBody } from "./read-body.js";
@@ -103,6 +103,25 @@ export async function handleRequest(req: IncomingMessage, res: ServerResponse): 
       if (url.pathname === "/demo/") return redirect("/demo");      // the page's relative paths need no slash
       if (url.pathname === "/demo") return serveFile(res, "/index.html");
       if (isPublicFile(url.pathname)) return serveFile(res, url.pathname);
+    }
+
+    // GET /api/mode → which mode the iPhone app uses for this account (docs/API-DATA.md → Mode). The one route open
+    // to every approved account with the aresium service: the owner list decides the answer, not the access. The
+    // app's Bearer token, else the website's session cookie. Nothing about the account is stored or logged.
+    if (url.pathname === "/api/mode") {
+      const authorization = req.headers.authorization;
+      const mode = await empireMode(authorization === undefined ? sessionToken(req.headers.cookie) : bearerToken(authorization), clientIp);
+      if (mode.outcome === "allowed") {
+        res.writeHead(200, headers);
+        res.end(JSON.stringify({ mode: mode.mode }));
+        return;
+      }
+      // The Empire's error codes (ares-empire docs/API-EMPIRE.md → Errors): the app closes only on `no_access`.
+      const [key, code] = mode.status === 401 ? ["unauthenticated", "unauthorized"] as const
+        : mode.status === 403 ? ["forbidden", "no_access"] as const : ["authUnavailable", "unavailable"] as const;
+      res.writeHead(mode.status, headers);
+      res.end(JSON.stringify({ error: text(key, language), code }));
+      return;
     }
 
     const isApi = url.pathname.startsWith("/api/");

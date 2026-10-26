@@ -15,6 +15,13 @@ export { sortPayments, learn } from "./sorting/sort.js";
 export type { Learned, SortResult } from "./sorting/sort.js";
 export const version = "0.1.0";
 
+// ---- Dashboard source and own transfers (brief 12) ----
+export { buildDashboardSource } from "./source.js";
+export type { DashboardSourceInput, SourcePayment, SourceCategory } from "./source.js";
+export { ownTransfers, OWN_TRANSFERS } from "./sorting/transfers.js";
+export type { TransferPayment, OwnTransfer } from "./sorting/transfers.js";
+// ---- end of brief 12's block ----
+
 type EngineTxn = Omit<NormalizedTxn, "bookingDate" | "valueDate"> & {
   bookingDate: string;
   valueDate?: string | null;
