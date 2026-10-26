@@ -401,3 +401,15 @@ test("public files never reach outside web/public", async (t) => {
     assert.doesNotMatch(result.body, /DATABASE_URL|"name": "aresium"/);
   }
 });
+
+test("the front page offers the app and the demo, not a login; the login form stays reachable", async (t) => {
+  t.mock.method(globalThis, "fetch", async () => authResponse(401));
+  const front = await request("/login", { cookie: "aresium_session=test-front" });
+  assert.equal(front.status, 200);
+  assert.match(front.body, /Get the iPhone app/);
+  assert.match(front.body, /href="\/demo"/);
+  assert.doesNotMatch(front.body, /href="\/login\/email"|Sign up/);
+  const form = await request("/login/email", { cookie: "aresium_session=test-front" });
+  assert.equal(form.status, 200);
+  assert.match(form.body, /<form/);
+});

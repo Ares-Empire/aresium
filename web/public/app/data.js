@@ -7,7 +7,8 @@
   // page's own API requests answered here in the browser (a transaction's details from the sample; any change is
   // refused with a "log in" message), so nothing reaches the server and nothing is saved. src/web/server.ts serves it.
   const DEMO = location.pathname === "/demo";
-  const DEMO_REFUSAL = "This is the demo with sample data. Log in to import and change your own.";
+  const DEMO_REFUSAL = "This is the demo with sample data: importing and changes are switched off.";
+  const GET_APP = "https://www.ares-empire.de/contact";   // as GET_APP in src/web/login-page.ts
 
   function adaptDashboard(data) {
     if (!data || data.version !== 2) throw new Error("Expected dashboard version 2");
@@ -114,8 +115,21 @@
     const band = document.createElement("div");
     band.className = "demo-band";
     band.innerHTML = '<span class="demo-dot"></span><span><b>Sample data</b> · a made-up account to look around</span>' +
-      '<a href="/login">Log in</a>';
+      '<a href="' + GET_APP + '" target="_blank" rel="noopener">Get the app</a>';
     document.body.appendChild(band);
+
+    // Import: the file picker does not open in the demo (nothing would be sent anyway); a note says why instead.
+    const note = (text) => {
+      const toast = document.createElement("div");
+      toast.className = "import-toast err";
+      toast.setAttribute("role", "status");
+      toast.textContent = text;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 4200);
+    };
+    document.addEventListener("click", (e) => {
+      if (e.target instanceof HTMLInputElement && e.target.type === "file") { e.preventDefault(); note(DEMO_REFUSAL); }
+    }, true);
 
     const colorOf = Object.fromEntries(sample.categories.map((c) => [c.name, c.color]));
     const detail = (id) => {

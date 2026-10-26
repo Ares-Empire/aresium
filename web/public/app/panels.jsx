@@ -366,7 +366,7 @@ function RecategorizeModal({ data, pickList, isIncomeItem, onClose, onApplied })
         </div>
 
         {err && <div className="recat-err">{window.AresiumDemo
-          ? "This is the demo with sample data. Log in to change your own transactions."
+          ? "This is the demo with sample data: changes are switched off."
           : "Couldn’t save — please try again."}</div>}
 
         <div className="recat-actions">
