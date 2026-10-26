@@ -87,7 +87,7 @@ export function welcomePage(error = ""): string {
   return page(`<p class="sub">Log in with your Ares Empire account</p>
     ${errHtml(error)}
     <a class="button" href="/login/email">Log in</a>
-    <p class="alt">New account? <a href="${EMPIRE}/signup">Sign up</a></p>`);
+    <p class="alt">New account? <a href="${EMPIRE}/signup">Sign up</a> · <a href="/demo">Look around the demo</a></p>`);
 }
 
 /** /login/email — email + password. */

@@ -38,6 +38,14 @@ const MIME: Record<string, string> = {
   ".webm": "video/webm", ".mp4": "video/mp4", ".mov": "video/quicktime",
 };
 
+// The demo, aresium.de/demo: the dashboard with the made-up sample data (app/dashboard.sample.json, made by
+// `npm run sample`) for anyone, without an account. data.js sees the path, loads the sample instead of /api/data and
+// answers the page's own requests in the browser, so nothing reaches the API and nothing is saved. The page's files
+// (scripts, styles, fonts, pictures) are public for it: they hold no data. "/" stays behind the login, so made-up
+// numbers never stand where your own would.
+const PUBLIC_DIRS = ["/app/", "/vendor/", "/fonts/", "/brand/"];
+export const isPublicFile = (path: string) => PUBLIC_DIRS.some((dir) => path.startsWith(dir)) || path === "/favicon.svg";
+
 export async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
   res.setHeader("Content-Language", "en"); // Website pages stay English.
   const language = requestLanguage(req.headers["accept-language"]);
@@ -89,6 +97,12 @@ export async function handleRequest(req: IncomingMessage, res: ServerResponse): 
         return html(401, welcomePage("Your Empire account has no access to Aresium."));
       }
       return redirect("/login");
+    }
+
+    if (req.method === "GET" || req.method === "HEAD") {
+      if (url.pathname === "/demo/") return redirect("/demo");      // the page's relative paths need no slash
+      if (url.pathname === "/demo") return serveFile(res, "/index.html");
+      if (isPublicFile(url.pathname)) return serveFile(res, url.pathname);
     }
 
     const isApi = url.pathname.startsWith("/api/");
@@ -208,14 +222,8 @@ export async function handleRequest(req: IncomingMessage, res: ServerResponse): 
       return;
     }
 
-    // static files (default to index.html), with traversal guard
-    const rel = url.pathname === "/" ? "/index.html" : url.pathname;
-    const filePath = normalize(join(PUBLIC, decodeURIComponent(rel)));
-    if (!filePath.startsWith(PUBLIC)) { res.writeHead(403).end("Forbidden"); return; }
-
-    const body = await readFile(filePath);
-    res.writeHead(200, { "Content-Type": MIME[extname(filePath).toLowerCase()] ?? "application/octet-stream" });
-    res.end(body);
+    // static files (default to index.html)
+    await serveFile(res, url.pathname === "/" ? "/index.html" : url.pathname);
   } catch (e) {
     if (e instanceof BodyTooLargeError) {
       apiError(413, text("requestTooLarge", language));
@@ -230,6 +238,15 @@ export async function handleRequest(req: IncomingMessage, res: ServerResponse): 
     console.error(e);
     res.writeHead(500).end("Server error");
   }
+}
+
+// A file from web/public, with a traversal guard. A missing file throws ENOENT (404 in handleRequest).
+async function serveFile(res: ServerResponse, rel: string): Promise<void> {
+  const filePath = normalize(join(PUBLIC, decodeURIComponent(rel)));
+  if (!filePath.startsWith(PUBLIC + "/")) { res.writeHead(403).end("Forbidden"); return; }
+  const body = await readFile(filePath);
+  res.writeHead(200, { "Content-Type": MIME[extname(filePath).toLowerCase()] ?? "application/octet-stream" });
+  res.end(body);
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

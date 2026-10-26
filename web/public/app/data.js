@@ -1,7 +1,13 @@
 /* Aresium — version 2 lookup adapter. The server supplies every dashboard number.
-   The generated sample supplies the same payload when opened from file://. */
+   The generated sample supplies the same payload when opened from file:// and on the demo (/demo, see below). */
 (function () {
   "use strict";
+
+  // The demo (aresium.de/demo, no account): the made-up sample instead of /api/data, a band that says so, and the
+  // page's own API requests answered here in the browser (a transaction's details from the sample; any change is
+  // refused with a "log in" message), so nothing reaches the server and nothing is saved. src/web/server.ts serves it.
+  const DEMO = location.pathname === "/demo";
+  const DEMO_REFUSAL = "This is the demo with sample data. Log in to import and change your own.";
 
   function adaptDashboard(data) {
     if (!data || data.version !== 2) throw new Error("Expected dashboard version 2");
@@ -70,6 +76,7 @@
   // error instead: made-up numbers must never look like real ones.
   function loadDashboard() {
     if (location.protocol === "file:") return window.AresiumSample;
+    if (DEMO) return loadSample();
     let status = "no response";
     try {
       const xhr = new XMLHttpRequest();
@@ -88,6 +95,57 @@
     throw new Error("Aresium: /api/data failed (" + status + ")");
   }
 
+  function loadSample() {
+    const xhr = new XMLHttpRequest();
+    xhr.open("GET", "app/dashboard.sample.json", false);
+    xhr.send(null);
+    if (xhr.status !== 200) {
+      document.body.innerHTML = '<p style="font:16px system-ui;padding:24px">Could not load the demo (' +
+        xhr.status + '). Reload the page to try again.</p>';
+      throw new Error("Aresium: the demo sample failed (" + xhr.status + ")");
+    }
+    return JSON.parse(xhr.responseText);
+  }
+
+  // The demo's answers to the page's API requests (same shapes as the server's, docs/API-DATA.md).
+  function startDemo(sample) {
+    window.AresiumDemo = true;
+    document.documentElement.classList.add("demo");
+    const band = document.createElement("div");
+    band.className = "demo-band";
+    band.innerHTML = '<span class="demo-dot"></span><span><b>Sample data</b> · a made-up account to look around</span>' +
+      '<a href="/login">Log in</a>';
+    document.body.appendChild(band);
+
+    const colorOf = Object.fromEntries(sample.categories.map((c) => [c.name, c.color]));
+    const detail = (id) => {
+      const t = sample.transactions.find((x) => String(x.id) === id);
+      if (!t) return null;
+      return {
+        id: t.id, place: t.place, amount: t.amount, currency: "EUR", bookingDate: t.date, valueDate: t.date,
+        balance: null, category: t.categoryName, categoryColor: colorOf[t.categoryName] || "#9AA6B8",
+        tags: t.tags || [], categorySource: "rule", categorized: true, description: t.place, counterparty: t.place,
+        account: "Sample account", iban: null, source: "bank", city: t.city || null, country: "DE", trip: null,
+        tripKind: null, placeType: null, recurring: false, externalId: null, raw: null,
+      };
+    };
+    const reply = (status, body) => Promise.resolve(new Response(JSON.stringify(body),
+      { status, headers: { "Content-Type": "application/json; charset=utf-8" } }));
+    const realFetch = window.fetch.bind(window);
+    window.fetch = (input, init) => {
+      const url = new URL(typeof input === "string" ? input : input.url, location.href);
+      if (url.origin !== location.origin || !url.pathname.startsWith("/api/")) return realFetch(input, init);
+      const method = String((init && init.method) || (typeof input === "string" ? "GET" : input.method)).toUpperCase();
+      const one = url.pathname.match(/^\/api\/transaction\/([^/]+)$/);
+      if (method === "GET" && url.pathname === "/api/data") return reply(200, sample);
+      if (method === "GET" && one) {
+        const d = detail(decodeURIComponent(one[1]));
+        return d ? reply(200, d) : reply(404, { error: "not found" });
+      }
+      return reply(403, { error: DEMO_REFUSAL });
+    };
+  }
+
   // Preserve the object captured by the desktop and mobile modules across refreshes.
   function applyDashboard(data) {
     const built = adaptDashboard(data);
@@ -102,6 +160,8 @@
     if (!res.ok) throw new Error("data refresh failed (" + res.status + ")");
     applyDashboard(await res.json());
   }
-  applyDashboard(loadDashboard());
+  const initial = loadDashboard();
+  if (DEMO) startDemo(initial);
+  applyDashboard(initial);
   window.AresiumData.refresh = refresh;
 })();

@@ -367,3 +367,37 @@ test("German browser headers keep login pages in English", async () => {
   assert.match(result.body, /<form/);
   assert.ok(result.body.includes("Log in"));
 });
+
+test("the demo and the page's files are public; the dashboard and the API stay behind the login", async (t) => {
+  // No credentials, and the account server is never asked.
+  const fetch = t.mock.method(globalThis, "fetch", async () => { throw new Error("the demo must not ask the account server"); });
+  const demo = await request("/demo");
+  assert.equal(demo.status, 200);
+  assert.match(String(demo.headers["content-type"]), /text\/html/);
+  assert.match(demo.body, /app\/data\.js/);
+  const slash = await request("/demo/");
+  assert.equal(slash.status, 303);
+  assert.equal(slash.headers.location, "/demo");
+  for (const path of ["/app/data.js", "/app/dashboard.sample.json", "/fonts/fonts.css", "/brand/hermes.png"]) {
+    assert.equal((await request(path)).status, 200, path);
+  }
+  assert.equal(fetch.mock.callCount(), 0);
+  fetch.mock.restore();
+  // The real dashboard and its data still need a session.
+  t.mock.method(globalThis, "fetch", async () => authResponse(401));
+  for (const path of ["/", "/index.html"]) {
+    const page = await request(path, { cookie: "aresium_session=test-demo-none" });
+    assert.equal(page.status, 303, path);
+    assert.equal(page.headers.location, "/login");
+  }
+  assert.equal((await request("/api/data", { cookie: "aresium_session=test-demo-none" })).status, 401);
+});
+
+test("public files never reach outside web/public", async (t) => {
+  t.mock.method(globalThis, "fetch", async () => authResponse(401));
+  for (const path of ["/app/../../.env", "/app/%2e%2e/%2e%2e/.env", "/brand/..%2f..%2fpackage.json", "/fonts/..%2f..%2f..%2f.env"]) {
+    const result = await request(path, { cookie: "aresium_session=test-traversal" });
+    assert.ok([303, 403, 404].includes(result.status), `${path} answered ${result.status}`);
+    assert.doesNotMatch(result.body, /DATABASE_URL|"name": "aresium"/);
+  }
+});

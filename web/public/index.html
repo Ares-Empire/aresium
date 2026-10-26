@@ -135,6 +135,22 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .import-toast.ok  { box-shadow: 0 12px 40px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(52,226,122,0.35); }
 .import-toast.err { box-shadow: 0 12px 40px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,80,100,0.45); }
 @keyframes imp-toast { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+/* The demo (/demo, app/data.js): a band saying the numbers are made up, with Log in instead of Log out. */
+.demo-band {
+  position: fixed; left: 50%; top: 10px; transform: translateX(-50%); z-index: 80; display: flex; align-items: center; gap: 10px;
+  padding: 8px 8px 8px 14px; border-radius: 999px; font-size: 13px; color: var(--ink-2); white-space: nowrap;
+  background: var(--card-2); border: 1px solid var(--line-soft);
+  -webkit-backdrop-filter: blur(16px) saturate(150%); backdrop-filter: blur(16px) saturate(150%);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+}
+.demo-band b { color: var(--ink); font-weight: 700; }
+.demo-band a { padding: 6px 13px; border-radius: 999px; font-weight: 700; color: #fff; background: var(--exp); text-decoration: none; }
+.demo-band a:hover { filter: brightness(1.1); }
+.demo-dot { width: 7px; height: 7px; border-radius: 50%; background: #FFB020; box-shadow: 0 0 0 3px rgba(255,176,32,0.18); flex: none; }
+html.demo .btn-logout, html.demo .mob-icon-btn[aria-label="Log out"] { display: none; }
+@media (max-width: 700px) {   /* the phone's header is full: at the bottom instead */
+  .demo-band { top: auto; bottom: max(14px, env(safe-area-inset-bottom)); font-size: 12px; }
+}
 /* expenses / income segmented toggle */
 .modeseg { display: inline-flex; align-items: center; gap: 2px; height: 38px; padding: 3px; border: 1px solid var(--line-soft); border-radius: 12px; background: var(--card); -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%); }
 .modeseg-btn { height: 100%; padding: 0 13px; border-radius: 9px; font-size: 13px; font-weight: 600; color: var(--ink-3); transition: color .18s, background .18s; }
