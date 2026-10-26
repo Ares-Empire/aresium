@@ -44,7 +44,11 @@ const INCOME_META: Record<string, Category> = {
 export function buildDashboard(source: DashboardSource): Dashboard {
   const { months, categories, balanceByDay } = source;
   const catByName = new Map(categories.map((c) => [c.name, c]));
+  // Recategorise choices for money in: income and transfer categories (and Tax).
   const incomeKeep = new Set(["Tax", ...categories.filter((c) => c.kind !== "spend").map((c) => c.name)]);
+  // Income rows: income categories (and Tax). Transfer categories count nowhere, on either side (Patrik, 2026-10-27:
+  // money moved between one's own accounts is not income).
+  const incomeBucketKeep = new Set(["Tax", ...categories.filter((c) => c.kind === "income").map((c) => c.name)]);
   const monthIndex = new Map(months.map((m, i) => [m.key, i]));
   const makeSeries = (): Series => ({
     months: months.map(() => 0),
@@ -79,9 +83,10 @@ export function buildDashboard(source: DashboardSource): Dashboard {
     const validDay = !!mo && day >= 1 && day <= mo.dayExpense.length;
     const tags = t.tags || [];
     const categoriesIn = [...new Set([t.categoryName, ...tags])];
+    const isTransfer = catByName.get(t.categoryName)?.kind === "transfer";
     const primaryBucket = !t.categoryName || t.categoryName === "Uncategorised" ? "Other"
-      : incomeKeep.has(t.categoryName) ? t.categoryName : "Refunds";
-    const buckets = t.amount > 0 ? [...new Set([primaryBucket, ...tags.filter((n) => incomeKeep.has(n))])] : [];
+      : incomeBucketKeep.has(t.categoryName) ? t.categoryName : "Refunds";
+    const buckets = t.amount > 0 && !isTransfer ? [...new Set([primaryBucket, ...tags.filter((n) => incomeBucketKeep.has(n))])] : [];
     transactions.push({
       id: t.id, date: t.date, day, month, amount: t.amount, categoryName: t.categoryName,
       tags: [...tags], place: t.place, city: t.city, categoriesIn, incomeBuckets: buckets,
@@ -100,7 +105,7 @@ export function buildDashboard(source: DashboardSource): Dashboard {
         if (validDay) series.days[month][day - 1] += -t.amount;
       }
     }
-    if (t.amount > 0) {
+    if (t.amount > 0 && !isTransfer) {
       total.income += t.amount;
       if (mo) { mo.income += t.amount; if (validDay) mo.dayIncome[day - 1] += t.amount; }
       for (const bucket of buckets) {

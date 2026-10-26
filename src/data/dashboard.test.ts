@@ -53,17 +53,20 @@ test("spend-category refund goes to Refunds and spend series clamp at zero", () 
   assert.equal(d.byMonth["2026-01"].dayExpense[1], -22);
 });
 
-test("uncategorised money in uses Other; transfers do not add to expense", () => {
+// Money moved between one's own accounts (a transfer category) counts as neither spending nor income
+// (Patrik, 2026-10-27); a transfer tag on an income payment does not make a Transfer income row either.
+test("uncategorised money in uses Other; transfers count as neither spending nor income", () => {
   const d = buildDashboard(fixture());
+  assert.deepEqual(d.transactions[1].incomeBuckets, ["Income", "Tax"]);
   assert.deepEqual(d.transactions[3].incomeBuckets, ["Other"]);
   assert.deepEqual(d.transactions[4].incomeBuckets, []);
-  assert.deepEqual(d.transactions[5].incomeBuckets, ["Transfer", "Income"]);
+  assert.deepEqual(d.transactions[5].incomeBuckets, []);
   assert.equal(d.byMonth["2026-01"].dayExpense[2], 0);
-  assert.equal(d.total.income, 51);
+  assert.equal(d.total.income, 42);
   assert.deepEqual(d.total.incomeBuckets, [
-    { name: "Income", total: 44 }, { name: "Tax", total: 35 }, { name: "Transfer", total: 29 },
-    { name: "Refunds", total: 15 }, { name: "Other", total: 7 },
+    { name: "Income", total: 35 }, { name: "Tax", total: 35 }, { name: "Refunds", total: 15 }, { name: "Other", total: 7 },
   ]);
+  assert.ok(d.pick.income.includes("Transfer"), "incoming money can still be moved to a transfer category");
   assert.equal(d.incomeBuckets.find((c) => c.name === "Other")?.icon, "CircleHelp");
 });
 
@@ -73,8 +76,8 @@ test("bank balances carry over unbooked days and partial months stop at supplied
   assert.equal(d.byMonth["2026-01"].endBalance, 118);
   assert.deepEqual(d.byMonth["2026-02"].dayBalance, [127, 125, 125]);
   assert.deepEqual(d.byMonth["2026-02"].dayExpense, [0, 2, 0]);
-  assert.deepEqual(d.byMonth["2026-02"].dayIncome, [9, 0, 0]);
-  assert.deepEqual(d.overview, { expense: [-12, 2], income: [42, 9], balance: [118, 125] });
+  assert.deepEqual(d.byMonth["2026-02"].dayIncome, [0, 0, 0]);  // the incoming transfer is not income
+  assert.deepEqual(d.overview, { expense: [-12, 2], income: [42, 0], balance: [118, 125] });
   assert.equal(d.months[1].partial, true);
   for (const series of [...Object.values(d.spend), ...Object.values(d.income)]) assert.equal(series.days["2026-02"].length, 3);
 });
@@ -105,9 +108,9 @@ test("addition order, cent rounding, income ties and out-of-window bookings keep
   );
   const d = buildDashboard(source);
   assert.deepEqual(d.total.incomeBuckets.map((b) => [b.name, b.total]),
-    [["Refunds", 100000000000015], ["Income", 244], ["Second income", 200], ["Tax", 35], ["Transfer", 29], ["Other", 7]]);
+    [["Refunds", 100000000000015], ["Income", 235], ["Second income", 200], ["Tax", 35], ["Other", 7]]);
   assert.deepEqual(d.byMonth["2026-02"].incomeBuckets.map((b) => [b.name, b.total]),
-    [["Income", 109], ["Second income", 100], ["Transfer", 9]]);
+    [["Income", 100], ["Second income", 100]]);
   assert.deepEqual([d.total.expense, d.byMonth["2026-01"].expense, d.byMonth["2026-02"].expense], [-8.99, -12, 3.01]);
   assert.deepEqual(d.byMonth["2026-02"].dayExpense, [0.01, 2, 0]);
   assert.deepEqual(d.byMonth["2026-02"].dayExpenseRunning, [0.01, 2.01, 2.01]);
@@ -117,14 +120,15 @@ test("addition order, cent rounding, income ties and out-of-window bookings keep
 
 test("equal income rows keep each month's own first-transaction order", async () => {
   const source = fixture();
+  source.categories.push(category("Second income", "income"));
   source.transactions = [
-    txn("a", "2026-01-01", 100, "Transfer"), txn("b", "2026-01-02", 100, "Income"),
-    txn("c", "2026-02-01", 100, "Income"), txn("d", "2026-02-02", 100, "Transfer"),
+    txn("a", "2026-01-01", 100, "Second income"), txn("b", "2026-01-02", 100, "Income"),
+    txn("c", "2026-02-01", 100, "Income"), txn("d", "2026-02-02", 100, "Second income"),
   ];
   const d = buildDashboard(source);
-  assert.deepEqual(d.total.incomeBuckets.map((b) => b.name), ["Transfer", "Income"]);
-  assert.deepEqual(d.byMonth["2026-01"].incomeBuckets.map((b) => b.name), ["Transfer", "Income"]);
-  assert.deepEqual(d.byMonth["2026-02"].incomeBuckets.map((b) => b.name), ["Income", "Transfer"]);
+  assert.deepEqual(d.total.incomeBuckets.map((b) => b.name), ["Second income", "Income"]);
+  assert.deepEqual(d.byMonth["2026-01"].incomeBuckets.map((b) => b.name), ["Second income", "Income"]);
+  assert.deepEqual(d.byMonth["2026-02"].incomeBuckets.map((b) => b.name), ["Income", "Second income"]);
 });
 
 test("an empty source gives an empty dashboard", () => {
