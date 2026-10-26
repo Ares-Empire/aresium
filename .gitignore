@@ -21,3 +21,6 @@ config/personal.json
 
 # Codex run outputs (final messages)
 codex-runs/
+
+# Sorting measurements: raw input and aggregate reports stay local.
+bench/out/

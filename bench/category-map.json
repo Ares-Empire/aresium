@@ -1,0 +1,8 @@
+{"Groceries":["groceries"],"Drogerie":["drugstore"],"Restaurants":["eating-out","coffee-snacks"],
+ "Drinking":["going-out"],"Clothes":["clothes"],"Non-essentials":["shopping","household"],
+ "Tech":["electronics"],"Education":["education"],
+ "Travel":["travel","bus-train","car-fuel","taxi-sharing"],"Rent":["rent","utilities"],
+ "Health":["health","insurance"],"Fitness":["sports-fitness"],"Personal care":["personal-care"],
+ "Subscriptions":["subscriptions"],"Memberships":["memberships","donations"],
+ "Basis":["parents-family","kindergeld"],"Tax":["taxes"],"Income":["salary","bafoeg-scholarships"],
+ "Transfer":["own-transfers","savings-investing"],"Development":null,"Trash":null}

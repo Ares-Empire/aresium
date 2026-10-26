@@ -6,6 +6,13 @@ import { parsePaypalCsv as paypal } from "../import/paypal-csv.js";
 import type { NormalizedTxn, ParsedFile } from "../import/types.js";
 
 export { buildDashboard } from "../data/dashboard.js";
+export { DEFAULT_CATEGORIES, BUILT_IN_CATEGORIES } from "./categories.js";
+export type { Category, CategoryKind } from "./categories.js";
+export { merchantKey } from "./sorting/merchant.js";
+export type { SortingPayment } from "./sorting/merchant.js";
+export { STARTER_RULES, starterCategory } from "./sorting/starter-rules.js";
+export { sortPayments, learn } from "./sorting/sort.js";
+export type { Learned, SortResult } from "./sorting/sort.js";
 export const version = "0.1.0";
 
 type EngineTxn = Omit<NormalizedTxn, "bookingDate" | "valueDate"> & {

@@ -15,12 +15,23 @@ runInContext(await bundleEngine(), context);
 const bundled = context.AresiumEngine as typeof engine;
 const json = (value: unknown) => JSON.parse(JSON.stringify(value));
 
-test("bundle exposes only the version and four engine functions without Node globals", () => {
+test("bundle exposes the engine API without Node globals", () => {
   assert.equal(runInContext("typeof require", context), "undefined");
   assert.equal(runInContext("typeof process", context), "undefined");
   assert.equal(runInContext("typeof Buffer", context), "undefined");
   assert.deepEqual(Object.keys(bundled).sort(), Object.keys(engine).sort());
   assert.equal(bundled.version, engine.version);
+});
+test("bundled sorting and learning run without Node or web APIs", () => {
+  const payments = [{ counterparty: "REWE Filiale 123 Berlin" }, { counterparty: "REWE Filiale 456 München" }];
+  const categories = [...engine.DEFAULT_CATEGORIES, { id: "custom" }];
+  const learned = bundled.learn({}, payments[0], "custom");
+  assert.equal(bundled.merchantKey(payments[0]), "rewe");
+  assert.deepEqual(json(bundled.DEFAULT_CATEGORIES), json(engine.DEFAULT_CATEGORIES));
+  assert.deepEqual(json(bundled.sortPayments(payments, { categories, learned })),
+    engine.sortPayments(payments, { categories, learned }));
+  assert.deepEqual(json(bundled.sortPayments(payments, { categories })),
+    [{ categoryId: "groceries", source: "starter" }, { categoryId: "groceries", source: "starter" }]);
 });
 test("bundled sample dashboard equals the direct server calculation", () => {
   const source = buildSampleSource();
