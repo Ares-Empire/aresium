@@ -20,10 +20,11 @@
   const lucideSvg = window.lucideSvg;
 
   const INC = "#34E27A"; // income green
+  // exp: the expense line in charts; expText: words in the expense colour (black on the red wall cannot be read).
   const THEME_COLORS = {
-    dark:  { exp: "#FF2D4B", bal: "#2E8BFF" },
-    light: { exp: "#E11030", bal: "#1452F0" },
-    red:   { exp: "#0a0a0a", bal: "#ffffff" },
+    dark:  { exp: "#FF2D4B", expText: "#FF2D4B", bal: "#2E8BFF" },
+    light: { exp: "#E11030", expText: "#E11030", bal: "#1452F0" },
+    red:   { exp: "#0a0a0a", expText: "#fff5f5", bal: "#ffffff" },
   };
 
   const months = D.months;
@@ -105,7 +106,7 @@
       <div ref={wrapRef} className="mob-swipe"
         onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
         <div className={"mob-track" + (dragging ? " drag" : "")} style={{ transform: `translateX(${base + drag}px)` }}>
-          <StartPage side="expenses" name="Expenses" cap="spent" rows={expRows} total={expTotal} color={colors.exp} rangeLabel={rangeLabel} onPick={onPick} />
+          <StartPage side="expenses" name="Expenses" cap="spent" rows={expRows} total={expTotal} color={colors.expText} rangeLabel={rangeLabel} onPick={onPick} />
           <StartPage side="income" name="Income" cap="received" rows={incRows} total={incTotal} color={INC} rangeLabel={rangeLabel} onPick={onPick} />
         </div>
       </div>
