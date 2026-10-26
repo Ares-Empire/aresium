@@ -3,7 +3,7 @@
 // match against several candidates. Missing required columns produce a typed error
 // so the API can explain the failure in the request language.
 import { parse } from "csv-parse/sync";
-import { createHash } from "node:crypto";
+import { sha1 } from "./sha1.js";
 import { parseAmount, parseDateFlexible, pick } from "./util.js";
 import type { NormalizedTxn, ParsedFile } from "./types.js";
 import { ImportFileError } from "./errors.js";
@@ -75,9 +75,7 @@ export function parseVrBankCsv(content: string): ParsedFile {
     const counterparty = pick(row, COLS.name) || null;
     const balanceRaw = pick(row, COLS.balance);
 
-    const externalId = createHash("sha1")
-      .update(`${bookingDate.toISOString()}|${amount}|${purpose}|${counterparty ?? ""}`)
-      .digest("hex")
+    const externalId = sha1(`${bookingDate.toISOString()}|${amount}|${purpose}|${counterparty ?? ""}`)
       .slice(0, 24);
 
     transactions.push({

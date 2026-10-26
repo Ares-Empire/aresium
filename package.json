@@ -26,7 +26,8 @@
     "uncat": "tsx scripts/uncategorised.ts",
     "typecheck": "tsc --noEmit",
     "sample": "tsx scripts/build-sample.ts",
-    "test": "tsx --test src/**/*.test.ts"
+    "test": "tsx --test src/**/*.test.ts",
+    "engine": "tsx scripts/build-engine.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.2.1",
@@ -36,6 +37,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.10.5",
+    "esbuild": "^0.28.2",
     "prisma": "^6.2.1",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"

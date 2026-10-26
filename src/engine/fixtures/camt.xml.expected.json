@@ -1,0 +1,81 @@
+{
+  "source": "bank",
+  "account": {
+    "name": "VR Bank",
+    "currency": "EUR"
+  },
+  "transactions": [
+    {
+      "externalId": "e4ea42578123055a13876abc",
+      "bookingDate": "2026-02-03T00:00:00.000Z",
+      "valueDate": "2026-02-04T00:00:00.000Z",
+      "amount": "-12.34",
+      "currency": "EUR",
+      "description": "Brötchen & Frühstück 🥨 Vielen Dank",
+      "counterparty": "Märchenbäckerei",
+      "raw": {
+        "Amt": {
+          "#text": "12.34",
+          "@_Ccy": "EUR"
+        },
+        "CdtDbtInd": "DBIT",
+        "BookgDt": {
+          "Dt": "2026-02-03"
+        },
+        "ValDt": {
+          "Dt": "2026-02-04"
+        },
+        "NtryDtls": {
+          "TxDtls": {
+            "Refs": {
+              "EndToEndId": "NOTPROVIDED"
+            },
+            "RltdPties": {
+              "Cdtr": {
+                "Nm": "Märchenbäckerei"
+              }
+            },
+            "RmtInf": {
+              "Ustrd": [
+                "Brötchen & Frühstück 🥨",
+                "Vielen Dank"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "externalId": "FICTIONAL-CAMT-2",
+      "bookingDate": "2026-02-05T12:34:56.000Z",
+      "valueDate": null,
+      "amount": "23.45",
+      "currency": "EUR",
+      "description": "Erstattung Bücher",
+      "counterparty": "Fiktivbüro",
+      "raw": {
+        "Amt": {
+          "#text": "23.45",
+          "@_Ccy": "EUR"
+        },
+        "CdtDbtInd": "CRDT",
+        "AcctSvcrRef": "FICTIONAL-CAMT-2",
+        "BookgDt": {
+          "DtTm": "2026-02-05T12:34:56Z"
+        },
+        "NtryDtls": {
+          "TxDtls": {
+            "RltdPties": {
+              "Dbtr": {
+                "Nm": "Fiktivbüro"
+              }
+            },
+            "RmtInf": {
+              "Ustrd": "Erstattung Bücher"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 // Parser for ISO 20022 CAMT bank statements (camt.052 intraday / camt.053 end-of-day).
 // VR Bank can export this *if* CAMT is activated for the account; otherwise use CSV/MT940.
 import { XMLParser } from "fast-xml-parser";
-import { createHash } from "node:crypto";
+import { sha1 } from "./sha1.js";
 import { parseAmount } from "./util.js";
 import type { NormalizedTxn, ParsedFile } from "./types.js";
 import { ImportFileError } from "./errors.js";
@@ -70,9 +70,7 @@ export function parseCamt(xml: string): ParsedFile {
       const externalId =
         ref && ref !== "NOTPROVIDED"
           ? String(ref)
-          : createHash("sha1")
-              .update(`${bookingDate.toISOString()}|${amount}|${remittance}|${counterparty ?? ""}`)
-              .digest("hex")
+          : sha1(`${bookingDate.toISOString()}|${amount}|${remittance}|${counterparty ?? ""}`)
               .slice(0, 24);
 
       transactions.push({

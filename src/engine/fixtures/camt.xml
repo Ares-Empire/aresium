@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.053.001.02">
+  <BkToCstmrStmt><Stmt><Id>FICTIONAL-STATEMENT</Id><Acct><Ccy>EUR</Ccy></Acct>
+    <Ntry><Amt Ccy="EUR">12.34</Amt><CdtDbtInd>DBIT</CdtDbtInd>
+      <BookgDt><Dt>2026-02-03</Dt></BookgDt><ValDt><Dt>2026-02-04</Dt></ValDt>
+      <NtryDtls><TxDtls><Refs><EndToEndId>NOTPROVIDED</EndToEndId></Refs>
+        <RltdPties><Cdtr><Nm>Märchenbäckerei</Nm></Cdtr></RltdPties>
+        <RmtInf><Ustrd>Brötchen &amp; Frühstück 🥨</Ustrd><Ustrd>Vielen Dank</Ustrd></RmtInf>
+      </TxDtls></NtryDtls>
+    </Ntry>
+    <Ntry><Amt Ccy="EUR">23.45</Amt><CdtDbtInd>CRDT</CdtDbtInd><AcctSvcrRef>FICTIONAL-CAMT-2</AcctSvcrRef>
+      <BookgDt><DtTm>2026-02-05T12:34:56Z</DtTm></BookgDt>
+      <NtryDtls><TxDtls><RltdPties><Dbtr><Nm>Fiktivbüro</Nm></Dbtr></RltdPties>
+        <RmtInf><Ustrd>Erstattung Bücher</Ustrd></RmtInf>
+      </TxDtls></NtryDtls>
+    </Ntry>
+  </Stmt></BkToCstmrStmt>
+</Document>

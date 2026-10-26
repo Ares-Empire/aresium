@@ -1,0 +1,5 @@
+Datum,Name,Typ,Währung,Brutto,Netto,Transaktionscode,Auswirkung auf Guthaben,Absender E-Mail-Adresse
+03.02.2026,Märchenladen,Allgemeine Zahlung,EUR,"-18,90","-18,90",FICTIONAL-PAY-1,Debit,
+03.02.2026,Märchenladen,Einbehaltung für offene Autorisierung,EUR,"-18,90","-18,90",FICTIONAL-HOLD,Memo,
+03.02.2026,Märchenladen,Bankgutschrift auf PayPal-Konto,EUR,"18,90","18,90",FICTIONAL-FUND,Credit,
+04.02.2026,Bücherinsel,Rückzahlung,EUR,"3,50","3,50",FICTIONAL-REFUND,Credit,

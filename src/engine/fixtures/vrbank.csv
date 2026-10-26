@@ -1,0 +1,3 @@
+IBAN Auftragskonto;Buchungstag;Valutadatum;Name Zahlungsbeteiligter;Buchungstext;Verwendungszweck;Betrag;Währung;Soll/Haben;Saldo nach Buchung
+;03.02.2026;04.02.2026;Märchenbäckerei;Lastschrift;"Brötchen; Frühstück 🥨";12,34;EUR;S;987,66
+;05.02.2026;;Fiktivbüro;Gutschrift;Erstattung Bücher;23,45;EUR;H;1.011,11

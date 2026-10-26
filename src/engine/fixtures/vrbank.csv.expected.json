@@ -1,0 +1,53 @@
+{
+  "source": "bank",
+  "account": {
+    "name": "VR Bank",
+    "currency": "EUR"
+  },
+  "transactions": [
+    {
+      "externalId": "22746d8b0a43f9b5f97da602",
+      "bookingDate": "2026-02-03T00:00:00.000Z",
+      "valueDate": "2026-02-04T00:00:00.000Z",
+      "amount": "-12.34",
+      "balance": "987.66",
+      "currency": "EUR",
+      "description": "Brötchen; Frühstück 🥨",
+      "counterparty": "Märchenbäckerei",
+      "raw": {
+        "IBAN Auftragskonto": "",
+        "Buchungstag": "03.02.2026",
+        "Valutadatum": "04.02.2026",
+        "Name Zahlungsbeteiligter": "Märchenbäckerei",
+        "Buchungstext": "Lastschrift",
+        "Verwendungszweck": "Brötchen; Frühstück 🥨",
+        "Betrag": "12,34",
+        "Währung": "EUR",
+        "Soll/Haben": "S",
+        "Saldo nach Buchung": "987,66"
+      }
+    },
+    {
+      "externalId": "577032e382bc8473a85de29d",
+      "bookingDate": "2026-02-05T00:00:00.000Z",
+      "valueDate": null,
+      "amount": "23.45",
+      "balance": "1011.11",
+      "currency": "EUR",
+      "description": "Erstattung Bücher",
+      "counterparty": "Fiktivbüro",
+      "raw": {
+        "IBAN Auftragskonto": "",
+        "Buchungstag": "05.02.2026",
+        "Valutadatum": "",
+        "Name Zahlungsbeteiligter": "Fiktivbüro",
+        "Buchungstext": "Gutschrift",
+        "Verwendungszweck": "Erstattung Bücher",
+        "Betrag": "23,45",
+        "Währung": "EUR",
+        "Soll/Haben": "H",
+        "Saldo nach Buchung": "1.011,11"
+      }
+    }
+  ]
+}

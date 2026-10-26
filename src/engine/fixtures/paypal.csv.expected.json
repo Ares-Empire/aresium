@@ -1,0 +1,66 @@
+{
+  "source": "paypal",
+  "account": {
+    "name": "PayPal",
+    "currency": "EUR"
+  },
+  "transactions": [
+    {
+      "externalId": "FICTIONAL-PAY-1",
+      "bookingDate": "2026-02-03T00:00:00.000Z",
+      "amount": "-18.90",
+      "currency": "EUR",
+      "description": "Märchenladen",
+      "counterparty": "Märchenladen",
+      "raw": {
+        "Datum": "03.02.2026",
+        "Name": "Märchenladen",
+        "Typ": "Allgemeine Zahlung",
+        "Währung": "EUR",
+        "Brutto": "-18,90",
+        "Netto": "-18,90",
+        "Transaktionscode": "FICTIONAL-PAY-1",
+        "Auswirkung auf Guthaben": "Debit",
+        "Absender E-Mail-Adresse": ""
+      }
+    },
+    {
+      "externalId": "FICTIONAL-FUND",
+      "bookingDate": "2026-02-03T00:00:00.000Z",
+      "amount": "18.90",
+      "currency": "EUR",
+      "description": "Bankgutschrift auf PayPal-Konto",
+      "counterparty": "Märchenladen",
+      "raw": {
+        "Datum": "03.02.2026",
+        "Name": "Märchenladen",
+        "Typ": "Bankgutschrift auf PayPal-Konto",
+        "Währung": "EUR",
+        "Brutto": "18,90",
+        "Netto": "18,90",
+        "Transaktionscode": "FICTIONAL-FUND",
+        "Auswirkung auf Guthaben": "Credit",
+        "Absender E-Mail-Adresse": ""
+      }
+    },
+    {
+      "externalId": "FICTIONAL-REFUND",
+      "bookingDate": "2026-02-04T00:00:00.000Z",
+      "amount": "3.50",
+      "currency": "EUR",
+      "description": "Bücherinsel",
+      "counterparty": "Bücherinsel",
+      "raw": {
+        "Datum": "04.02.2026",
+        "Name": "Bücherinsel",
+        "Typ": "Rückzahlung",
+        "Währung": "EUR",
+        "Brutto": "3,50",
+        "Netto": "3,50",
+        "Transaktionscode": "FICTIONAL-REFUND",
+        "Auswirkung auf Guthaben": "Credit",
+        "Absender E-Mail-Adresse": ""
+      }
+    }
+  ]
+}
