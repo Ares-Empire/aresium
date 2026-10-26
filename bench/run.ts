@@ -189,10 +189,13 @@ export function parseArgs(args: string[]): { limit?: number; groq: boolean; mode
 }
 export async function run(args = process.argv.slice(2), overrides: Pick<GroqOptions, "fetch" | "sleep"> = {}): Promise<string> {
   const options = parseArgs(args);
-  if (options.groq && !process.env.GROQ_API_KEY) throw new Error("GROQ_API_KEY is required for --groq");
+  // Another OpenAI-compatible provider (NVIDIA, for comparison): SORT_API_URL and SORT_API_KEY replace Groq's.
+  const apiKey = process.env.SORT_API_KEY ?? process.env.GROQ_API_KEY;
+  const endpoint = process.env.SORT_API_URL;
+  if (options.groq && !apiKey) throw new Error("GROQ_API_KEY (or SORT_API_KEY) is required for --groq");
   const input = parseData(JSON.parse(await readFile(DATA_FILE, "utf8")));
   const report = await buildReport(input, { limit: options.limit,
-    groq: options.groq ? { apiKey: process.env.GROQ_API_KEY!, model: options.model, ...overrides } : undefined });
+    groq: options.groq ? { apiKey: apiKey!, model: options.model, endpoint, ...overrides } : undefined });
   await mkdir(new URL("out/", import.meta.url), { recursive: true });
   await writeFile(RESULTS_FILE, report, { mode: 0o600 });
   console.log(report);

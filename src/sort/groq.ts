@@ -1,5 +1,7 @@
 // Server only. No database, logging, or dependency on personal settings.
 export const DEFAULT_MODEL = "llama-3.3-70b-versatile";
+/** Groq's OpenAI-compatible endpoint; any other OpenAI-compatible provider can be passed as `endpoint`. */
+export const GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
 export type AutoPayment = { reference: string; date: string; amount: number; description: string; counterparty: string | null };
 export type BatchMetrics = {
   payments: number; requests: number; inputTokens: number | null; outputTokens: number | null;
@@ -7,7 +9,7 @@ export type BatchMetrics = {
 };
 export type AutoSortResult = { results: { reference: string; category: string | null }[]; batches: BatchMetrics[] };
 export type GroqOptions = {
-  apiKey: string; model?: string; fetch?: typeof fetch; maxRetries?: number;
+  apiKey: string; model?: string; endpoint?: string; fetch?: typeof fetch; maxRetries?: number;
   sleep?: (ms: number) => Promise<void>;
 };
 const SYSTEM = `Sort a person's bank payments using only their own supplied category list.
@@ -38,7 +40,7 @@ export async function autoSort(categories: readonly string[], payments: readonly
       let response: Response | undefined;
       for (let attempt = 0; attempt <= retries; attempt++) {
         metrics.requests++;
-        response = await request("https://api.groq.com/openai/v1/chat/completions", {
+        response = await request(options.endpoint ?? GROQ_ENDPOINT, {
           method: "POST", headers: { Authorization: `Bearer ${options.apiKey}`, "Content-Type": "application/json" },
           signal: AbortSignal.timeout(60_000),
           body: JSON.stringify({ model: options.model ?? DEFAULT_MODEL, temperature: 0,
