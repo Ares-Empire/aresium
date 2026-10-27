@@ -100,7 +100,8 @@ never below 0 (refunds inside a category do not make it negative), as in version
   euro row of PayPal's "Allgemeine Währungsumrechnung" with the purchase's code), keeping its category; both
   conversion rows are left out of every figure (`src/engine/paypal.ts`). Without a euro row the rows stay as they
   are and the server logs the code. Every amount the API sends is in euros. PayPal's bank-funding rows
-  ("Bankgutschrift auf PayPal-Konto") are left out too: the purchase is the PayPal row itself.
+  ("Bankgutschrift auf PayPal-Konto"; in English exports "Bank Deposit to PP Account", "General Card Deposit" and
+  PayPal's other funding names, since 2026-10-27) are left out too: the purchase is the PayPal row itself.
 - **Where it is computed** (2026-10-27): stored payments → the dashboard's source is the shared engine's
   `buildDashboardSource` (`src/engine/source.ts`), then `buildDashboard`. The server maps its rows to the engine's
   plain input and adds the categories' icons and colours (`getDashboardSource` in `src/data/queries.ts`); the iPhone

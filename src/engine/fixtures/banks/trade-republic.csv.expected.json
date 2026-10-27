@@ -12,6 +12,7 @@
       "currency": "EUR",
       "description": "Sparen Einzahlung",
       "counterparty": "Erika Mustermann",
+      "counterpartyIban": "DE96100500000000123456",
       "raw": {
         "datetime": "2026-04-20T07:21:17.574610Z",
         "date": "2026-04-20",

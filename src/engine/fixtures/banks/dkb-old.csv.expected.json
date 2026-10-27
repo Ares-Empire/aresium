@@ -14,6 +14,7 @@
       "currency": "EUR",
       "description": "Abschlag Strom März",
       "counterparty": "Fiktiv Stadtwerke",
+      "counterpartyIban": "DE34701500000000246810",
       "raw": {
         "Buchungstag": "06.03.2023",
         "Wertstellung": "06.03.2023",
@@ -37,6 +38,7 @@
       "currency": "EUR",
       "description": "Gehalt März",
       "counterparty": "Fiktiv Werke GmbH",
+      "counterpartyIban": "DE96100500000000123456",
       "raw": {
         "Buchungstag": "02.03.2023",
         "Wertstellung": "02.03.2023",

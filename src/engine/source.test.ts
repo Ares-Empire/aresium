@@ -143,13 +143,21 @@ test("the bundle's buildDashboardSource equals the direct one, and its dashboard
 
 test("the bundle's transfer step and sorting equal the direct ones", () => {
   const payments = [
-    { source: "bank" as const, account: "giro", amount: -500, date: "2026-03-01", counterparty: "Eigenes Tagesgeld" },
-    { source: "bank" as const, account: "tagesgeld", amount: 500, date: "2026-03-02", counterparty: "Eigenes Girokonto" },
+    // Paired by the IBAN, by both texts, and not at all (equal amounts only).
+    { source: "bank" as const, account: "giro", accountIban: "DE89370400440532013000", amount: -500, date: "2026-03-01",
+      counterparty: "Eigenes Tagesgeld", counterpartyIban: "DE02120300000000202051" },
+    { source: "bank" as const, account: "tagesgeld", accountIban: "DE02120300000000202051", amount: 500, date: "2026-03-02", counterparty: "Eigenes Girokonto" },
+    { source: "bank" as const, account: "giro", amount: -60, date: "2026-03-05", description: "Übertrag auf Tagesgeld" },
+    { source: "bank" as const, account: "tagesgeld", amount: 60, date: "2026-03-05", description: "Kontoübertrag" },
+    { source: "bank" as const, account: "giro", amount: -20, date: "2026-03-06", counterparty: "Fiktiv Pizzeria" },
+    { source: "bank" as const, account: "tagesgeld", amount: 20, date: "2026-03-07", counterparty: "Max Mustermann" },
     { source: "bank" as const, account: "giro", amount: -18.9, date: "2026-03-03", counterparty: "PayPal Europe S.a.r.l. et Cie S.C.A" },
     { source: "paypal" as const, account: "paypal", amount: -18.9, date: "2026-03-03", counterparty: "REWE Markt" },
+    { source: "paypal" as const, account: "paypal", amount: 18.9, date: "2026-03-03", counterparty: "REWE Markt", raw: { Type: "General Card Deposit" } },
   ];
   assert.deepEqual(json(bundled.ownTransfers(payments)), engine.ownTransfers(payments));
   const sorted = engine.sortPayments(payments, { categories: engine.DEFAULT_CATEGORIES });
   assert.deepEqual(json(bundled.sortPayments(payments, { categories: engine.DEFAULT_CATEGORIES })), sorted);
-  assert.deepEqual(sorted.map((r) => r.source), ["structural", "structural", "structural", "starter"]);
+  assert.deepEqual(sorted.map((r) => r.source === "structural"), [true, true, true, true, false, false, true, false, true]);
+  assert.equal(sorted[7].source, "starter");
 });

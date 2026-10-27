@@ -14,6 +14,7 @@
       "currency": "EUR",
       "description": "Gehalt Februar 2026",
       "counterparty": "Fiktiv Werke GmbH",
+      "counterpartyIban": "DE96100500000000123456",
       "raw": {
         "NtryRef": "1",
         "Amt": {
@@ -153,6 +154,7 @@
       "currency": "EUR",
       "description": "Abschlag Strom Kundennr. 0000",
       "counterparty": "Fiktiv Stadtwerke",
+      "counterpartyIban": "DE34701500000000246810",
       "raw": {
         "Amt": {
           "#text": "36.40",

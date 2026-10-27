@@ -60,6 +60,7 @@
       "currency": "EUR",
       "description": "Miete Februar",
       "counterparty": "Fiktiv Vermietung",
+      "counterpartyIban": "DE25100900000000202122",
       "raw": {
         "Transaktionstyp": "SEPA-Überweisung",
         "Buchungsdatum": "04.02.2026",
@@ -84,6 +85,7 @@
       "currency": "EUR",
       "description": "Gehalt Februar 2026",
       "counterparty": "Fiktiv Werke GmbH",
+      "counterpartyIban": "DE96100500000000123456",
       "raw": {
         "Transaktionstyp": "SEPA-Überweisung",
         "Buchungsdatum": "03.02.2026",

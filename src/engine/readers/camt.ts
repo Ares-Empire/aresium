@@ -15,7 +15,7 @@ import { XMLParser } from "fast-xml-parser";
 import { parseAmount } from "../../import/util.js";
 import { hashId, withOccurrences, type IdCandidate } from "./ids.js";
 import { accountName, BankFileError } from "./table.js";
-import { addAmounts, cleanText, negate, parseAmountStrict, sameAmount } from "./values.js";
+import { addAmounts, cleanText, negate, normalizeIban, parseAmountStrict, sameAmount } from "./values.js";
 import type { BankAccount, BankFile, BankTxn } from "./types.js";
 
 const parser = new XMLParser({
@@ -46,6 +46,17 @@ const dateOnly = (value: unknown) => {
 // A party's name in .001.02 (<Cdtr><Nm>) and from .001.04 on (<Cdtr><Pty><Nm>).
 const nameOf = (party: Node | undefined): string => cleanText(textOf(party?.Nm) || textOf(party?.Pty?.Nm));
 const ibanOf = (account: Node | undefined): string => textOf(account?.Id?.IBAN).replace(/\s/g, "");
+
+// The other party's IBAN of one entry (<Ntry>): the creditor's account on money out, the debtor's on money in, from
+// the entry's first transaction; checked, without spaces. Works on entries as this reader and the server's VR CAMT
+// reader (src/import/camt.ts) keep them in `raw`.
+export function entryCounterpartyIban(ntry: unknown): string | undefined {
+  if (!ntry || typeof ntry !== "object") return undefined;
+  const node = ntry as Node;
+  const tx = arr(node.NtryDtls).flatMap((d: Node) => arr(d?.TxDtls))[0] as Node | undefined;
+  const parties = tx?.RltdPties ?? {};
+  return normalizeIban(ibanOf(node.CdtDbtInd === "DBIT" ? parties.CdtrAcct : parties.DbtrAcct)) ?? undefined;
+}
 
 // A transaction's text: its unstructured lines, else its structured reference, else its additional information.
 const remittance = (tx: Node | undefined): string =>
@@ -139,7 +150,8 @@ export function readCamt(xml: string): BankFile {
       const creditor = nameOf(parties.Cdtr) || nameOf(parties.UltmtCdtr);
       const debtor = nameOf(parties.Dbtr) || nameOf(parties.UltmtDbtr);
       const counterparty = (out ? creditor || debtor : debtor || creditor) || null;
-      const counterpartyIban = ibanOf(out ? parties.CdtrAcct : parties.DbtrAcct);
+      const counterpartyIban = ibanOf(out ? parties.CdtrAcct : parties.DbtrAcct); // as written, for the id
+      const checkedIban = entryCounterpartyIban(ntry);
       const description = batchText(details.map(remittance)) || cleanText(textOf(ntry.AddtlNtryInf)) || "(no description)";
       const ccy = (ntry.Amt && typeof ntry.Amt === "object" ? ntry.Amt["@_Ccy"] : undefined) || currency;
       transactions.push({
@@ -149,6 +161,7 @@ export function readCamt(xml: string): BankFile {
         currency: ccy,
         description,
         counterparty,
+        ...(checkedIban ? { counterpartyIban: checkedIban } : {}),
         raw: ntry,
       });
       if (vr) candidates.push(vrCamtId(ntry));

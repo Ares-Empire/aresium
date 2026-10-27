@@ -19,9 +19,12 @@ npx tsx bench/run.ts --limit 100
 npx tsx --test src/sort/groq.test.ts src/sort/bench.test.ts
 ```
 
-The fake data has 384 payments across 12 months. It includes all 21 answer-key
+The fake data has 480 payments across 12 months. It includes all 21 answer-key
 category names, changing branches, repeat merchants, unknown merchants, conflicting
-choices at one shop, and bare PayPal payments. The tests call the bench with
+choices at one shop, and, each month, what the structural rules sort: two PayPal
+purchases as both exports show them (PayPal's row with the shop, its funding row, the
+bank's bare "PayPal" line), an own transfer to a savings account with its IBAN, and two
+unrelated payments of equal amounts on the two accounts, which must not pair. The tests call the bench with
 `--groq` and an injected fake fetch, write/read `results.md`, and inspect printed
 output. No key, database, network request, or real payment is needed. Tests preserve
 any pre-existing bench input and output.
@@ -32,6 +35,13 @@ Only `export.ts` imports Prisma. Its single query is `transaction.findMany`,
 restricted to `categorySource` `rule` or `manual` (D6); it writes every matching
 payment, and fails if a payment lacks a category in the fixed map. It never updates
 the database. Do not run the export on a developer machine or copy its output there.
+Besides the text it writes what the structural rules need: the source (`bank` or
+`paypal`), the currency, the account, the account's IBAN, and the other party's IBAN.
+The database has no column for the last one; the export reads it from the stored
+original row, which the server keeps already parsed (a VR Bank CSV row as column → cell,
+`IBAN Zahlungsbeteiligter`; a CAMT entry's creditor or debtor account), with the
+engine's own functions. Accounts and IBANs are written as local aliases (`account-1`,
+`iban-1`; the same IBAN, the same alias), never the real values.
 
 ```sh
 npx tsx bench/export.ts
@@ -44,6 +54,9 @@ npx tsx bench/run.ts --groq --model openai/gpt-oss-120b --limit 100
 model, and `--limit` selects the earliest n payments, after sorting by date. Input
 is an array of `{reference, date, amount, description, counterparty, trueCategory}`;
 date is a UTC `YYYY-MM-DD` string, amount a number, and counterparty a string or null.
+Optional, for the structural rules: `source`, `currency`, `account`, `accountIban` and
+`counterpartyIban` (aliases, see above). Without them every payment is sorted on its
+own text, as before.
 Export references are local sequence numbers, never bank ids. Groq receives new
 references with just date, amount, description and counterparty; no answer category.
 Input and output are fixed at `bench/out/data.json` and `bench/out/results.md` and
@@ -52,12 +65,26 @@ fixed messages so JSON parsing or provider errors cannot echo payment data.
 
 ## What the measurements mean
 
+- Sorting is the engine's, as the app sorts: one `sortPayments` call over all payments
+  up to the point in the replay, so the structural rules (own transfers: PayPal's bank
+  lines and funding rows, pairs between accounts with proof) run before learned and
+  starter rules. M1 sorts all payments at once; M2 sorts each payment with all earlier
+  ones (so a transfer's first side cannot see its second yet, the second pairs with it);
+  M3's monthly imports sort each month with all months before it. M2 therefore calls
+  the engine once per payment over a growing list, so its time grows with the square
+  of the payments: 2,880 fake payments took 51 s with the 288 starter rules and 27 s
+  with the shop list (brief 13) on the MacBook, without `--groq`.
+- An own transfer's built-in category maps to the answer key's `Transfer` (A) or is
+  `own-transfers` itself (B). The learning-only baseline keeps the structural rules:
+  they are built in, not starter rules.
+
 - A uses every answer-key name as a custom category. A starter prediction maps back
   only when exactly one answer-key category accepts that default id.
 - B uses every default id in `category-map.json`, including `own-transfers`, plus
   `Development` and `Trash`. Any id in a payment's acceptable set is right.
-- M1 reports starter coverage and accuracy among those sorted. Missing predictions
-  are excluded from that accuracy denominator.
+- M1 reports coverage (structural and starter rules) and accuracy among those
+  sorted, and separately how many were own transfers and how many of those were right.
+  Missing predictions are excluded from that accuracy denominator.
 - M2 starts with empty learning, walks payments in stable date order, and learns
   immediately from every wrong or missing result. Correct starters do not teach
   the map. Learning always wins. Counts include total fixes, first booking month,

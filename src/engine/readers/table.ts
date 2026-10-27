@@ -179,6 +179,8 @@ export function readTable(rows: string[][], headerIndex: number, layout: CsvLayo
     const rowCurrency = /^[A-Za-z]{3}$/.test(cell(row, c.currency)) ? cell(row, c.currency).toUpperCase() : currency;
     currency = rowCurrency;
     ownIban ??= c.accountIban !== undefined ? normalizeIban(cell(row, c.accountIban)) ?? undefined : undefined;
+    // Only a real IBAN: some banks' "Kontonummer" columns hold an old account number.
+    const counterpartyIban = c.iban !== undefined ? normalizeIban(cell(row, c.iban)) : null;
 
     const raw: Record<string, string> = {};
     names.forEach((name, i) => { raw[name] = (row[i] ?? "").trim(); });
@@ -190,6 +192,7 @@ export function readTable(rows: string[][], headerIndex: number, layout: CsvLayo
       currency: rowCurrency,
       description,
       counterparty: cleanText(counterparty) || null,
+      ...(counterpartyIban ? { counterpartyIban } : {}),
       raw,
     });
     // The booking fields identify the booking: date and amount as read, the parties' and text cells as written

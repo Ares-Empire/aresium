@@ -1,6 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { foldPaypalConversions, isPaypalBankFunding } from "./paypal.js";
+import { readBankText } from "./readers/read.js";
+import type { BankTxn } from "./readers/types.js";
+import { buildDashboardSource, type SourcePayment } from "./source.js";
 
 type R = { externalId: string | null; currency: string; amount: number; raw: Record<string, string>; place?: string; category?: string };
 const purchase = (id: string, ccy: string, amount: number, extra: Partial<R> = {}): R =>
@@ -51,4 +55,51 @@ test("bank funding rows are found by their text or their original row; purchases
     { description: "PayPal Europe S.a.r.l. et Cie S.C.A", raw: null },
     { description: "Fiktivbüro" },
   ]) assert.equal(isPaypalBankFunding(t), false, t.description);
+});
+
+test("English exports' funding rows are left out too: bank and card deposits, by their type or description", () => {
+  for (const t of [
+    { description: "Bank Deposit to PP Account " }, // PayPal's activity download pads it with a space
+    { description: "Fiktiv Online Shop", raw: { Type: "General Card Deposit" } }, // PayPal filled in the shop
+    { description: "PayPal", raw: { Description: "General Credit Card Deposit" } }, // the statement-style export
+    { description: "general  card deposit" },
+    { description: "Fiktiv Online Shop", raw: { Type: "Bank deposit to PayPal account" } }, // PayPal's event code names
+    { description: "Fiktiv Online Shop", raw: { Type: "Electronic funds transfer funding" } },
+    { description: "Fiktiv Online Shop", raw: { Type: "Credit card deposit for negative PayPal account balance" } },
+  ]) assert.equal(isPaypalBankFunding(t), true, JSON.stringify(t));
+  for (const t of [
+    { description: "Fiktiv Online Shop", raw: { Type: "Express Checkout Payment" } },
+    { description: "Fiktiv Online Shop", raw: { Type: "General Withdrawal - Bank Account" } }, // money out to the bank
+    { description: "Fiktiv Online Shop", raw: { Type: "Payment Refund" } },
+    { description: "Thanks for the general card deposit tip", raw: { Subject: "About the bank deposit to PP account" } },
+  ]) assert.equal(isPaypalBankFunding(t), false, JSON.stringify(t));
+});
+
+// The readers' PayPal rows as the dashboard's input (no categories: only which rows count matters here).
+const fixtureText = (name: string) => readFile(new URL(`fixtures/${name}`, import.meta.url), "utf8");
+const asPayments = (rows: BankTxn[]): SourcePayment[] => rows.map((t) => ({
+  id: t.externalId, externalId: t.externalId, date: t.bookingDate, amount: Number(t.amount), currency: t.currency,
+  description: t.description, counterparty: t.counterparty, raw: t.raw, category: null,
+}));
+const counted = (rows: BankTxn[]) =>
+  buildDashboardSource({ transactions: asPayments(rows), categories: [], today: "2026-02-28" }).transactions.map((t) => [t.id, t.amount]);
+
+test("German PayPal exports count exactly as before the English names were added", async () => {
+  // The rule before 2026-10-27, kept as the reference: only "Bankgutschrift auf PayPal" was funding.
+  const before = (t: { description: string; raw?: unknown }) =>
+    (t.description + " " + JSON.stringify(t.raw ?? "")).toLowerCase().includes("bankgutschrift auf paypal");
+  const activity = readBankText(await fixtureText("paypal.csv")).transactions;
+  // The statement-style export, with a funding row added in its own wording.
+  const statement = readBankText((await fixtureText("banks/paypal-statement-de.csv")).trimEnd() + "\n" +
+    '"05.02.2026","11:00:00","Europe/Berlin","Bankgutschrift auf PayPal-Konto","EUR","18,90","0,00","18,90","0,00","FICTIONAL-DE-3","","Fiktiv Onlineshop","Fiktive Volksbank eG","0011","0,00","0,00","",""\n').transactions;
+  for (const rows of [activity, statement]) {
+    assert.deepEqual(rows.map((t) => isPaypalBankFunding(t)), rows.map(before));
+    assert.ok(rows.some(before), "the fixture has a funding row");
+  }
+  assert.deepEqual(counted(activity), [["FICTIONAL-PAY-1", -18.9], ["FICTIONAL-REFUND", 3.5]]);
+  assert.deepEqual(counted(statement), [["FICTIONAL-DE-1", -18.9], ["FICTIONAL-DE-2", 3.5]]);
+  // The English export's funding row, which used to count as money in, is now left out as well.
+  const english = readBankText(await fixtureText("banks/paypal-activity-en.csv")).transactions;
+  assert.deepEqual(english.map(before), [false, false]);
+  assert.deepEqual(counted(english), [["FICTIONAL-EN-1", -18.9]]);
 });

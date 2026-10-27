@@ -11,7 +11,7 @@
 // reliable ids: the customer reference is mostly "NONREF" and the bank reference is optional).
 import { bookingIds } from "./ids.js";
 import { accountName, BankFileError, findIban } from "./table.js";
-import { addAmounts, cleanText, negate, parseAmountStrict, sameAmount, sepaPaymentText } from "./values.js";
+import { addAmounts, cleanText, negate, normalizeIban, parseAmountStrict, sameAmount, sepaPaymentText } from "./values.js";
 import type { BankAccount, BankFile, BankTxn } from "./types.js";
 
 type Field = { tag: string; value: string };
@@ -65,12 +65,12 @@ function joinSubfields(parts: string[]): string {
   return text.replace(/\s+/g, " ").trim();
 }
 
-type Details = { kind: string; text: string; name: string };
+type Details = { kind: string; text: string; name: string; iban: string | null };
 
 function details86(value: string): Details {
   const joined = value.replace(/\n/g, "");
   const m = /^(\d{3})(\D)/.exec(joined);
-  if (!m) return { kind: "", text: cleanText(joined), name: "" };
+  if (!m) return { kind: "", text: cleanText(joined), name: "", iban: null };
   const separator = m[2];
   const sub = new Map<string, string>();
   const parts = joined.slice(4).split(new RegExp(`\\${separator}(\\d{2})`));
@@ -85,6 +85,7 @@ function details86(value: string): Details {
     kind: cleanText(sub.get("00")),
     text: sepaPaymentText(purpose),
     name: joinSubfields(codes(32, 33)),
+    iban: normalizeIban(sub.get("31") ?? ""), // ?31 holds an IBAN or an old account number; only an IBAN counts
   };
 }
 
@@ -142,6 +143,7 @@ export function readMt940(text: string): BankFile {
       const d = details86(field.value);
       last.description = d.text || d.kind || d.name || "(no description)";
       last.counterparty = d.name || null;
+      if (d.iban) last.counterpartyIban = d.iban;
       (last.raw as Record<string, string>)[":86:"] = field.value;
       last.idFields += `\u001f${field.value.replace(/\s+/g, " ").trim()}`;
       last = null;

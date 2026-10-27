@@ -7,6 +7,10 @@ import type { Separator } from "./csv.js";
 export type BankTxn = Omit<NormalizedTxn, "bookingDate" | "valueDate"> & {
   bookingDate: string;
   valueDate?: string | null;
+  // The other party's IBAN (checked, no spaces, upper case), where the file has one: a CSV's IBAN column, CAMT's
+  // creditor or debtor account, MT940's ?31. Own transfers between the person's accounts are recognised by it.
+  // Never part of the payment's id.
+  counterpartyIban?: string;
 };
 
 export type BankFormat = "camt" | "mt940" | "paypal" | "csv";
