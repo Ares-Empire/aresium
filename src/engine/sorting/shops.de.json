@@ -24,15 +24,28 @@
       [
         "familienkasse",
         "kindergeld"
-      ]
+      ],
+      "in"
     ],
     [
       "taxes",
       [
         "finanzamt",
-        "steuerverwaltung",
+        "steuerverwaltung"
+      ],
+      "both"
+    ],
+    [
+      "taxes",
+      [
+        "steuererstattung"
+      ],
+      "in"
+    ],
+    [
+      "taxes",
+      [
         "einkommensteuer",
-        "steuererstattung",
         "kirchensteuer",
         "grundsteuer",
         "hundesteuer",
@@ -45,7 +58,8 @@
         "steuerberatung",
         "lohnsteuerhilfe",
         "lohnsteuerhilfeverein"
-      ]
+      ],
+      "out"
     ],
     [
       "bafoeg-scholarships",
@@ -63,7 +77,8 @@
         "erasmus plus",
         "erasmus zuschuss",
         "erasmus förderung"
-      ]
+      ],
+      "in"
     ],
     [
       "salary",
@@ -88,7 +103,8 @@
         "landesamt für finanzen",
         "landesamt für besoldung",
         "bezügestelle"
-      ]
+      ],
+      "in"
     ],
     [
       "own-transfers",
@@ -100,7 +116,8 @@
         "bank deposit to pp account",
         "von nutzer eingeleitete abbuchung",
         "kontoübertrag"
-      ]
+      ],
+      "both"
     ],
     [
       "savings-investing",
@@ -130,7 +147,8 @@
         "bausparkasse",
         "bausparvertrag",
         "bausparen"
-      ]
+      ],
+      "both"
     ],
     [
       "interest-dividends",
@@ -142,7 +160,8 @@
         "zinsertrag",
         "ertragsausschüttung",
         "ausschüttung"
-      ]
+      ],
+      "in"
     ],
     [
       "selling-things",
@@ -150,7 +169,8 @@
         "momox",
         "wirkaufens",
         "zoxs"
-      ]
+      ],
+      "in"
     ],
     [
       "subscriptions",
@@ -225,50 +245,23 @@
         "bild+",
         "bildplus",
         "the economist"
-      ]
+      ],
+      "both"
     ],
     [
       "eating-out",
       [
-        "uber eats",
         "mcdonald",
         "mcdonalds",
         "mcdonald's",
         "burger king",
         "kfc",
         "subway",
-        "restaurant",
-        "pizza",
-        "pizzeria",
-        "döner",
-        "doener",
-        "kebab",
-        "imbiss",
-        "bistro",
-        "lieferando",
-        "wolt",
-        "mensa",
         "vapiano",
         "nordsee filiale",
         "l'osteria",
         "losteria",
         "l osteria",
-        "kebap",
-        "ristorante",
-        "trattoria",
-        "osteria",
-        "taverna",
-        "gasthaus",
-        "gasthof",
-        "wirtshaus",
-        "steakhouse",
-        "sushi",
-        "kantine",
-        "cafeteria",
-        "foodora",
-        "lieferheld",
-        "pizza.de",
-        "deliveroo",
         "too good to go",
         "toogoodtogo",
         "hans im glück",
@@ -280,18 +273,52 @@
         "hard rock cafe",
         "cafe & bar celona",
         "celona"
-      ]
+      ],
+      "both"
+    ],
+    [
+      "eating-out",
+      [
+        "uber eats",
+        "lieferando",
+        "wolt",
+        "foodora",
+        "lieferheld",
+        "pizza.de",
+        "deliveroo"
+      ],
+      "out"
+    ],
+    [
+      "eating-out",
+      [
+        "restaurant",
+        "pizza",
+        "pizzeria",
+        "döner",
+        "doener",
+        "kebab",
+        "imbiss",
+        "bistro",
+        "mensa",
+        "kebap",
+        "ristorante",
+        "trattoria",
+        "osteria",
+        "taverna",
+        "gasthaus",
+        "gasthof",
+        "wirtshaus",
+        "steakhouse",
+        "sushi",
+        "kantine",
+        "cafeteria"
+      ],
+      "out"
     ],
     [
       "taxi-sharing",
       [
-        "uber trip",
-        "uber bv",
-        "uber technologies",
-        "uber.com",
-        "free now",
-        "freenow",
-        "bolt",
         "share now",
         "sharenow",
         "miles mobility",
@@ -299,11 +326,6 @@
         "cambio mobilitätsservice",
         "nextbike",
         "call a bike",
-        "taxi",
-        "mytaxi",
-        "taxi.eu",
-        "taxizentrale",
-        "funktaxi",
         "blacklane",
         "moia",
         "clevershuttle",
@@ -315,7 +337,6 @@
         "book-n-drive",
         "teilauto",
         "greenwheels",
-        "getaround",
         "zipcar",
         "lime bike",
         "limebike",
@@ -332,22 +353,58 @@
         "stadtrad",
         "mvg rad",
         "swapfiets",
-        "carsharing",
-        "car-sharing",
         "deezer nextbike",
-        "ridedott",
-        "blablacar"
-      ]
+        "ridedott"
+      ],
+      "both"
+    ],
+    [
+      "taxi-sharing",
+      [
+        "uber trip",
+        "uber bv",
+        "uber technologies",
+        "uber.com",
+        "free now",
+        "freenow",
+        "bolt",
+        "mytaxi",
+        "blablacar",
+        "getaround"
+      ],
+      "out"
+    ],
+    [
+      "taxi-sharing",
+      [
+        "taxi",
+        "taxi.eu",
+        "taxizentrale",
+        "funktaxi",
+        "carsharing",
+        "car-sharing"
+      ],
+      "out"
+    ],
+    [
+      "coffee-snacks",
+      [
+        "backwerk",
+        "ditsch",
+        "starbucks",
+        "coffee fellows",
+        "le crobag",
+        "back factory",
+        "kamps",
+        "gloria jean's"
+      ],
+      "both"
     ],
     [
       "coffee-snacks",
       [
         "bäckerei",
         "baeckerei",
-        "backwerk",
-        "ditsch",
-        "starbucks",
-        "coffee fellows",
         "café",
         "cafe",
         "bäcker",
@@ -360,12 +417,9 @@
         "gelateria",
         "bakery",
         "boulangerie",
-        "patisserie",
-        "le crobag",
-        "back factory",
-        "kamps",
-        "gloria jean's"
-      ]
+        "patisserie"
+      ],
+      "out"
     ],
     [
       "groceries",
@@ -419,13 +473,28 @@
         "basic bio",
         "alnatura",
         "bio company",
-        "goflink",
-        "gorillas technologies",
-        "getir",
         "knuspr",
         "hellofresh",
         "marley spoon",
         "bringmeister",
+        "konsum dresden",
+        "konsum leipzig",
+        "nespresso"
+      ],
+      "both"
+    ],
+    [
+      "groceries",
+      [
+        "goflink",
+        "gorillas technologies",
+        "getir"
+      ],
+      "out"
+    ],
+    [
+      "groceries",
+      [
         "getränkemarkt",
         "metzgerei",
         "fleischerei",
@@ -436,11 +505,9 @@
         "wochenmarkt",
         "hofladen",
         "asiamarkt",
-        "asia markt",
-        "konsum dresden",
-        "konsum leipzig",
-        "nespresso"
-      ]
+        "asia markt"
+      ],
+      "out"
     ],
     [
       "drugstore",
@@ -449,13 +516,20 @@
         "rossmann",
         "budni",
         "müller drogerie",
-        "drogeriemarkt",
         "müller handels",
         "drogerie müller",
         "müller drogeriemarkt",
-        "drogerie",
         "budnikowsky"
-      ]
+      ],
+      "both"
+    ],
+    [
+      "drugstore",
+      [
+        "drogeriemarkt",
+        "drogerie"
+      ],
+      "out"
     ],
     [
       "bus-train",
@@ -469,7 +543,6 @@
         "db vertrieb",
         "db fernverkehr",
         "bahn.de",
-        "deutschlandticket",
         "flixbus",
         "flixtrain",
         "öbb",
@@ -507,28 +580,6 @@
         "ssb ag",
         "stuttgarter straßenbahnen",
         "kölner verkehrs-betriebe",
-        "verkehrsbetriebe",
-        "verkehrsbetrieb",
-        "verkehrsverbund",
-        "verkehrsgesellschaft",
-        "verkehrsgemeinschaft",
-        "nahverkehr",
-        "stadtbus",
-        "straßenbahn",
-        "s-bahn",
-        "u-bahn",
-        "regionalbus",
-        "fernbus",
-        "fahrkarte",
-        "fahrkarten",
-        "fahrschein",
-        "fahrausweis",
-        "monatskarte",
-        "semesterticket",
-        "deutschland-ticket",
-        "d-ticket",
-        "dticket",
-        "bahncard",
         "db navigator",
         "db regio",
         "mvgo",
@@ -556,7 +607,37 @@
         "sweg",
         "flixmobility",
         "blablacar bus"
-      ]
+      ],
+      "both"
+    ],
+    [
+      "bus-train",
+      [
+        "deutschlandticket",
+        "verkehrsbetriebe",
+        "verkehrsbetrieb",
+        "verkehrsverbund",
+        "verkehrsgesellschaft",
+        "verkehrsgemeinschaft",
+        "nahverkehr",
+        "stadtbus",
+        "straßenbahn",
+        "s-bahn",
+        "u-bahn",
+        "regionalbus",
+        "fernbus",
+        "fahrkarte",
+        "fahrkarten",
+        "fahrschein",
+        "fahrausweis",
+        "monatskarte",
+        "semesterticket",
+        "deutschland-ticket",
+        "d-ticket",
+        "dticket",
+        "bahncard"
+      ],
+      "out"
     ],
     [
       "car-fuel",
@@ -567,14 +648,8 @@
         "totalenergies",
         "jet tankstelle",
         "avia",
-        "tankstelle",
-        "kfz-steuer",
-        "kfz steuer",
         "atu",
         "a.t.u",
-        "autowäsche",
-        "autowaesche",
-        "parkhaus",
         "easypark",
         "star tankstelle",
         "total tankstelle",
@@ -593,13 +668,6 @@
         "real tankstelle",
         "hit tankstelle",
         "agip",
-        "parken",
-        "parkgebühr",
-        "parkgebühren",
-        "parkticket",
-        "parkschein",
-        "parkplatz",
-        "tiefgarage",
         "apcoa",
         "contipark",
         "q-park",
@@ -608,6 +676,31 @@
         "parknow",
         "evopark",
         "parkster",
+        "asfinag",
+        "enbw mobility",
+        "e.on drive",
+        "carglass",
+        "bosch car service",
+        "tesla supercharger"
+      ],
+      "both"
+    ],
+    [
+      "car-fuel",
+      [
+        "tankstelle",
+        "kfz-steuer",
+        "kfz steuer",
+        "autowäsche",
+        "autowaesche",
+        "parkhaus",
+        "parken",
+        "parkgebühr",
+        "parkgebühren",
+        "parkticket",
+        "parkschein",
+        "parkplatz",
+        "tiefgarage",
         "handyparken",
         "autohaus",
         "autowerkstatt",
@@ -622,28 +715,19 @@
         "car wash",
         "carwash",
         "maut",
-        "asfinag",
         "vignette",
-        "ladestation",
-        "enbw mobility",
-        "e.on drive",
-        "carglass",
-        "bosch car service",
-        "tesla supercharger"
-      ]
+        "ladestation"
+      ],
+      "out"
     ],
     [
       "travel",
       [
-        "booking.com",
-        "airbnb",
         "ryanair",
         "eurowings",
         "lufthansa",
         "easyjet",
         "sixt",
-        "bergbahn",
-        "seilbahn",
         "condor flugdienst",
         "condor flug",
         "condor.com",
@@ -683,8 +767,6 @@
         "lastminute.com",
         "hotels.com",
         "hostelworld",
-        "fewo-direkt",
-        "vrbo",
         "holidaycheck",
         "trivago",
         "omio",
@@ -697,10 +779,35 @@
         "hertz autovermietung",
         "avis autovermietung",
         "avis budget",
+        "djh",
+        "rewe reisen",
+        "penny reisen",
+        "lidl reisen",
+        "aldi reisen",
+        "netto reisen",
+        "kaufland reisen",
+        "leonardo boutique"
+      ],
+      "both"
+    ],
+    [
+      "travel",
+      [
+        "booking.com",
+        "airbnb",
+        "fewo-direkt",
+        "vrbo"
+      ],
+      "out"
+    ],
+    [
+      "travel",
+      [
+        "bergbahn",
+        "seilbahn",
         "hotel",
         "hostel",
         "jugendherberge",
-        "djh",
         "ferienwohnung",
         "ferienhaus",
         "campingplatz",
@@ -717,16 +824,32 @@
         "skilift",
         "bergbahnen",
         "kurtaxe",
-        "rewe reisen",
-        "penny reisen",
-        "lidl reisen",
-        "aldi reisen",
-        "netto reisen",
-        "kaufland reisen",
-        "leonardo boutique",
         "umbuchung flug",
         "flug umbuchung"
-      ]
+      ],
+      "out"
+    ],
+    [
+      "rent",
+      [
+        "vonovia",
+        "deutsche wohnen",
+        "leg wohnen",
+        "vivawest",
+        "degewo",
+        "gewobag",
+        "howoge",
+        "gesobau",
+        "saga unternehmensgruppe",
+        "gewofag",
+        "grand city property",
+        "adler group",
+        "heimstaden",
+        "akelius",
+        "abg frankfurt holding",
+        "nassauische heimstätte"
+      ],
+      "both"
     ],
     [
       "rent",
@@ -748,30 +871,14 @@
         "wohnungsbaugenossenschaft",
         "wohnungsbaugesellschaft",
         "baugenossenschaft",
-        "vonovia",
-        "deutsche wohnen",
-        "leg wohnen",
-        "vivawest",
-        "degewo",
-        "gewobag",
-        "howoge",
-        "gesobau",
-        "saga unternehmensgruppe",
-        "gewofag",
-        "grand city property",
-        "adler group",
-        "heimstaden",
-        "akelius",
-        "abg frankfurt holding",
-        "nassauische heimstätte",
         "immobilienverwaltung",
         "wohnungsverwaltung"
-      ]
+      ],
+      "out"
     ],
     [
       "utilities",
       [
-        "stadtwerke",
         "e.on",
         "eon energie",
         "enbw",
@@ -779,9 +886,7 @@
         "rwe",
         "eprimo",
         "yello strom",
-        "rundfunkbeitrag",
         "ard zdf",
-        "nebenkosten",
         "beitragsservice",
         "eon",
         "yello",
@@ -812,6 +917,19 @@
         "innogy",
         "energie südbayern",
         "mvv energie",
+        "techem",
+        "ista deutschland",
+        "minol",
+        "brunata"
+      ],
+      "both"
+    ],
+    [
+      "utilities",
+      [
+        "stadtwerke",
+        "rundfunkbeitrag",
+        "nebenkosten",
         "energieversorgung",
         "stromversorgung",
         "strom",
@@ -827,12 +945,9 @@
         "betriebskosten",
         "heizkosten",
         "nebenkostenabrechnung",
-        "nebenkostennachzahlung",
-        "techem",
-        "ista deutschland",
-        "minol",
-        "brunata"
-      ]
+        "nebenkostennachzahlung"
+      ],
+      "out"
     ],
     [
       "internet-phone",
@@ -892,11 +1007,18 @@
         "t-mobile",
         "tele2",
         "telenor",
+        "yourphone"
+      ],
+      "both"
+    ],
+    [
+      "internet-phone",
+      [
         "mobilfunk",
         "handyvertrag",
-        "glasfaser",
-        "yourphone"
-      ]
+        "glasfaser"
+      ],
+      "out"
     ],
     [
       "insurance",
@@ -909,34 +1031,14 @@
         "debeka",
         "signal iduna",
         "r+v",
-        "versicherung",
         "barmer",
         "techniker krankenkasse",
         "aok",
-        "versicherungen",
-        "versicherungs",
-        "krankenkasse",
-        "krankenversicherung",
-        "haftpflicht",
-        "haftpflichtversicherung",
-        "hausratversicherung",
-        "rechtsschutzversicherung",
-        "lebensversicherung",
-        "unfallversicherung",
-        "berufsunfähigkeitsversicherung",
-        "kfz-versicherung",
-        "autoversicherung",
-        "reiseversicherung",
-        "auslandskrankenversicherung",
-        "zahnzusatzversicherung",
-        "handyversicherung",
         "huk",
         "dak",
         "dak-gesundheit",
         "kkh",
         "hkk",
-        "ikk",
-        "bkk",
         "sbk",
         "knappschaft",
         "viactiv",
@@ -976,7 +1078,34 @@
         "ergo group",
         "shell bkk",
         "big direkt gesund"
-      ]
+      ],
+      "both"
+    ],
+    [
+      "insurance",
+      [
+        "versicherung",
+        "versicherungen",
+        "versicherungs",
+        "krankenkasse",
+        "krankenversicherung",
+        "haftpflicht",
+        "haftpflichtversicherung",
+        "hausratversicherung",
+        "rechtsschutzversicherung",
+        "lebensversicherung",
+        "unfallversicherung",
+        "berufsunfähigkeitsversicherung",
+        "kfz-versicherung",
+        "autoversicherung",
+        "reiseversicherung",
+        "auslandskrankenversicherung",
+        "zahnzusatzversicherung",
+        "handyversicherung",
+        "ikk",
+        "bkk"
+      ],
+      "out"
     ],
     [
       "fees",
@@ -1002,7 +1131,8 @@
         "jahresentgelt",
         "rücklastschriftgebühr",
         "verwahrentgelt"
-      ]
+      ],
+      "out"
     ],
     [
       "cash",
@@ -1015,7 +1145,8 @@
         "geldautomaten",
         "atm",
         "abhebung"
-      ]
+      ],
+      "out"
     ],
     [
       "pets",
@@ -1023,24 +1154,31 @@
         "fressnapf",
         "zooplus",
         "das futterhaus",
+        "futterhaus",
+        "zoo & co",
+        "zoo zajac",
+        "kölle zoo",
+        "bitiba",
+        "zooroyal",
+        "petsdeli"
+      ],
+      "both"
+    ],
+    [
+      "pets",
+      [
         "tierarzt",
         "tierklinik",
         "tierarztpraxis",
         "kleintierpraxis",
         "tierärztin",
-        "futterhaus",
-        "zoo & co",
-        "zoo zajac",
-        "kölle zoo",
         "zoohandlung",
         "tierbedarf",
         "tiernahrung",
         "hundeschule",
-        "hundefriseur",
-        "bitiba",
-        "zooroyal",
-        "petsdeli"
-      ]
+        "hundefriseur"
+      ],
+      "out"
     ],
     [
       "household",
@@ -1061,15 +1199,6 @@
         "bauhaus filiale",
         "hellweg baumarkt",
         "hellweg die profi-baumärkte",
-        "baumarkt",
-        "möbelhaus",
-        "möbel",
-        "einrichtungshaus",
-        "küchenstudio",
-        "küchen",
-        "matratzen",
-        "bettenhaus",
-        "gartencenter",
         "depot gries deco",
         "gries deco",
         "westwing",
@@ -1082,7 +1211,23 @@
         "poco einrichtungsmärkte",
         "poco einrichtungsmarkt",
         "poco domäne"
-      ]
+      ],
+      "both"
+    ],
+    [
+      "household",
+      [
+        "baumarkt",
+        "möbelhaus",
+        "möbel",
+        "einrichtungshaus",
+        "küchenstudio",
+        "küchen",
+        "matratzen",
+        "bettenhaus",
+        "gartencenter"
+      ],
+      "out"
     ],
     [
       "entertainment",
@@ -1095,11 +1240,6 @@
         "mathaeser",
         "eventim",
         "ticketmaster",
-        "kino",
-        "kinos",
-        "lichtspiele",
-        "filmtheater",
-        "filmpalast",
         "yorck kino",
         "astor film lounge",
         "eventbrite",
@@ -1109,34 +1249,11 @@
         "dice.fm",
         "myticket",
         "oeticket",
-        "fansale",
-        "viagogo",
-        "stubhub",
         "see tickets",
-        "theater",
-        "theatre",
-        "staatsoper",
-        "oper",
-        "philharmonie",
-        "konzerthaus",
-        "konzert",
-        "museum",
-        "museen",
-        "tierpark",
-        "zoologischer garten",
-        "wildpark",
-        "freizeitpark",
         "europa-park",
         "phantasialand",
         "heide park",
         "movie park",
-        "bowling",
-        "escape room",
-        "lasertag",
-        "laser tag",
-        "minigolf",
-        "trampolinpark",
-        "therme",
         "playstation",
         "playstation network",
         "sony interactive",
@@ -1156,24 +1273,88 @@
         "telekom dome",
         "o2 world",
         "o2 arena"
-      ]
+      ],
+      "both"
+    ],
+    [
+      "entertainment",
+      [
+        "fansale",
+        "viagogo",
+        "stubhub"
+      ],
+      "out"
+    ],
+    [
+      "entertainment",
+      [
+        "kino",
+        "kinos",
+        "lichtspiele",
+        "filmtheater",
+        "filmpalast",
+        "theater",
+        "theatre",
+        "staatsoper",
+        "oper",
+        "philharmonie",
+        "konzerthaus",
+        "konzert",
+        "museum",
+        "museen",
+        "tierpark",
+        "zoologischer garten",
+        "wildpark",
+        "freizeitpark",
+        "bowling",
+        "escape room",
+        "lasertag",
+        "laser tag",
+        "minigolf",
+        "trampolinpark",
+        "therme"
+      ],
+      "out"
     ],
     [
       "hobbies",
       [
         "thalia bücher",
         "thalia buchhandlung",
-        "musikhaus",
         "just music",
         "idee creativmarkt",
         "modulor",
         "gerstaecker",
+        "medimops",
+        "buecher.de"
+      ],
+      "both"
+    ],
+    [
+      "hobbies",
+      [
+        "musikhaus",
         "buchhandlung",
         "buchhaus",
-        "medimops",
-        "buecher.de",
         "modellbau"
-      ]
+      ],
+      "out"
+    ],
+    [
+      "health",
+      [
+        "docmorris",
+        "shop apotheke",
+        "medpex",
+        "sanicare",
+        "mycare",
+        "aponeo",
+        "eurapon",
+        "apotal",
+        "misterspex",
+        "lensbest"
+      ],
+      "both"
     ],
     [
       "health",
@@ -1228,18 +1409,9 @@
         "augenoptik",
         "hörgeräte",
         "hörakustik",
-        "docmorris",
-        "shop apotheke",
-        "medpex",
-        "sanicare",
-        "mycare",
-        "aponeo",
-        "eurapon",
-        "apotal",
-        "misterspex",
-        "lensbest",
         "rezeptgebühr"
-      ]
+      ],
+      "out"
     ],
     [
       "sports-fitness",
@@ -1249,23 +1421,33 @@
         "finion",
         "mcfit",
         "fitx",
-        "fitnessstudio",
         "urban sports",
         "body & soul",
-        "kletterhalle",
-        "boulder",
-        "fitness",
-        "gym",
         "john reed",
         "kieser training",
         "egym",
         "wellpass",
         "hansefit",
         "eversports",
+        "boulderwelt",
+        "freeletics",
+        "gymondo",
+        "peloton",
+        "zwift"
+      ],
+      "both"
+    ],
+    [
+      "sports-fitness",
+      [
+        "fitnessstudio",
+        "kletterhalle",
+        "boulder",
+        "fitness",
+        "gym",
         "yoga",
         "pilates",
         "boulderhalle",
-        "boulderwelt",
         "kletterzentrum",
         "kletterwald",
         "schwimmbad",
@@ -1276,12 +1458,17 @@
         "eishalle",
         "eisstadion",
         "skihalle",
-        "tennis",
-        "freeletics",
-        "gymondo",
-        "peloton",
-        "zwift"
-      ]
+        "tennis"
+      ],
+      "out"
+    ],
+    [
+      "personal-care",
+      [
+        "parfümerie douglas",
+        "douglas parfümerie"
+      ],
+      "both"
     ],
     [
       "personal-care",
@@ -1311,10 +1498,16 @@
         "wimpern",
         "fußpflege",
         "tattoo",
-        "piercing",
-        "parfümerie douglas",
-        "douglas parfümerie"
-      ]
+        "piercing"
+      ],
+      "out"
+    ],
+    [
+      "going-out",
+      [
+        "berghain"
+      ],
+      "both"
     ],
     [
       "going-out",
@@ -1335,9 +1528,9 @@
         "shisha",
         "bierhalle",
         "bierkeller",
-        "weinstube",
-        "berghain"
-      ]
+        "weinstube"
+      ],
+      "out"
     ],
     [
       "clothes",
@@ -1367,6 +1560,26 @@
         "adler mode",
         "adler modemärkte",
         "café coton",
+        "hennes & mauritz",
+        "puma store",
+        "mango store",
+        "only store",
+        "globetrotter ausrüstung",
+        "levi strauss",
+        "levi's store"
+      ],
+      "both"
+    ],
+    [
+      "clothes",
+      [
+        "momox fashion"
+      ],
+      "out"
+    ],
+    [
+      "clothes",
+      [
         "schuhe",
         "schuhhaus",
         "schuhcenter",
@@ -1376,16 +1589,9 @@
         "jeans",
         "dessous",
         "lingerie",
-        "hennes & mauritz",
-        "trachten",
-        "momox fashion",
-        "puma store",
-        "mango store",
-        "only store",
-        "globetrotter ausrüstung",
-        "levi strauss",
-        "levi's store"
-      ]
+        "trachten"
+      ],
+      "out"
     ],
     [
       "shopping",
@@ -1400,12 +1606,19 @@
         "tiger store",
         "kaufland e-commerce",
         "kaufland.de",
-        "kaufhaus",
-        "sonderposten",
-        "duty free",
         "action deutschland",
         "pepco"
-      ]
+      ],
+      "both"
+    ],
+    [
+      "shopping",
+      [
+        "kaufhaus",
+        "sonderposten",
+        "duty free"
+      ],
+      "out"
     ],
     [
       "gifts",
@@ -1415,7 +1628,8 @@
         "jochen schweizer",
         "mydays",
         "smartbox"
-      ]
+      ],
+      "both"
     ],
     [
       "electronics",
@@ -1446,9 +1660,29 @@
         "sonos",
         "lautsprecher teufel",
         "nubert",
-        "elektromarkt",
         "expert technomarkt"
-      ]
+      ],
+      "both"
+    ],
+    [
+      "electronics",
+      [
+        "elektromarkt"
+      ],
+      "out"
+    ],
+    [
+      "education",
+      [
+        "goethe-institut",
+        "inlingua",
+        "coursera",
+        "udemy",
+        "linkedin learning",
+        "toefl",
+        "ielts"
+      ],
+      "both"
     ],
     [
       "education",
@@ -1470,19 +1704,12 @@
         "immatrikulation",
         "volkshochschule",
         "vhs",
-        "goethe-institut",
-        "inlingua",
-        "coursera",
-        "udemy",
-        "linkedin learning",
         "fernuniversität",
         "fernuni",
         "fernstudium",
         "schulgeld",
         "prüfungsgebühr",
         "prüfungsgebühren",
-        "toefl",
-        "ielts",
         "führerschein",
         "fahrstunde",
         "fahrstunden",
@@ -1490,7 +1717,22 @@
         "bibliothek",
         "stadtbibliothek",
         "bücherei"
-      ]
+      ],
+      "out"
+    ],
+    [
+      "memberships",
+      [
+        "adac",
+        "adfc",
+        "alpenverein",
+        "dav sektion",
+        "dlrg",
+        "ver.di",
+        "dgb",
+        "haus & grund"
+      ],
+      "both"
     ],
     [
       "memberships",
@@ -1500,27 +1742,18 @@
         "mitgliedsbeiträge",
         "mitgliedschaft",
         "vereinsbeitrag",
-        "adac",
-        "adfc",
-        "alpenverein",
-        "dav sektion",
-        "dlrg",
-        "ver.di",
-        "dgb",
         "mieterverein",
-        "haus & grund",
         "sportverein",
         "turnverein",
         "förderverein"
-      ]
+      ],
+      "out"
     ],
     [
       "donations",
       [
-        "spende",
         "greenpeace",
         "amnesty",
-        "spenden",
         "unicef",
         "wwf",
         "ärzte ohne grenzen",
@@ -1536,25 +1769,41 @@
         "foodwatch",
         "campact",
         "betterplace",
-        "gofundme",
         "wikimedia",
         "sea-watch",
         "mission lifeline",
         "aktion deutschland hilft",
         "deutsche krebshilfe",
-        "kollekte",
         "kindernothilfe",
         "care deutschland",
         "oxfam",
         "terre des hommes"
-      ]
+      ],
+      "both"
+    ],
+    [
+      "donations",
+      [
+        "gofundme"
+      ],
+      "out"
+    ],
+    [
+      "donations",
+      [
+        "spende",
+        "spenden",
+        "kollekte"
+      ],
+      "out"
     ],
     [
       "eating-out",
       [
         "studierendenwerk",
         "studentenwerk"
-      ]
+      ],
+      "out"
     ]
   ],
   "merchants": [
@@ -1569,15 +1818,23 @@
         "hit",
         "globus",
         "konsum",
-        "picnic",
+        "picnic"
+      ],
+      "both"
+    ],
+    [
+      "groceries",
+      [
         "flink"
-      ]
+      ],
+      "out"
     ],
     [
       "eating-out",
       [
         "nordsee"
-      ]
+      ],
+      "both"
     ],
     [
       "household",
@@ -1588,7 +1845,8 @@
         "porta",
         "depot",
         "poco"
-      ]
+      ],
+      "both"
     ],
     [
       "car-fuel",
@@ -1598,14 +1856,22 @@
         "star",
         "westfalen",
         "tesla"
-      ]
+      ],
+      "both"
     ],
     [
       "taxi-sharing",
       [
-        "uber",
+        "uber"
+      ],
+      "out"
+    ],
+    [
+      "taxi-sharing",
+      [
         "cambio"
-      ]
+      ],
+      "both"
     ],
     [
       "travel",
@@ -1619,7 +1885,8 @@
         "aloft",
         "campanile",
         "avis"
-      ]
+      ],
+      "both"
     ],
     [
       "personal-care",
@@ -1627,20 +1894,23 @@
         "lush",
         "kiko",
         "douglas"
-      ]
+      ],
+      "both"
     ],
     [
       "hobbies",
       [
         "thalia",
         "thomann"
-      ]
+      ],
+      "both"
     ],
     [
       "subscriptions",
       [
         "sky"
-      ]
+      ],
+      "both"
     ],
     [
       "clothes",
@@ -1663,20 +1933,23 @@
         "salamander",
         "zero",
         "closed"
-      ]
+      ],
+      "both"
     ],
     [
       "electronics",
       [
         "expert",
         "teufel"
-      ]
+      ],
+      "both"
     ],
     [
       "shopping",
       [
         "action"
-      ]
+      ],
+      "both"
     ],
     [
       "insurance",
@@ -1688,14 +1961,22 @@
         "die bayerische",
         "gothaer",
         "hallesche"
-      ]
+      ],
+      "both"
     ],
     [
       "memberships",
       [
         "verdi"
-      ]
+      ],
+      "both"
     ]
+  ],
+  "noBranches": [
+    "cambio",
+    "uber",
+    "flink",
+    "picnic"
   ],
   "brands": [
     [
