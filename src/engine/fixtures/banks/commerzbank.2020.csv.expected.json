@@ -1,0 +1,100 @@
+{
+  "format": "csv",
+  "account": {
+    "name": "Commerzbank ••4455",
+    "currency": "EUR",
+    "iban": "DE73500400000000334455"
+  },
+  "transactions": [
+    {
+      "externalId": "ed764e677468f56666d2db13",
+      "bookingDate": "2020-03-02T00:00:00.000Z",
+      "valueDate": "2020-03-02T00:00:00.000Z",
+      "amount": "-19.99",
+      "currency": "EUR",
+      "description": "Fiktiv Mobilfunk Rechnung Februar",
+      "counterparty": null,
+      "raw": {
+        "Buchungstag": "02.03.2020",
+        "Wertstellung": "02.03.2020",
+        "Umsatzart": "Lastschrift",
+        "Buchungstext": "Fiktiv Mobilfunk Rechnung Februar End-to-End-Ref.: FICT-E2E-0004",
+        "Betrag": "-19,99",
+        "Währung": "EUR",
+        "Auftraggeberkonto": "0000334455",
+        "Bankleitzahl Auftraggeberkonto": "50040000",
+        "IBAN Auftraggeberkonto": "DE73500400000000334455",
+        "Kategorie": "Telefon"
+      }
+    },
+    {
+      "externalId": "641824e02ed3f71f50455f9b",
+      "bookingDate": "2020-03-02T00:00:00.000Z",
+      "valueDate": "2020-03-02T00:00:00.000Z",
+      "amount": "1500.00",
+      "currency": "EUR",
+      "description": "Fiktiv Werke GmbH Gehalt Februar",
+      "counterparty": null,
+      "raw": {
+        "Buchungstag": "02.03.2020",
+        "Wertstellung": "02.03.2020",
+        "Umsatzart": "Gutschrift",
+        "Buchungstext": "Fiktiv Werke GmbH Gehalt Februar",
+        "Betrag": "1500,00",
+        "Währung": "EUR",
+        "Auftraggeberkonto": "0000334455",
+        "Bankleitzahl Auftraggeberkonto": "50040000",
+        "IBAN Auftraggeberkonto": "DE73500400000000334455",
+        "Kategorie": "Einkommen"
+      }
+    }
+  ],
+  "skipped": 0,
+  "layout": {
+    "version": 1,
+    "name": "Commerzbank",
+    "profile": "commerzbank",
+    "separator": ";",
+    "header": [
+      "Buchungstag",
+      "Wertstellung",
+      "Umsatzart",
+      "Buchungstext",
+      "Betrag",
+      "Währung",
+      "Auftraggeberkonto",
+      "Bankleitzahl Auftraggeberkonto",
+      "IBAN Auftraggeberkonto",
+      "Kategorie"
+    ],
+    "dateFormat": "DD.MM.YYYY",
+    "numberFormat": "de",
+    "columns": {
+      "date": 0,
+      "valueDate": 1,
+      "amount": 4,
+      "kind": 2,
+      "accountIban": 8,
+      "currency": 5,
+      "text": [
+        3
+      ]
+    },
+    "labelledText": {
+      "labels": [
+        "End-to-End-Ref",
+        "Mandatsref",
+        "Gläubiger-ID"
+      ],
+      "counterparty": [],
+      "text": [
+        ""
+      ]
+    }
+  },
+  "bank": {
+    "id": "commerzbank",
+    "name": "Commerzbank"
+  },
+  "encoding": "utf-8"
+}

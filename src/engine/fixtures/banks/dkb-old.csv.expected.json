@@ -1,0 +1,100 @@
+{
+  "format": "csv",
+  "account": {
+    "name": "DKB ••6699",
+    "currency": "EUR",
+    "iban": "DE55120300000000556699"
+  },
+  "transactions": [
+    {
+      "externalId": "a2dcd97b0d78d215f77dceeb",
+      "bookingDate": "2023-03-06T00:00:00.000Z",
+      "valueDate": "2023-03-06T00:00:00.000Z",
+      "amount": "-36.40",
+      "currency": "EUR",
+      "description": "Abschlag Strom März",
+      "counterparty": "Fiktiv Stadtwerke",
+      "raw": {
+        "Buchungstag": "06.03.2023",
+        "Wertstellung": "06.03.2023",
+        "Buchungstext": "Lastschrift",
+        "Auftraggeber / Begünstigter": "Fiktiv Stadtwerke",
+        "Verwendungszweck": "Abschlag Strom März",
+        "Kontonummer": "DE34701500000000246810",
+        "BLZ": "SSKMDEMMXXX",
+        "Betrag (EUR)": "-36,40",
+        "Gläubiger-ID": "DE98ZZZ09999999999",
+        "Mandatsreferenz": "FICT-MANDAT-7",
+        "Kundenreferenz": "FICT-E2E-0003",
+        "Column 12": ""
+      }
+    },
+    {
+      "externalId": "0861845b72fea8ba782149af",
+      "bookingDate": "2023-03-02T00:00:00.000Z",
+      "valueDate": "2023-03-02T00:00:00.000Z",
+      "amount": "1800.00",
+      "currency": "EUR",
+      "description": "Gehalt März",
+      "counterparty": "Fiktiv Werke GmbH",
+      "raw": {
+        "Buchungstag": "02.03.2023",
+        "Wertstellung": "02.03.2023",
+        "Buchungstext": "Gutschrift",
+        "Auftraggeber / Begünstigter": "Fiktiv Werke GmbH",
+        "Verwendungszweck": "Gehalt März",
+        "Kontonummer": "DE96100500000000123456",
+        "BLZ": "BELADEBEXXX",
+        "Betrag (EUR)": "1.800,00",
+        "Gläubiger-ID": "",
+        "Mandatsreferenz": "",
+        "Kundenreferenz": "",
+        "Column 12": ""
+      }
+    }
+  ],
+  "skipped": 1,
+  "layout": {
+    "version": 1,
+    "name": "DKB",
+    "profile": "dkb-old",
+    "separator": ";",
+    "header": [
+      "Buchungstag",
+      "Wertstellung",
+      "Buchungstext",
+      "Auftraggeber / Begünstigter",
+      "Verwendungszweck",
+      "Kontonummer",
+      "BLZ",
+      "Betrag (EUR)",
+      "Gläubiger-ID",
+      "Mandatsreferenz",
+      "Kundenreferenz"
+    ],
+    "dateFormat": "DD.MM.YYYY",
+    "numberFormat": "de",
+    "columns": {
+      "date": 0,
+      "valueDate": 1,
+      "amount": 7,
+      "kind": 2,
+      "iban": 5,
+      "status": 2,
+      "counterparty": [
+        3
+      ],
+      "text": [
+        4
+      ]
+    },
+    "skipStatus": [
+      "tagessaldo"
+    ]
+  },
+  "bank": {
+    "id": "dkb-old",
+    "name": "DKB (Girokonto, until 2023)"
+  },
+  "encoding": "windows-1252"
+}

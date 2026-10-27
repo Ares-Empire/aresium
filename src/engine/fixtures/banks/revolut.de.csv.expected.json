@@ -1,0 +1,97 @@
+{
+  "format": "csv",
+  "account": {
+    "name": "Revolut",
+    "currency": "EUR"
+  },
+  "transactions": [
+    {
+      "externalId": "d49f361c6732673d3d1f8acf",
+      "bookingDate": "2025-09-20T00:00:00.000Z",
+      "valueDate": "2025-09-21T00:00:00.000Z",
+      "amount": "-42.50",
+      "balance": "457.50",
+      "currency": "EUR",
+      "description": "Fiktiv Restaurant",
+      "counterparty": "Fiktiv Restaurant",
+      "raw": {
+        "Art": "Kartenbezahlung",
+        "Produkt": "Aktuell",
+        "Datum des Beginns": "2025-09-20 18:45:10",
+        "Datum des Abschlusses": "2025-09-21 08:01:00",
+        "Beschreibung": "Fiktiv Restaurant",
+        "Betrag": "-42.50",
+        "Gebühr": "0.00",
+        "Währung": "EUR",
+        "Status": "ABGESCHLOSSEN",
+        "Kontostand": "457.50"
+      }
+    },
+    {
+      "externalId": "6cb077d76c21600984221e9c",
+      "bookingDate": "2025-09-19T00:00:00.000Z",
+      "valueDate": "2025-09-19T00:00:00.000Z",
+      "amount": "500.00",
+      "balance": "500.00",
+      "currency": "EUR",
+      "description": "Aufladen mit *1234",
+      "counterparty": "Aufladen mit *1234",
+      "raw": {
+        "Art": "Aufladen",
+        "Produkt": "Aktuell",
+        "Datum des Beginns": "2025-09-19 09:12:33",
+        "Datum des Abschlusses": "2025-09-19 09:12:35",
+        "Beschreibung": "Aufladen mit *1234",
+        "Betrag": "500.00",
+        "Gebühr": "0.00",
+        "Währung": "EUR",
+        "Status": "ABGESCHLOSSEN",
+        "Kontostand": "500.00"
+      }
+    }
+  ],
+  "skipped": 0,
+  "layout": {
+    "version": 1,
+    "name": "Revolut",
+    "profile": "revolut",
+    "separator": ",",
+    "header": [
+      "Art",
+      "Produkt",
+      "Datum des Beginns",
+      "Datum des Abschlusses",
+      "Beschreibung",
+      "Betrag",
+      "Gebühr",
+      "Währung",
+      "Status",
+      "Kontostand"
+    ],
+    "dateFormat": "YYYY-MM-DD",
+    "numberFormat": "en",
+    "columns": {
+      "date": 2,
+      "valueDate": 3,
+      "amount": 5,
+      "balance": 9,
+      "currency": 7,
+      "status": 8,
+      "counterparty": [
+        4
+      ],
+      "fees": [
+        6
+      ]
+    },
+    "keepStatus": [
+      "completed",
+      "abgeschlossen"
+    ]
+  },
+  "bank": {
+    "id": "revolut",
+    "name": "Revolut"
+  },
+  "encoding": "utf-8"
+}

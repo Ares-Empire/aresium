@@ -1,0 +1,95 @@
+{
+  "format": "csv",
+  "account": {
+    "name": "DKB ••6699",
+    "currency": "EUR",
+    "iban": "DE55120300000000556699"
+  },
+  "transactions": [
+    {
+      "externalId": "491791c8edab0271a4838768",
+      "bookingDate": "2023-11-28T00:00:00.000Z",
+      "valueDate": "2023-11-28T00:00:00.000Z",
+      "amount": "-3.18",
+      "currency": "EUR",
+      "description": "Kartenzahlung",
+      "counterparty": "Fiktiv Bäckerei",
+      "raw": {
+        "Buchungsdatum": "28.11.2023",
+        "Wertstellung": "28.11.2023",
+        "Status": "Gebucht",
+        "Zahlungspflichtige*r": "Erika Mustermann",
+        "Zahlungsempfänger*in": "Fiktiv Bäckerei",
+        "Verwendungszweck": "Kartenzahlung",
+        "Umsatztyp": "Ausgang",
+        "Betrag": "-3,18 €",
+        "Gläubiger-ID": "",
+        "Mandatsreferenz": "",
+        "Kundenreferenz": ""
+      }
+    },
+    {
+      "externalId": "edb07768bddb35d202d9ce45",
+      "bookingDate": "2023-11-27T00:00:00.000Z",
+      "valueDate": "2023-11-27T00:00:00.000Z",
+      "amount": "12.00",
+      "currency": "EUR",
+      "description": "Rückerstattung",
+      "counterparty": "Fiktiv Verein",
+      "raw": {
+        "Buchungsdatum": "27.11.2023",
+        "Wertstellung": "27.11.2023",
+        "Status": "Gebucht",
+        "Zahlungspflichtige*r": "Fiktiv Verein",
+        "Zahlungsempfänger*in": "Erika Mustermann",
+        "Verwendungszweck": "Rückerstattung",
+        "Umsatztyp": "Eingang",
+        "Betrag": "12,00 €",
+        "Gläubiger-ID": "",
+        "Mandatsreferenz": "",
+        "Kundenreferenz": ""
+      }
+    }
+  ],
+  "skipped": 0,
+  "layout": {
+    "version": 1,
+    "name": "DKB",
+    "profile": "dkb",
+    "separator": ";",
+    "header": [
+      "Buchungsdatum",
+      "Wertstellung",
+      "Status",
+      "Zahlungspflichtige*r",
+      "Zahlungsempfänger*in",
+      "Verwendungszweck",
+      "Umsatztyp",
+      "Betrag",
+      "Gläubiger-ID",
+      "Mandatsreferenz",
+      "Kundenreferenz"
+    ],
+    "dateFormat": "DD.MM.YYYY",
+    "numberFormat": "de",
+    "columns": {
+      "date": 0,
+      "valueDate": 1,
+      "amount": 7,
+      "payer": 3,
+      "payee": 4,
+      "status": 2,
+      "text": [
+        5
+      ]
+    },
+    "skipStatus": [
+      "vorgemerkt"
+    ]
+  },
+  "bank": {
+    "id": "dkb",
+    "name": "DKB (Girokonto, since 2023)"
+  },
+  "encoding": "utf-8"
+}

@@ -1,0 +1,10 @@
+"Kontonummer:";"DE55120300000000556699 / Girokonto";
+
+"Von:";"01.03.2023";
+"Bis:";"07.03.2023";
+"Kontostand vom 07.03.2023:";"1.111,11 EUR";
+
+"Buchungstag";"Wertstellung";"Buchungstext";"Auftraggeber / Begünstigter";"Verwendungszweck";"Kontonummer";"BLZ";"Betrag (EUR)";"Gläubiger-ID";"Mandatsreferenz";"Kundenreferenz";
+"07.03.2023";"07.03.2023";"Tagessaldo";"";"";"";"";"1.111,11";"";"";"";
+"06.03.2023";"06.03.2023";"Lastschrift";"Fiktiv Stadtwerke";"Abschlag Strom März";"DE34701500000000246810";"SSKMDEMMXXX";"-36,40";"DE98ZZZ09999999999";"FICT-MANDAT-7";"FICT-E2E-0003";
+"02.03.2023";"02.03.2023";"Gutschrift";"Fiktiv Werke GmbH";"Gehalt März";"DE96100500000000123456";"BELADEBEXXX";"1.800,00";"";"";"";

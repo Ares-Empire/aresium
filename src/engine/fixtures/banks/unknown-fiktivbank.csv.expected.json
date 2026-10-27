@@ -1,0 +1,199 @@
+{
+  "format": "csv",
+  "transactions": [],
+  "needsLayout": {
+    "layout": {
+      "version": 1,
+      "separator": ";",
+      "header": [
+        "Buchungsdatum",
+        "Valuta",
+        "Gegenseite",
+        "Buchungsinformation",
+        "Lastschrift",
+        "Gutschrift",
+        "Kontostand"
+      ],
+      "dateFormat": "DD.MM.YYYY",
+      "numberFormat": "de",
+      "columns": {
+        "date": 0,
+        "valueDate": 1,
+        "debit": 4,
+        "credit": 5,
+        "counterparty": [
+          2
+        ],
+        "text": [
+          3
+        ],
+        "balance": 6
+      }
+    },
+    "confidence": 1,
+    "unsure": [],
+    "missing": [],
+    "separator": ";",
+    "header": [
+      "Buchungsdatum",
+      "Valuta",
+      "Gegenseite",
+      "Buchungsinformation",
+      "Lastschrift",
+      "Gutschrift",
+      "Kontostand"
+    ],
+    "headerRow": 4,
+    "columns": [
+      {
+        "index": 0,
+        "header": "Buchungsdatum",
+        "kind": "date",
+        "samples": [
+          "07.02.2026",
+          "05.02.2026",
+          "05.02.2026"
+        ],
+        "dateFormat": "DD.MM.YYYY"
+      },
+      {
+        "index": 1,
+        "header": "Valuta",
+        "kind": "date",
+        "samples": [
+          "07.02.2026",
+          "05.02.2026",
+          "05.02.2026"
+        ],
+        "dateFormat": "DD.MM.YYYY"
+      },
+      {
+        "index": 2,
+        "header": "Gegenseite",
+        "kind": "text",
+        "samples": [
+          "Fiktiv Markt",
+          "Märchenbäckerei",
+          "Märchenbäckerei"
+        ]
+      },
+      {
+        "index": 3,
+        "header": "Buchungsinformation",
+        "kind": "text",
+        "samples": [
+          "Einkauf Lebensmittel",
+          "Brötchen und Kuchen",
+          "Brötchen und Kuchen"
+        ]
+      },
+      {
+        "index": 4,
+        "header": "Lastschrift",
+        "kind": "amount",
+        "samples": [
+          "23,17",
+          "3,20",
+          "3,20"
+        ]
+      },
+      {
+        "index": 5,
+        "header": "Gutschrift",
+        "kind": "amount",
+        "samples": [
+          "1.181,60"
+        ]
+      },
+      {
+        "index": 6,
+        "header": "Kontostand",
+        "kind": "amount",
+        "samples": [
+          "1.152,03",
+          "1.175,20",
+          "1.178,40"
+        ]
+      }
+    ],
+    "preview": [
+      {
+        "externalId": "cb3556c1272fedad88f80018",
+        "bookingDate": "2026-02-07T00:00:00.000Z",
+        "valueDate": "2026-02-07T00:00:00.000Z",
+        "amount": "-23.17",
+        "balance": "1152.03",
+        "currency": "EUR",
+        "description": "Einkauf Lebensmittel",
+        "counterparty": "Fiktiv Markt",
+        "raw": {
+          "Buchungsdatum": "07.02.2026",
+          "Valuta": "07.02.2026",
+          "Gegenseite": "Fiktiv Markt",
+          "Buchungsinformation": "Einkauf Lebensmittel",
+          "Lastschrift": "23,17",
+          "Gutschrift": "",
+          "Kontostand": "1.152,03"
+        }
+      },
+      {
+        "externalId": "04b4a240e5f0b942f3fd311e",
+        "bookingDate": "2026-02-05T00:00:00.000Z",
+        "valueDate": "2026-02-05T00:00:00.000Z",
+        "amount": "-3.20",
+        "balance": "1175.20",
+        "currency": "EUR",
+        "description": "Brötchen und Kuchen",
+        "counterparty": "Märchenbäckerei",
+        "raw": {
+          "Buchungsdatum": "05.02.2026",
+          "Valuta": "05.02.2026",
+          "Gegenseite": "Märchenbäckerei",
+          "Buchungsinformation": "Brötchen und Kuchen",
+          "Lastschrift": "3,20",
+          "Gutschrift": "",
+          "Kontostand": "1.175,20"
+        }
+      },
+      {
+        "externalId": "5282571d094ce1edfdaa8d48",
+        "bookingDate": "2026-02-05T00:00:00.000Z",
+        "valueDate": "2026-02-05T00:00:00.000Z",
+        "amount": "-3.20",
+        "balance": "1178.40",
+        "currency": "EUR",
+        "description": "Brötchen und Kuchen",
+        "counterparty": "Märchenbäckerei",
+        "raw": {
+          "Buchungsdatum": "05.02.2026",
+          "Valuta": "05.02.2026",
+          "Gegenseite": "Märchenbäckerei",
+          "Buchungsinformation": "Brötchen und Kuchen",
+          "Lastschrift": "3,20",
+          "Gutschrift": "",
+          "Kontostand": "1.178,40"
+        }
+      },
+      {
+        "externalId": "5bbaf9214d96b0bd19ea869e",
+        "bookingDate": "2026-02-02T00:00:00.000Z",
+        "valueDate": "2026-02-02T00:00:00.000Z",
+        "amount": "1181.60",
+        "balance": "1181.60",
+        "currency": "EUR",
+        "description": "Gehalt Februar",
+        "counterparty": "Fiktiv Werke GmbH",
+        "raw": {
+          "Buchungsdatum": "02.02.2026",
+          "Valuta": "02.02.2026",
+          "Gegenseite": "Fiktiv Werke GmbH",
+          "Buchungsinformation": "Gehalt Februar",
+          "Lastschrift": "",
+          "Gutschrift": "1.181,60",
+          "Kontostand": "1.181,60"
+        }
+      }
+    ]
+  },
+  "encoding": "utf-8"
+}

@@ -1,0 +1,102 @@
+{
+  "format": "csv",
+  "account": {
+    "name": "N26",
+    "currency": "EUR"
+  },
+  "transactions": [
+    {
+      "externalId": "4e1a329e52f1f3278e0a0a30",
+      "bookingDate": "2022-03-06T00:00:00.000Z",
+      "amount": "-36.40",
+      "currency": "EUR",
+      "description": "Abschlag Strom März",
+      "counterparty": "Fiktiv Stadtwerke",
+      "raw": {
+        "Date": "2022-03-06",
+        "Payee": "Fiktiv Stadtwerke",
+        "Account number": "DE34701500000000246810",
+        "Transaction type": "Direct Debit",
+        "Payment reference": "Abschlag Strom März",
+        "Amount (EUR)": "-36.4",
+        "Amount (Foreign Currency)": "",
+        "Type Foreign Currency": "",
+        "Exchange Rate": ""
+      }
+    },
+    {
+      "externalId": "dc5173b16de52b2592fbca44",
+      "bookingDate": "2022-03-05T00:00:00.000Z",
+      "amount": "-14.00",
+      "currency": "EUR",
+      "description": "Fiktiv Markt",
+      "counterparty": "Fiktiv Markt",
+      "raw": {
+        "Date": "2022-03-05",
+        "Payee": "Fiktiv Markt",
+        "Account number": "",
+        "Transaction type": "MasterCard Payment",
+        "Payment reference": "",
+        "Amount (EUR)": "-14.0",
+        "Amount (Foreign Currency)": "-14.0",
+        "Type Foreign Currency": "EUR",
+        "Exchange Rate": "1.0"
+      }
+    },
+    {
+      "externalId": "2252f4dd28eb5cad9bf0a5be",
+      "bookingDate": "2022-03-03T00:00:00.000Z",
+      "amount": "1800.00",
+      "currency": "EUR",
+      "description": "Gehalt März",
+      "counterparty": "Fiktiv Werke GmbH",
+      "raw": {
+        "Date": "2022-03-03",
+        "Payee": "Fiktiv Werke GmbH",
+        "Account number": "DE96100500000000123456",
+        "Transaction type": "Income",
+        "Payment reference": "Gehalt März",
+        "Amount (EUR)": "1800.0",
+        "Amount (Foreign Currency)": "",
+        "Type Foreign Currency": "",
+        "Exchange Rate": ""
+      }
+    }
+  ],
+  "skipped": 0,
+  "layout": {
+    "version": 1,
+    "name": "N26",
+    "profile": "n26-old",
+    "separator": ",",
+    "header": [
+      "Date",
+      "Payee",
+      "Account number",
+      "Transaction type",
+      "Payment reference",
+      "Amount (EUR)",
+      "Amount (Foreign Currency)",
+      "Type Foreign Currency",
+      "Exchange Rate"
+    ],
+    "dateFormat": "YYYY-MM-DD",
+    "numberFormat": "en",
+    "columns": {
+      "date": 0,
+      "amount": 5,
+      "iban": 2,
+      "counterparty": [
+        1
+      ],
+      "text": [
+        4
+      ]
+    }
+  },
+  "bank": {
+    "id": "n26-old",
+    "name": "N26 (until 2023)"
+  },
+  "encoding": "utf-8"
+}

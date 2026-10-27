@@ -1,0 +1,70 @@
+{
+  "format": "paypal",
+  "bank": {
+    "id": "paypal",
+    "name": "PayPal"
+  },
+  "account": {
+    "name": "PayPal",
+    "currency": "EUR"
+  },
+  "transactions": [
+    {
+      "externalId": "FICTIONAL-DE-1",
+      "amount": "-18.90",
+      "currency": "EUR",
+      "description": "Fiktiv Onlineshop",
+      "counterparty": "Fiktiv Onlineshop",
+      "raw": {
+        "Datum": "03.02.2026",
+        "Uhrzeit": "10:00:00",
+        "Zeitzone": "Europe/Berlin",
+        "Beschreibung": "Allgemeine Zahlung",
+        "Währung": "EUR",
+        "Brutto": "-18,90",
+        "Entgelt": "0,00",
+        "Netto": "-18,90",
+        "Guthaben": "-18,90",
+        "Transaktionscode": "FICTIONAL-DE-1",
+        "Absender E-Mail-Adresse": "",
+        "Name": "Fiktiv Onlineshop",
+        "Name der Bank": "",
+        "Bankkonto": "",
+        "Versand- und Bearbeitungsgebühr": "0,00",
+        "Umsatzsteuer": "0,00",
+        "Rechnungsnummer": "",
+        "Zugehöriger Transaktionscode": ""
+      },
+      "bookingDate": "2026-02-03T00:00:00.000Z"
+    },
+    {
+      "externalId": "FICTIONAL-DE-2",
+      "amount": "3.50",
+      "currency": "EUR",
+      "description": "Fiktiv Buchladen",
+      "counterparty": "Fiktiv Buchladen",
+      "raw": {
+        "Datum": "04.02.2026",
+        "Uhrzeit": "09:00:00",
+        "Zeitzone": "Europe/Berlin",
+        "Beschreibung": "Rückzahlung",
+        "Währung": "EUR",
+        "Brutto": "3,50",
+        "Entgelt": "0,00",
+        "Netto": "3,50",
+        "Guthaben": "-15,40",
+        "Transaktionscode": "FICTIONAL-DE-2",
+        "Absender E-Mail-Adresse": "",
+        "Name": "Fiktiv Buchladen",
+        "Name der Bank": "",
+        "Bankkonto": "",
+        "Versand- und Bearbeitungsgebühr": "0,00",
+        "Umsatzsteuer": "0,00",
+        "Rechnungsnummer": "",
+        "Zugehöriger Transaktionscode": ""
+      },
+      "bookingDate": "2026-02-04T00:00:00.000Z"
+    }
+  ],
+  "encoding": "utf-8"
+}

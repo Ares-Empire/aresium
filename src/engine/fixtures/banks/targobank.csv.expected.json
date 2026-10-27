@@ -1,0 +1,86 @@
+{
+  "format": "csv",
+  "account": {
+    "name": "Targobank ••6677",
+    "currency": "EUR",
+    "iban": "DE53300209000000556677"
+  },
+  "transactions": [
+    {
+      "externalId": "b07ca2cb3738010e380acc2e",
+      "bookingDate": "2026-02-06T00:00:00.000Z",
+      "amount": "-36.40",
+      "currency": "EUR",
+      "description": "LASTSCHRIFT FIKTIV STADTWERKE DE34701500000000246810 SSKMDEMMXXX ABSCHLAG STROM FEBRUAR",
+      "counterparty": null,
+      "raw": {
+        "Column 1": "06.02.2026",
+        "Column 2": "LASTSCHRIFT   FIKTIV STADTWERKE   DE34701500000000246810   SSKMDEMMXXX   ABSCHLAG STROM FEBRUAR",
+        "Column 3": "-36,40",
+        "Column 4": "",
+        "Column 5": "",
+        "Column 6": "",
+        "Column 7": "'DE53300209000000556677'"
+      }
+    },
+    {
+      "externalId": "6a4f7e3daa01427455249889",
+      "bookingDate": "2026-02-04T00:00:00.000Z",
+      "amount": "-23.17",
+      "currency": "EUR",
+      "description": "KARTENZAHLUNG FIKTIV MARKT MUSTERSTADT",
+      "counterparty": null,
+      "raw": {
+        "Column 1": "04.02.2026",
+        "Column 2": "KARTENZAHLUNG   FIKTIV MARKT MUSTERSTADT",
+        "Column 3": "-23,17",
+        "Column 4": "",
+        "Column 5": "",
+        "Column 6": "",
+        "Column 7": "'DE53300209000000556677'"
+      }
+    },
+    {
+      "externalId": "03658c17dcec32704504e834",
+      "bookingDate": "2026-02-03T00:00:00.000Z",
+      "amount": "1800.00",
+      "currency": "EUR",
+      "description": "GUTSCHRIFT FIKTIV WERKE GMBH DE96100500000000123456 BELADEBEXXX GEHALT FEBRUAR 2026",
+      "counterparty": null,
+      "raw": {
+        "Column 1": "03.02.2026",
+        "Column 2": "GUTSCHRIFT   FIKTIV WERKE GMBH   DE96100500000000123456   BELADEBEXXX   GEHALT FEBRUAR 2026",
+        "Column 3": "",
+        "Column 4": "1.800,00",
+        "Column 5": "",
+        "Column 6": "",
+        "Column 7": "'DE53300209000000556677'"
+      }
+    }
+  ],
+  "skipped": 0,
+  "layout": {
+    "version": 1,
+    "name": "Targobank",
+    "profile": "targobank",
+    "separator": ";",
+    "header": [],
+    "columnCount": 7,
+    "dateFormat": "DD.MM.YYYY",
+    "numberFormat": "de",
+    "columns": {
+      "date": 0,
+      "debit": 2,
+      "credit": 3,
+      "accountIban": 6,
+      "text": [
+        1
+      ]
+    }
+  },
+  "bank": {
+    "id": "targobank",
+    "name": "Targobank (Girokonto)"
+  },
+  "encoding": "utf-8"
+}

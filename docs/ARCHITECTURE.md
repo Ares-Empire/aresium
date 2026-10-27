@@ -37,6 +37,7 @@ reconsent. The tradeoff is it's semi-manual (you export periodically).
 | `src/import/camt.ts` | Parses CAMT.052/053 XML (VR Bank) → normalised transactions. |
 | `src/import/paypal-csv.ts` | Parses PayPal CSV (EN/DE locales) → normalised transactions. |
 | `src/import/run.ts` | Scans `imports/`, dedups, upserts, then categorises. The entry point. |
+| `src/engine/readers/` | Bank files on the phone (engine, pure): bytes → text (UTF-8, Windows-1252, UTF-16), then CAMT 052/053/054, MT940, PayPal, known bank CSV layouts (`bank-profiles.ts`, each with its sources) or a guessed layout the person confirms. Entry: `readBankFile`. |
 | `src/sync/categorize.ts` | Applies `CategoryRule`s to uncategorised transactions. |
 | `src/lib/db.ts` | Shared Prisma client. |
 | `scripts/seed-categories.ts` | Starter categories + German-merchant rules. |
@@ -46,6 +47,9 @@ reconsent. The tradeoff is it's semi-manual (you export periodically).
 - **Idempotent import.** Each transaction is unique on `(source, externalId)`.
   CAMT uses the bank's reference (or a content hash when none is provided); PayPal
   uses its Transaction ID. Re-importing overlapping ranges adds only new rows.
+  The engine's readers (`src/engine/readers/ids.ts`) do the same for every bank and
+  number identical bookings of one day, so two equal payments stay two; VR Bank CSV,
+  VR CAMT and PayPal keep the server's ids.
 - **Signed amounts.** `amount` negative = money out, positive = in. CAMT sign
   comes from `CdtDbtInd`; PayPal from the signed `Net`/`Netto` column.
 - **Raw payload kept.** The provider's original record is stored in `raw` for

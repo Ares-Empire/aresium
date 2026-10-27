@@ -1,0 +1,80 @@
+{
+  "format": "csv",
+  "account": {
+    "name": "DKB Visa",
+    "currency": "EUR"
+  },
+  "transactions": [
+    {
+      "externalId": "babc5d193b32a75b1fa79ce6",
+      "bookingDate": "2026-02-04T00:00:00.000Z",
+      "valueDate": "2026-02-05T00:00:00.000Z",
+      "amount": "-110.46",
+      "currency": "EUR",
+      "description": "FIKTIV HOTEL LONDON",
+      "counterparty": "FIKTIV HOTEL LONDON",
+      "raw": {
+        "Belegdatum": "04.02.26",
+        "Wertstellung": "05.02.26",
+        "Status": "Gebucht",
+        "Beschreibung": "FIKTIV HOTEL LONDON",
+        "Umsatztyp": "Ausgang",
+        "Betrag (€)": "-110,46",
+        "Fremdwährungsbetrag": "-95,00 GBP"
+      }
+    },
+    {
+      "externalId": "3ceba33dfac6111745f0afbb",
+      "bookingDate": "2026-02-02T00:00:00.000Z",
+      "valueDate": "2026-02-03T00:00:00.000Z",
+      "amount": "-29.90",
+      "currency": "EUR",
+      "description": "FIKTIV BAHN",
+      "counterparty": "FIKTIV BAHN",
+      "raw": {
+        "Belegdatum": "02.02.26",
+        "Wertstellung": "03.02.26",
+        "Status": "Gebucht",
+        "Beschreibung": "FIKTIV BAHN",
+        "Umsatztyp": "Ausgang",
+        "Betrag (€)": "-29,90",
+        "Fremdwährungsbetrag": ""
+      }
+    }
+  ],
+  "skipped": 1,
+  "layout": {
+    "version": 1,
+    "name": "DKB Visa",
+    "profile": "dkb-visa",
+    "separator": ";",
+    "header": [
+      "Belegdatum",
+      "Wertstellung",
+      "Status",
+      "Beschreibung",
+      "Umsatztyp",
+      "Betrag (€)",
+      "Fremdwährungsbetrag"
+    ],
+    "dateFormat": "DD.MM.YY",
+    "numberFormat": "de",
+    "columns": {
+      "date": 0,
+      "valueDate": 1,
+      "amount": 5,
+      "status": 2,
+      "counterparty": [
+        3
+      ]
+    },
+    "skipStatus": [
+      "vorgemerkt"
+    ]
+  },
+  "bank": {
+    "id": "dkb-visa",
+    "name": "DKB Visa (Kreditkarte, since 2023)"
+  },
+  "encoding": "utf-8"
+}

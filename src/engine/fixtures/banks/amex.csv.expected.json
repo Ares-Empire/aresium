@@ -1,0 +1,112 @@
+{
+  "format": "csv",
+  "account": {
+    "name": "American Express",
+    "currency": "EUR"
+  },
+  "transactions": [
+    {
+      "externalId": "AT260360000000000000003",
+      "bookingDate": "2026-02-05T00:00:00.000Z",
+      "amount": "150.00",
+      "currency": "EUR",
+      "description": "ZAHLUNG/ÜBERWEISUNG ERHALTEN BESTEN DANK",
+      "counterparty": "ZAHLUNG/ÜBERWEISUNG ERHALTEN BESTEN DANK",
+      "raw": {
+        "Datum": "05/02/2026",
+        "Beschreibung": "ZAHLUNG/ÜBERWEISUNG ERHALTEN BESTEN DANK",
+        "Karteninhaber": "ERIKA MUSTERMANN",
+        "Konto #": "-12345",
+        "Betrag": "-150,00",
+        "Weitere Details": "",
+        "Erscheint auf Ihrer Abrechnung als": "ZAHLUNG/ÜBERWEISUNG ERHALTEN BESTEN DANK",
+        "Adresse": "",
+        "Stadt": "",
+        "PLZ": "",
+        "Land": "",
+        "Betreff": "'AT260360000000000000003'"
+      }
+    },
+    {
+      "externalId": "AT260350000000000000002",
+      "bookingDate": "2026-02-04T00:00:00.000Z",
+      "amount": "-110.46",
+      "currency": "EUR",
+      "description": "FIKTIV HOTEL LONDON",
+      "counterparty": "FIKTIV HOTEL LONDON",
+      "raw": {
+        "Datum": "04/02/2026",
+        "Beschreibung": "FIKTIV HOTEL LONDON",
+        "Karteninhaber": "ERIKA MUSTERMANN",
+        "Konto #": "-12345",
+        "Betrag": "110,46",
+        "Weitere Details": "95,00\nGreat British Pounds",
+        "Erscheint auf Ihrer Abrechnung als": "FIKTIV HOTEL LONDON",
+        "Adresse": "1 Fictional Street\nSoho",
+        "Stadt": "LONDON",
+        "PLZ": "W1D 1AA",
+        "Land": "VEREINIGTES KÖNIGREICH",
+        "Betreff": "'AT260350000000000000002'"
+      }
+    },
+    {
+      "externalId": "AT260340000000000000001",
+      "bookingDate": "2026-02-03T00:00:00.000Z",
+      "amount": "-42.90",
+      "currency": "EUR",
+      "description": "FIKTIV ONLINESHOP",
+      "counterparty": "FIKTIV ONLINESHOP",
+      "raw": {
+        "Datum": "03/02/2026",
+        "Beschreibung": "FIKTIV ONLINESHOP",
+        "Karteninhaber": "ERIKA MUSTERMANN",
+        "Konto #": "-12345",
+        "Betrag": "42,90",
+        "Weitere Details": "",
+        "Erscheint auf Ihrer Abrechnung als": "FIKTIV ONLINESHOP",
+        "Adresse": "Musterstraße 1",
+        "Stadt": "MUSTERSTADT",
+        "PLZ": "12345",
+        "Land": "DEUTSCHLAND",
+        "Betreff": "'AT260340000000000000001'"
+      }
+    }
+  ],
+  "skipped": 0,
+  "layout": {
+    "version": 1,
+    "name": "American Express",
+    "profile": "amex",
+    "separator": ",",
+    "header": [
+      "Datum",
+      "Beschreibung",
+      "Karteninhaber",
+      "Konto #",
+      "Betrag",
+      "Weitere Details",
+      "Erscheint auf Ihrer Abrechnung als",
+      "Adresse",
+      "Stadt",
+      "PLZ",
+      "Land",
+      "Betreff"
+    ],
+    "dateFormat": "DD/MM/YYYY",
+    "numberFormat": "de",
+    "columns": {
+      "date": 0,
+      "amount": 4,
+      "reference": 11,
+      "counterparty": [
+        1
+      ]
+    },
+    "invertSign": true
+  },
+  "bank": {
+    "id": "amex",
+    "name": "American Express"
+  },
+  "encoding": "utf-8"
+}

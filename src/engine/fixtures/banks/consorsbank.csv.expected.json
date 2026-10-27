@@ -1,0 +1,108 @@
+{
+  "format": "csv",
+  "account": {
+    "name": "Consorsbank",
+    "currency": "EUR"
+  },
+  "transactions": [
+    {
+      "externalId": "48a09d2050a825433bc6d330",
+      "bookingDate": "2026-02-06T00:00:00.000Z",
+      "valueDate": "2026-02-06T00:00:00.000Z",
+      "amount": "-36.40",
+      "currency": "EUR",
+      "description": "Abschlag Strom Februar",
+      "counterparty": "Fiktiv Stadtwerke",
+      "raw": {
+        "Buchung": "06.02.2026",
+        "Valuta": "06.02.2026",
+        "Sender / Empfänger": "Fiktiv Stadtwerke",
+        "IBAN": "DE34701500000000246810",
+        "BIC": "SSKMDEMMXXX",
+        "Buchungstext": "Lastschrift (Einzugsermächtigung)",
+        "Verwendungszweck": "Abschlag Strom Februar",
+        "Betrag": "-36,40",
+        "Währung": "EUR"
+      }
+    },
+    {
+      "externalId": "c4d2042c2072dfb740a52d2a",
+      "bookingDate": "2026-02-04T00:00:00.000Z",
+      "valueDate": "2026-02-04T00:00:00.000Z",
+      "amount": "-1080.00",
+      "currency": "EUR",
+      "description": "Miete Februar",
+      "counterparty": "Fiktiv Vermietung",
+      "raw": {
+        "Buchung": "04.02.2026",
+        "Valuta": "04.02.2026",
+        "Sender / Empfänger": "Fiktiv Vermietung",
+        "IBAN": "DE25100900000000202122",
+        "BIC": "BEVODEBBXXX",
+        "Buchungstext": "Dauerauftrag",
+        "Verwendungszweck": "Miete Februar",
+        "Betrag": "-1.080,00",
+        "Währung": "EUR"
+      }
+    },
+    {
+      "externalId": "9ff9e62da94c532eb083622d",
+      "bookingDate": "2026-02-03T00:00:00.000Z",
+      "valueDate": "2026-02-03T00:00:00.000Z",
+      "amount": "1800.00",
+      "currency": "EUR",
+      "description": "Gehalt Februar 2026",
+      "counterparty": "Fiktiv Werke GmbH",
+      "raw": {
+        "Buchung": "03.02.2026",
+        "Valuta": "03.02.2026",
+        "Sender / Empfänger": "Fiktiv Werke GmbH",
+        "IBAN": "DE96100500000000123456",
+        "BIC": "BELADEBEXXX",
+        "Buchungstext": "Gehalt/Rente",
+        "Verwendungszweck": "Gehalt Februar 2026",
+        "Betrag": "1.800,00",
+        "Währung": "EUR"
+      }
+    }
+  ],
+  "skipped": 0,
+  "layout": {
+    "version": 1,
+    "name": "Consorsbank",
+    "profile": "consorsbank",
+    "separator": ";",
+    "header": [
+      "Buchung",
+      "Valuta",
+      "Sender / Empfänger",
+      "IBAN",
+      "BIC",
+      "Buchungstext",
+      "Verwendungszweck",
+      "Betrag",
+      "Währung"
+    ],
+    "dateFormat": "DD.MM.YYYY",
+    "numberFormat": "de",
+    "columns": {
+      "date": 0,
+      "valueDate": 1,
+      "amount": 7,
+      "kind": 5,
+      "iban": 3,
+      "currency": 8,
+      "counterparty": [
+        2
+      ],
+      "text": [
+        6
+      ]
+    }
+  },
+  "bank": {
+    "id": "consorsbank",
+    "name": "Consorsbank"
+  },
+  "encoding": "utf-8"
+}

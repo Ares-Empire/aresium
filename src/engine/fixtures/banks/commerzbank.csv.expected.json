@@ -1,0 +1,113 @@
+{
+  "format": "csv",
+  "account": {
+    "name": "Commerzbank ••4455",
+    "currency": "EUR",
+    "iban": "DE73500400000000334455"
+  },
+  "transactions": [
+    {
+      "externalId": "b679ae18306b2234add57532",
+      "bookingDate": "2026-02-06T00:00:00.000Z",
+      "valueDate": "2026-02-06T00:00:00.000Z",
+      "amount": "-36.40",
+      "currency": "EUR",
+      "description": "Fiktiv Stadtwerke Abschlag Strom Februar",
+      "counterparty": null,
+      "raw": {
+        "Buchungstag": "06.02.2026",
+        "Wertstellung": "06.02.2026",
+        "Umsatzart": "Lastschrift",
+        "Buchungstext": "Fiktiv Stadtwerke Abschlag Strom Februar End-to-End-Ref.: FICT-E2E-0001 Mandatsref: FICT-MANDAT-7 Gläubiger-ID: DE98ZZZ09999999999",
+        "Betrag": "-36,4",
+        "Währung": "EUR",
+        "IBAN Kontoinhaber": "DE73500400000000334455",
+        "Kategorie": "Wohnen"
+      }
+    },
+    {
+      "externalId": "27adbb0e82bf918cf3db1168",
+      "bookingDate": "2026-02-04T00:00:00.000Z",
+      "valueDate": "2026-02-04T00:00:00.000Z",
+      "amount": "-650.00",
+      "currency": "EUR",
+      "description": "Fiktiv Vermietung Miete Februar",
+      "counterparty": null,
+      "raw": {
+        "Buchungstag": "04.02.2026",
+        "Wertstellung": "04.02.2026",
+        "Umsatzart": "Überweisung",
+        "Buchungstext": "Fiktiv Vermietung Miete Februar End-to-End-Ref.: NOTPROVIDED",
+        "Betrag": "-650",
+        "Währung": "EUR",
+        "IBAN Kontoinhaber": "DE73500400000000334455",
+        "Kategorie": "Wohnen"
+      }
+    },
+    {
+      "externalId": "dccc09736b98cbe3b921c10a",
+      "bookingDate": "2026-02-03T00:00:00.000Z",
+      "valueDate": "2026-02-03T00:00:00.000Z",
+      "amount": "1800.00",
+      "currency": "EUR",
+      "description": "Fiktiv Werke GmbH Gehalt Februar 2026",
+      "counterparty": null,
+      "raw": {
+        "Buchungstag": "03.02.2026",
+        "Wertstellung": "03.02.2026",
+        "Umsatzart": "Überweisung",
+        "Buchungstext": "Fiktiv Werke GmbH Gehalt Februar 2026 End-to-End-Ref.: LOHN-2026-02",
+        "Betrag": "1800",
+        "Währung": "EUR",
+        "IBAN Kontoinhaber": "DE73500400000000334455",
+        "Kategorie": "Einkommen"
+      }
+    }
+  ],
+  "skipped": 1,
+  "layout": {
+    "version": 1,
+    "name": "Commerzbank",
+    "profile": "commerzbank",
+    "separator": ";",
+    "header": [
+      "Buchungstag",
+      "Wertstellung",
+      "Umsatzart",
+      "Buchungstext",
+      "Betrag",
+      "Währung",
+      "IBAN Kontoinhaber",
+      "Kategorie"
+    ],
+    "dateFormat": "DD.MM.YYYY",
+    "numberFormat": "de",
+    "columns": {
+      "date": 0,
+      "valueDate": 1,
+      "amount": 4,
+      "kind": 2,
+      "accountIban": 6,
+      "currency": 5,
+      "text": [
+        3
+      ]
+    },
+    "labelledText": {
+      "labels": [
+        "End-to-End-Ref",
+        "Mandatsref",
+        "Gläubiger-ID"
+      ],
+      "counterparty": [],
+      "text": [
+        ""
+      ]
+    }
+  },
+  "bank": {
+    "id": "commerzbank",
+    "name": "Commerzbank"
+  },
+  "encoding": "utf-8"
+}

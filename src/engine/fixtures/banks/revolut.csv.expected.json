@@ -1,0 +1,119 @@
+{
+  "format": "csv",
+  "account": {
+    "name": "Revolut",
+    "currency": "EUR"
+  },
+  "transactions": [
+    {
+      "externalId": "588e6af3243ef766be213025",
+      "bookingDate": "2026-02-01T00:00:00.000Z",
+      "valueDate": "2026-02-01T00:00:00.000Z",
+      "amount": "500.00",
+      "balance": "500.00",
+      "currency": "EUR",
+      "description": "Top-up by *1234",
+      "counterparty": "Top-up by *1234",
+      "raw": {
+        "Type": "TOPUP",
+        "Product": "Current",
+        "Started Date": "2026-02-01 09:12:33",
+        "Completed Date": "2026-02-01 09:12:35",
+        "Description": "Top-up by *1234",
+        "Amount": "500.00",
+        "Fee": "0.00",
+        "Currency": "EUR",
+        "State": "COMPLETED",
+        "Balance": "500.00"
+      }
+    },
+    {
+      "externalId": "6031ac49ab9121330b825a03",
+      "bookingDate": "2026-02-03T00:00:00.000Z",
+      "valueDate": "2026-02-04T00:00:00.000Z",
+      "amount": "-42.50",
+      "balance": "457.50",
+      "currency": "EUR",
+      "description": "Fiktiv Restaurant",
+      "counterparty": "Fiktiv Restaurant",
+      "raw": {
+        "Type": "CARD_PAYMENT",
+        "Product": "Current",
+        "Started Date": "2026-02-03 18:45:10",
+        "Completed Date": "2026-02-04 08:01:00",
+        "Description": "Fiktiv Restaurant",
+        "Amount": "-42.50",
+        "Fee": "0.00",
+        "Currency": "EUR",
+        "State": "COMPLETED",
+        "Balance": "457.50"
+      }
+    },
+    {
+      "externalId": "21a8b5f89e53c45555b103e9",
+      "bookingDate": "2026-02-04T00:00:00.000Z",
+      "valueDate": "2026-02-04T00:00:00.000Z",
+      "amount": "-100.50",
+      "balance": "357.00",
+      "currency": "EUR",
+      "description": "Exchanged to GBP",
+      "counterparty": "Exchanged to GBP",
+      "raw": {
+        "Type": "EXCHANGE",
+        "Product": "Current",
+        "Started Date": "2026-02-04 10:00:00",
+        "Completed Date": "2026-02-04 10:00:01",
+        "Description": "Exchanged to GBP",
+        "Amount": "-100.00",
+        "Fee": "0.50",
+        "Currency": "EUR",
+        "State": "COMPLETED",
+        "Balance": "357.00"
+      }
+    }
+  ],
+  "skipped": 2,
+  "layout": {
+    "version": 1,
+    "name": "Revolut",
+    "profile": "revolut",
+    "separator": ",",
+    "header": [
+      "Type",
+      "Product",
+      "Started Date",
+      "Completed Date",
+      "Description",
+      "Amount",
+      "Fee",
+      "Currency",
+      "State",
+      "Balance"
+    ],
+    "dateFormat": "YYYY-MM-DD",
+    "numberFormat": "en",
+    "columns": {
+      "date": 2,
+      "valueDate": 3,
+      "amount": 5,
+      "balance": 9,
+      "currency": 7,
+      "status": 8,
+      "counterparty": [
+        4
+      ],
+      "fees": [
+        6
+      ]
+    },
+    "keepStatus": [
+      "completed",
+      "abgeschlossen"
+    ]
+  },
+  "bank": {
+    "id": "revolut",
+    "name": "Revolut"
+  },
+  "encoding": "utf-8"
+}

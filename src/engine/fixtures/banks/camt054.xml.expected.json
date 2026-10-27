@@ -1,0 +1,102 @@
+{
+  "format": "camt",
+  "account": {
+    "name": "Bank ••1222",
+    "currency": "EUR",
+    "iban": "DE31120300000000111222"
+  },
+  "transactions": [
+    {
+      "externalId": "FICT-DKB-9001",
+      "bookingDate": "2026-02-06T00:00:00.000Z",
+      "valueDate": "2026-02-06T00:00:00.000Z",
+      "amount": "80.00",
+      "currency": "EUR",
+      "description": "Rueckerstattung Teil 1 / Rueckerstattung Teil 2",
+      "counterparty": "Fiktiv Verein",
+      "raw": {
+        "Amt": {
+          "#text": "80.00",
+          "@_Ccy": "EUR"
+        },
+        "CdtDbtInd": "CRDT",
+        "Sts": "BOOK",
+        "BookgDt": {
+          "DtTm": "2026-02-06T00:30:00+01:00"
+        },
+        "ValDt": {
+          "Dt": "2026-02-06"
+        },
+        "AcctSvcrRef": "FICT-DKB-9001",
+        "NtryDtls": {
+          "Btch": {
+            "NbOfTxs": "2"
+          },
+          "TxDtls": [
+            {
+              "RltdPties": {
+                "Dbtr": {
+                  "Nm": "Fiktiv Verein"
+                }
+              },
+              "RmtInf": {
+                "Ustrd": "Rueckerstattung Teil 1"
+              }
+            },
+            {
+              "RltdPties": {
+                "Dbtr": {
+                  "Nm": "Fiktiv Verein"
+                }
+              },
+              "RmtInf": {
+                "Ustrd": "Rueckerstattung Teil 2"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "externalId": "79c37f5d5f353d1ab222fdd1",
+      "bookingDate": "2026-02-06T00:00:00.000Z",
+      "valueDate": null,
+      "amount": "-15.00",
+      "currency": "EUR",
+      "description": "RF18539007547034",
+      "counterparty": "Fiktiv Streaming",
+      "raw": {
+        "Amt": {
+          "#text": "15.00",
+          "@_Ccy": "EUR"
+        },
+        "CdtDbtInd": "DBIT",
+        "Sts": "BOOK",
+        "BookgDt": {
+          "Dt": "2026-02-06"
+        },
+        "NtryDtls": {
+          "TxDtls": {
+            "Refs": {
+              "EndToEndId": "REUSED-EVERY-MONTH"
+            },
+            "RltdPties": {
+              "Cdtr": {
+                "Nm": "Fiktiv Streaming"
+              }
+            },
+            "RmtInf": {
+              "Strd": {
+                "CdtrRefInf": {
+                  "Ref": "RF18539007547034"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "skipped": 0,
+  "encoding": "utf-8"
+}

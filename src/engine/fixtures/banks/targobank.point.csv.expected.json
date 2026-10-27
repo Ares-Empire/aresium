@@ -1,0 +1,69 @@
+{
+  "format": "csv",
+  "account": {
+    "name": "Targobank ••6677",
+    "currency": "EUR",
+    "iban": "DE53300209000000556677"
+  },
+  "transactions": [
+    {
+      "externalId": "5aec2bad03745c5fa6c8e44d",
+      "bookingDate": "2025-03-10T00:00:00.000Z",
+      "amount": "-5.00",
+      "currency": "EUR",
+      "description": "KARTENZAHLUNG FIKTIV BAECKEREI",
+      "counterparty": null,
+      "raw": {
+        "Column 1": "10.03.2025",
+        "Column 2": "KARTENZAHLUNG   FIKTIV BAECKEREI",
+        "Column 3": "-5.00",
+        "Column 4": "",
+        "Column 5": "",
+        "Column 6": "",
+        "Column 7": "'DE53300209000000556677'"
+      }
+    },
+    {
+      "externalId": "2431d21ef5016e188deab110",
+      "bookingDate": "2025-03-09T00:00:00.000Z",
+      "amount": "83.16",
+      "currency": "EUR",
+      "description": "GUTSCHRIFT FIKTIV VEREIN RUECKERSTATTUNG",
+      "counterparty": null,
+      "raw": {
+        "Column 1": "09.03.2025",
+        "Column 2": "GUTSCHRIFT   FIKTIV VEREIN   RUECKERSTATTUNG",
+        "Column 3": "",
+        "Column 4": "83.16",
+        "Column 5": "",
+        "Column 6": "",
+        "Column 7": "'DE53300209000000556677'"
+      }
+    }
+  ],
+  "skipped": 0,
+  "layout": {
+    "version": 1,
+    "name": "Targobank",
+    "profile": "targobank",
+    "separator": ";",
+    "header": [],
+    "columnCount": 7,
+    "dateFormat": "DD.MM.YYYY",
+    "numberFormat": "en",
+    "columns": {
+      "date": 0,
+      "debit": 2,
+      "credit": 3,
+      "accountIban": 6,
+      "text": [
+        1
+      ]
+    }
+  },
+  "bank": {
+    "id": "targobank",
+    "name": "Targobank (Girokonto)"
+  },
+  "encoding": "utf-8"
+}

@@ -1,0 +1,116 @@
+{
+  "format": "csv",
+  "account": {
+    "name": "Deutsche Bank",
+    "currency": "EUR"
+  },
+  "transactions": [
+    {
+      "externalId": "d44748000bae62ed74f64f88",
+      "bookingDate": "2024-01-30T00:00:00.000Z",
+      "valueDate": "2024-01-30T00:00:00.000Z",
+      "amount": "-54.00",
+      "currency": "EUR",
+      "description": "Abschlag Strom Januar",
+      "counterparty": "Fiktiv Stadtwerke",
+      "raw": {
+        "Booking date": "01/30/2024",
+        "Value date": "01/30/2024",
+        "Transaction Type": "SEPA-Direct Debit",
+        "Beneficiary / Originator": "Fiktiv Stadtwerke",
+        "Payment Details": "Abschlag Strom Januar",
+        "IBAN": "DE34701500000000246810",
+        "BIC": "SSKMDEMMXXX",
+        "Customer Reference": "FICT-E2E-0005",
+        "Mandate Reference": "FICT-MANDAT-7",
+        "Creditor ID": "DE98ZZZ09999999999",
+        "Compensation amount": "",
+        "Original Amount": "",
+        "Ultimate creditor": "",
+        "Number of transactions": "",
+        "Number of cheques": "",
+        "Debit": "-54.00",
+        "Credit": "",
+        "Currency": "EUR"
+      }
+    },
+    {
+      "externalId": "3b077f8fa6c1cadd80bcfd00",
+      "bookingDate": "2024-01-26T00:00:00.000Z",
+      "valueDate": "2024-01-26T00:00:00.000Z",
+      "amount": "1800.00",
+      "currency": "EUR",
+      "description": "Gehalt Januar",
+      "counterparty": "Fiktiv Werke GmbH",
+      "raw": {
+        "Booking date": "01/26/2024",
+        "Value date": "01/26/2024",
+        "Transaction Type": "SEPA-Credit Transfer",
+        "Beneficiary / Originator": "Fiktiv Werke GmbH",
+        "Payment Details": "Gehalt Januar",
+        "IBAN": "DE96100500000000123456",
+        "BIC": "BELADEBEXXX",
+        "Customer Reference": "LOHN-2024-01",
+        "Mandate Reference": "",
+        "Creditor ID": "",
+        "Compensation amount": "",
+        "Original Amount": "",
+        "Ultimate creditor": "",
+        "Number of transactions": "",
+        "Number of cheques": "",
+        "Debit": "",
+        "Credit": "1,800.00",
+        "Currency": "EUR"
+      }
+    }
+  ],
+  "skipped": 1,
+  "layout": {
+    "version": 1,
+    "name": "Deutsche Bank",
+    "profile": "deutsche-bank-old-en",
+    "separator": ";",
+    "header": [
+      "Booking date",
+      "Value date",
+      "Transaction Type",
+      "Beneficiary / Originator",
+      "Payment Details",
+      "IBAN",
+      "BIC",
+      "Customer Reference",
+      "Mandate Reference",
+      "Creditor ID",
+      "Compensation amount",
+      "Original Amount",
+      "Ultimate creditor",
+      "Number of transactions",
+      "Number of cheques",
+      "Debit",
+      "Credit",
+      "Currency"
+    ],
+    "dateFormat": "MM/DD/YYYY",
+    "numberFormat": "en",
+    "columns": {
+      "date": 0,
+      "valueDate": 1,
+      "debit": 15,
+      "credit": 16,
+      "kind": 2,
+      "iban": 5,
+      "currency": 17,
+      "counterparty": [
+        3
+      ],
+      "text": [
+        4
+      ]
+    }
+  },
+  "bank": {
+    "id": "deutsche-bank-old-en",
+    "name": "Deutsche Bank (until 2025, English)"
+  },
+  "encoding": "utf-8"
+}

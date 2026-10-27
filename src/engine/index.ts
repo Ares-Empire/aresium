@@ -40,3 +40,16 @@ function isoDates(file: ParsedFile): EngineFile {
 export const parseVrBankCsv = (text: string): EngineFile => isoDates(vrBank(text));
 export const parseCamt = (text: string): EngineFile => isoDates(camt(text));
 export const parsePaypalCsv = (text: string): EngineFile => isoDates(paypal(text));
+
+// ── Bank files (brief 14): any bank's CSV, CAMT or MT940, read on the phone ──────────────────────────────
+export { decodeBankFile } from "./readers/decode.js";
+export { detectBankFile, readBankFile, readBankText } from "./readers/read.js";
+export type { Detection } from "./readers/read.js";
+export { readCsv } from "./readers/table.js";
+export { guessCsvLayout } from "./readers/guess.js";
+export { readCamt } from "./readers/camt.js";
+export { readMt940 } from "./readers/mt940.js";
+export { BANK_PROFILES } from "./readers/profiles.js";
+export type { BankProfile } from "./readers/profiles.js";
+export type { BankFile, BankTxn, CsvLayout, LayoutGuess, ColumnInfo } from "./readers/types.js";
+// ── end of bank files ─────────────────────────────────────────────────────────────────────────────────────

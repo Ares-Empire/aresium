@@ -1,0 +1,9 @@
+Umsätze persönliches Konto (00);;;Kundennummer: 100 0232425
+01.01.2024 - 31.01.2024
+Letzter Kontostand;;;;1.000,00;EUR
+Vorgemerkte und noch nicht gebuchte Umsätze sind nicht Bestandteil dieser Übersicht.
+Buchungstag;Wert;Umsatzart;Begünstigter / Auftraggeber;Verwendungszweck;IBAN;BIC;Kundenreferenz;Mandatsreferenz ;Gläubiger ID;Fremde Gebühren;Betrag;Abweichender Empfänger;Abweichender Auftraggeber;Anzahl der Aufträge;Anzahl der Schecks;Soll;Haben;Währung
+30.01.2024;30.01.2024;"SEPA-Lastschrift von";Fiktiv Stadtwerke;Abschlag Strom Januar;DE34701500000000246810;SSKMDEMMXXX;FICT-E2E-0005;FICT-MANDAT-7;DE98ZZZ09999999999;;;;;;;-54,00;;EUR
+29.01.2024;29.01.2024;"SEPA-Überweisung an";Fiktiv Vermietung;Miete Februar;DE25100900000000202122;BEVODEBBXXX;;;;;;;;;;-650,00;;EUR
+26.01.2024;26.01.2024;"SEPA-Gutschrift von";Fiktiv Werke GmbH;Gehalt Januar;DE96100500000000123456;BELADEBEXXX;LOHN-2024-01;;;;;;;;;;1.800,00;EUR
+Kontostand;31.01.2024;;;2.096,00;EUR

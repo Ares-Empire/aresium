@@ -1,0 +1,86 @@
+{
+  "format": "csv",
+  "account": {
+    "name": "N26",
+    "currency": "EUR"
+  },
+  "transactions": [
+    {
+      "externalId": "f96f679b7bf289c37a48d21e",
+      "bookingDate": "2017-10-06T00:00:00.000Z",
+      "amount": "-3.40",
+      "currency": "EUR",
+      "description": "Fiktiv Markt",
+      "counterparty": "Fiktiv Markt",
+      "raw": {
+        "Datum": "2017-10-06",
+        "Empfänger": "Fiktiv Markt",
+        "Kontonummer": "",
+        "Transaktionstyp": "MasterCard Zahlung",
+        "Verwendungszweck": "",
+        "Kategorie": "Lebensmittel",
+        "Betrag (EUR)": "-3.4",
+        "Betrag (Fremdwährung)": "-3.4",
+        "Fremdwährung": "EUR",
+        "Wechselkurs": "1.0"
+      }
+    },
+    {
+      "externalId": "f45372b7b71daee0bcba829f",
+      "bookingDate": "2017-10-02T00:00:00.000Z",
+      "amount": "1800.00",
+      "currency": "EUR",
+      "description": "Gehalt Oktober",
+      "counterparty": "Fiktiv Werke GmbH",
+      "raw": {
+        "Datum": "2017-10-02",
+        "Empfänger": "Fiktiv Werke GmbH",
+        "Kontonummer": "DE96100500000000123456",
+        "Transaktionstyp": "Gutschrift",
+        "Verwendungszweck": "Gehalt Oktober",
+        "Kategorie": "Einkommen",
+        "Betrag (EUR)": "1800.0",
+        "Betrag (Fremdwährung)": "",
+        "Fremdwährung": "",
+        "Wechselkurs": ""
+      }
+    }
+  ],
+  "skipped": 0,
+  "layout": {
+    "version": 1,
+    "name": "N26",
+    "profile": "n26-old",
+    "separator": ",",
+    "header": [
+      "Datum",
+      "Empfänger",
+      "Kontonummer",
+      "Transaktionstyp",
+      "Verwendungszweck",
+      "Kategorie",
+      "Betrag (EUR)",
+      "Betrag (Fremdwährung)",
+      "Fremdwährung",
+      "Wechselkurs"
+    ],
+    "dateFormat": "YYYY-MM-DD",
+    "numberFormat": "en",
+    "columns": {
+      "date": 0,
+      "amount": 6,
+      "iban": 2,
+      "counterparty": [
+        1
+      ],
+      "text": [
+        4
+      ]
+    }
+  },
+  "bank": {
+    "id": "n26-old",
+    "name": "N26 (until 2023)"
+  },
+  "encoding": "utf-8"
+}

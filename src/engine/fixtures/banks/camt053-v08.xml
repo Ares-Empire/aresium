@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Made-up camt.053.001.08 statement (a savings bank, so ids use the bank reference or the booking hash). -->
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.053.001.08">
+  <BkToCstmrStmt>
+    <GrpHdr><MsgId>FICTIONAL-MSG-1</MsgId><CreDtTm>2026-02-07T06:00:00+01:00</CreDtTm></GrpHdr>
+    <Stmt>
+      <Id>FICTIONAL-STMT-1</Id>
+      <Acct>
+        <Id><IBAN>DE45760501010000987654</IBAN></Id><Ccy>EUR</Ccy>
+        <Ownr><Nm>Erika Mustermann</Nm></Ownr>
+        <Svcr><FinInstnId><BICFI>SSKNDE77XXX</BICFI><Nm>Sparkasse Musterstadt</Nm></FinInstnId></Svcr>
+      </Acct>
+      <Bal><Tp><CdOrPrtry><Cd>PRCD</Cd></CdOrPrtry></Tp><Amt Ccy="EUR">500.00</Amt><CdtDbtInd>CRDT</CdtDbtInd><Dt><Dt>2026-02-02</Dt></Dt></Bal>
+      <Bal><Tp><CdOrPrtry><Cd>CLBD</Cd></CdOrPrtry></Tp><Amt Ccy="EUR">2257.20</Amt><CdtDbtInd>CRDT</CdtDbtInd><Dt><Dt>2026-02-06</Dt></Dt></Bal>
+      <Ntry>
+        <NtryRef>1</NtryRef><Amt Ccy="EUR">1800.00</Amt><CdtDbtInd>CRDT</CdtDbtInd><Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-02-03</Dt></BookgDt><ValDt><Dt>2026-02-03</Dt></ValDt>
+        <AcctSvcrRef>FICT-SPK-0001</AcctSvcrRef>
+        <BkTxCd><Prtry><Cd>NTRF+166</Cd><Issr>DK</Issr></Prtry></BkTxCd>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>LOHN-2026-02</EndToEndId></Refs>
+          <RltdPties><Dbtr><Pty><Nm>Fiktiv Werke GmbH</Nm></Pty></Dbtr><DbtrAcct><Id><IBAN>DE96100500000000123456</IBAN></Id></DbtrAcct></RltdPties>
+          <RmtInf><Ustrd>Gehalt Februar 2026</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>GUTSCHR. UEBERWEISUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">3.20</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-02-04</Dt></BookgDt><ValDt><Dt>2026-02-04</Dt></ValDt>
+        <NtryDtls><TxDtls>
+          <RltdPties><Cdtr><Pty><Nm>Café Märchen</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>Kartenzahlung girocard</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">3.20</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-02-04</Dt></BookgDt><ValDt><Dt>2026-02-04</Dt></ValDt>
+        <NtryDtls><TxDtls>
+          <RltdPties><Cdtr><Pty><Nm>Café Märchen</Nm></Pty></Cdtr></RltdPties>
+          <RmtInf><Ustrd>Kartenzahlung girocard</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+        <AddtlNtryInf>KARTENZAHLUNG</AddtlNtryInf>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="EUR">36.40</Amt><CdtDbtInd>DBIT</CdtDbtInd><Sts><Cd>BOOK</Cd></Sts>
+        <BookgDt><Dt>2026-02-06</Dt></BookgDt><ValDt><Dt>2026-02-06</Dt></ValDt>
+        <AcctSvcrRef>FICT-SPK-0004</AcctSvcrRef>
+        <NtryDtls><TxDtls>
+          <Refs><EndToEndId>NOTPROVIDED</EndToEndId><MndtId>FICT-MANDAT-7</MndtId></Refs>
+          <RltdPties><Cdtr><Pty><Nm>Fiktiv Stadtwerke</Nm></Pty></Cdtr><CdtrAcct><Id><IBAN>DE34701500000000246810</IBAN></Id></CdtrAcct></RltdPties>
+          <RmtInf><Ustrd>Abschlag Strom</Ustrd><Ustrd>Kundennr. 0000</Ustrd></RmtInf>
+        </TxDtls></NtryDtls>
+      </Ntry>
+    </Stmt>
+  </BkToCstmrStmt>
+</Document>

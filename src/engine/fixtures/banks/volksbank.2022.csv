@@ -1,0 +1,3 @@
+Bezeichnung Auftragskonto;IBAN Auftragskonto;BIC Auftragskonto;Bankname Auftragskonto;Buchungstag;Valutadatum;Name Zahlungsbeteiligter;IBAN Zahlungsbeteiligter;BIC (SWIFT-Code) Zahlungsbeteiligter;Buchungstext;Verwendungszweck;Betrag;Waehrung;Saldo nach Buchung;Bemerkung;Kategorie;Steuerrelevant;Glaeubiger ID;Mandatsreferenz
+Girokonto;DE25100900000000202122;BEVODEBBXXX;Fiktive Volksbank eG;01.03.2024;01.03.2024;Fiktiv Vermietung;DE34701500000000246810;SSKMDEMMXXX;Dauerauftrag;Miete März;-650,00;EUR;1150,00;;Wohnen;;;
+Girokonto;DE25100900000000202122;BEVODEBBXXX;Fiktive Volksbank eG;02.03.2024;02.03.2024;Fiktiv Markt;;;Kartenzahlung;Einkauf;-41,95;EUR;1108,05;;Lebensmittel;;;

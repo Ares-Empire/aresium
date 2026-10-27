@@ -1,0 +1,204 @@
+{
+  "format": "camt",
+  "account": {
+    "name": "Sparkasse Musterstadt ••7654",
+    "currency": "EUR",
+    "iban": "DE45760501010000987654"
+  },
+  "transactions": [
+    {
+      "externalId": "FICT-SPK-0001",
+      "bookingDate": "2026-02-03T00:00:00.000Z",
+      "valueDate": "2026-02-03T00:00:00.000Z",
+      "amount": "1800.00",
+      "currency": "EUR",
+      "description": "Gehalt Februar 2026",
+      "counterparty": "Fiktiv Werke GmbH",
+      "raw": {
+        "NtryRef": "1",
+        "Amt": {
+          "#text": "1800.00",
+          "@_Ccy": "EUR"
+        },
+        "CdtDbtInd": "CRDT",
+        "Sts": {
+          "Cd": "BOOK"
+        },
+        "BookgDt": {
+          "Dt": "2026-02-03"
+        },
+        "ValDt": {
+          "Dt": "2026-02-03"
+        },
+        "AcctSvcrRef": "FICT-SPK-0001",
+        "BkTxCd": {
+          "Prtry": {
+            "Cd": "NTRF+166",
+            "Issr": "DK"
+          }
+        },
+        "NtryDtls": {
+          "TxDtls": {
+            "Refs": {
+              "EndToEndId": "LOHN-2026-02"
+            },
+            "RltdPties": {
+              "Dbtr": {
+                "Pty": {
+                  "Nm": "Fiktiv Werke GmbH"
+                }
+              },
+              "DbtrAcct": {
+                "Id": {
+                  "IBAN": "DE96100500000000123456"
+                }
+              }
+            },
+            "RmtInf": {
+              "Ustrd": "Gehalt Februar 2026"
+            }
+          }
+        },
+        "AddtlNtryInf": "GUTSCHR. UEBERWEISUNG"
+      },
+      "balance": "2300.00"
+    },
+    {
+      "externalId": "317ef5116047e805fc54caee",
+      "bookingDate": "2026-02-04T00:00:00.000Z",
+      "valueDate": "2026-02-04T00:00:00.000Z",
+      "amount": "-3.20",
+      "currency": "EUR",
+      "description": "Kartenzahlung girocard",
+      "counterparty": "Café Märchen",
+      "raw": {
+        "Amt": {
+          "#text": "3.20",
+          "@_Ccy": "EUR"
+        },
+        "CdtDbtInd": "DBIT",
+        "Sts": {
+          "Cd": "BOOK"
+        },
+        "BookgDt": {
+          "Dt": "2026-02-04"
+        },
+        "ValDt": {
+          "Dt": "2026-02-04"
+        },
+        "NtryDtls": {
+          "TxDtls": {
+            "RltdPties": {
+              "Cdtr": {
+                "Pty": {
+                  "Nm": "Café Märchen"
+                }
+              }
+            },
+            "RmtInf": {
+              "Ustrd": "Kartenzahlung girocard"
+            }
+          }
+        },
+        "AddtlNtryInf": "KARTENZAHLUNG"
+      },
+      "balance": "2296.80"
+    },
+    {
+      "externalId": "a3b13e8e469b61e1cd9ff7bd",
+      "bookingDate": "2026-02-04T00:00:00.000Z",
+      "valueDate": "2026-02-04T00:00:00.000Z",
+      "amount": "-3.20",
+      "currency": "EUR",
+      "description": "Kartenzahlung girocard",
+      "counterparty": "Café Märchen",
+      "raw": {
+        "Amt": {
+          "#text": "3.20",
+          "@_Ccy": "EUR"
+        },
+        "CdtDbtInd": "DBIT",
+        "Sts": {
+          "Cd": "BOOK"
+        },
+        "BookgDt": {
+          "Dt": "2026-02-04"
+        },
+        "ValDt": {
+          "Dt": "2026-02-04"
+        },
+        "NtryDtls": {
+          "TxDtls": {
+            "RltdPties": {
+              "Cdtr": {
+                "Pty": {
+                  "Nm": "Café Märchen"
+                }
+              }
+            },
+            "RmtInf": {
+              "Ustrd": "Kartenzahlung girocard"
+            }
+          }
+        },
+        "AddtlNtryInf": "KARTENZAHLUNG"
+      },
+      "balance": "2293.60"
+    },
+    {
+      "externalId": "FICT-SPK-0004",
+      "bookingDate": "2026-02-06T00:00:00.000Z",
+      "valueDate": "2026-02-06T00:00:00.000Z",
+      "amount": "-36.40",
+      "currency": "EUR",
+      "description": "Abschlag Strom Kundennr. 0000",
+      "counterparty": "Fiktiv Stadtwerke",
+      "raw": {
+        "Amt": {
+          "#text": "36.40",
+          "@_Ccy": "EUR"
+        },
+        "CdtDbtInd": "DBIT",
+        "Sts": {
+          "Cd": "BOOK"
+        },
+        "BookgDt": {
+          "Dt": "2026-02-06"
+        },
+        "ValDt": {
+          "Dt": "2026-02-06"
+        },
+        "AcctSvcrRef": "FICT-SPK-0004",
+        "NtryDtls": {
+          "TxDtls": {
+            "Refs": {
+              "EndToEndId": "NOTPROVIDED",
+              "MndtId": "FICT-MANDAT-7"
+            },
+            "RltdPties": {
+              "Cdtr": {
+                "Pty": {
+                  "Nm": "Fiktiv Stadtwerke"
+                }
+              },
+              "CdtrAcct": {
+                "Id": {
+                  "IBAN": "DE34701500000000246810"
+                }
+              }
+            },
+            "RmtInf": {
+              "Ustrd": [
+                "Abschlag Strom",
+                "Kundennr. 0000"
+              ]
+            }
+          }
+        }
+      },
+      "balance": "2257.20"
+    }
+  ],
+  "skipped": 0,
+  "encoding": "utf-8"
+}

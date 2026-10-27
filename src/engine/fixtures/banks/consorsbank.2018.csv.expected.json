@@ -1,0 +1,93 @@
+{
+  "format": "csv",
+  "account": {
+    "name": "Consorsbank",
+    "currency": "EUR"
+  },
+  "transactions": [
+    {
+      "externalId": "61cd7cb0accbdc2bb1ac24d6",
+      "bookingDate": "2018-03-05T00:00:00.000Z",
+      "valueDate": "2018-03-05T00:00:00.000Z",
+      "amount": "-70.00",
+      "currency": "EUR",
+      "description": "Abschlag Strom März",
+      "counterparty": "Fiktiv Stadtwerke",
+      "raw": {
+        "Buchung": "05.03.2018",
+        "Valuta": "05.03.2018",
+        "Sender / Empfänger": "Fiktiv Stadtwerke",
+        "IBAN / Konto-Nr.": "DE34701500000000246810",
+        "BIC / BLZ": "SSKMDEMMXXX",
+        "Buchungstext": "Lastschrift",
+        "Verwendungszweck": "Abschlag Strom März",
+        "Kategorie": "Wohnen",
+        "Stichwörter": "",
+        "Umsatz geteilt": "Nein",
+        "Betrag in EUR": "-70,00"
+      }
+    },
+    {
+      "externalId": "c794aebd39459f7e55f68db0",
+      "bookingDate": "2018-03-01T00:00:00.000Z",
+      "valueDate": "2018-03-01T00:00:00.000Z",
+      "amount": "1500.00",
+      "currency": "EUR",
+      "description": "Gehalt März",
+      "counterparty": "Fiktiv Werke GmbH",
+      "raw": {
+        "Buchung": "01.03.2018",
+        "Valuta": "01.03.2018",
+        "Sender / Empfänger": "Fiktiv Werke GmbH",
+        "IBAN / Konto-Nr.": "DE96100500000000123456",
+        "BIC / BLZ": "BELADEBEXXX",
+        "Buchungstext": "Gehalt/Rente",
+        "Verwendungszweck": "Gehalt März",
+        "Kategorie": "Einkommen",
+        "Stichwörter": "",
+        "Umsatz geteilt": "Nein",
+        "Betrag in EUR": "1.500,00"
+      }
+    }
+  ],
+  "skipped": 0,
+  "layout": {
+    "version": 1,
+    "name": "Consorsbank",
+    "profile": "consorsbank",
+    "separator": ";",
+    "header": [
+      "Buchung",
+      "Valuta",
+      "Sender / Empfänger",
+      "IBAN / Konto-Nr.",
+      "BIC / BLZ",
+      "Buchungstext",
+      "Verwendungszweck",
+      "Kategorie",
+      "Stichwörter",
+      "Umsatz geteilt",
+      "Betrag in EUR"
+    ],
+    "dateFormat": "DD.MM.YYYY",
+    "numberFormat": "de",
+    "columns": {
+      "date": 0,
+      "valueDate": 1,
+      "amount": 10,
+      "kind": 5,
+      "iban": 3,
+      "counterparty": [
+        2
+      ],
+      "text": [
+        6
+      ]
+    }
+  },
+  "bank": {
+    "id": "consorsbank",
+    "name": "Consorsbank"
+  },
+  "encoding": "utf-8"
+}
