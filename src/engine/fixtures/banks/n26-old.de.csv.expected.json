@@ -32,6 +32,7 @@
       "currency": "EUR",
       "description": "Gehalt Oktober",
       "counterparty": "Fiktiv Werke GmbH",
+      "counterpartyIban": "DE96100500000000123456",
       "raw": {
         "Datum": "2017-10-02",
         "Empfänger": "Fiktiv Werke GmbH",

@@ -205,6 +205,34 @@ test("MT942 (intraday, not booked yet) statements are skipped", () => {
   assert.equal(file.skipped, 1);
 });
 
+// ── The other party's IBAN ─────────────────────────────────────────────────────────────────────────────────
+
+const others = (file: engine.BankFile) => file.transactions.map((t) => t.counterpartyIban ?? null);
+test("readers give the other party's IBAN: CAMT's creditor or debtor account, MT940's ?31, a CSV's IBAN column", async () => {
+  const stadtwerke = "DE34701500000000246810", werke = "DE96100500000000123456";
+  // CAMT: the debtor's account on money in, the creditor's on money out; none for card payments.
+  assert.deepEqual(others(engine.readBankFile(await fixture("camt053-v08.xml"))), [werke, null, null, stadtwerke]);
+  const mt940 = (await fixture("mt940.sta")).toString("utf8");
+  assert.deepEqual(others(engine.readBankText(mt940)), [stadtwerke, null, null, null, null, null]);
+  assert.deepEqual(others(engine.readBankFile(await fixture("sparkasse-camt.csv"))), [stadtwerke, null, null, werke]);
+  // The cell as a person or bank may write it: spaces, lower case. An old account number is not an IBAN.
+  const spaced = (await fixture("sparkasse-camt.csv")).toString("utf8").replace(`"${stadtwerke}"`, '"de34 7015 0000 0000 2468 10"');
+  assert.equal(engine.readBankText(spaced).transactions[0].counterpartyIban, stadtwerke);
+  assert.equal(engine.readBankText(mt940.replace(`?31${stadtwerke}`, "?310000246810")).transactions[0].counterpartyIban, undefined);
+  // PayPal's export has none.
+  assert.deepEqual(others(engine.readBankFile(await fixture("../paypal.csv"))), [null, null, null]);
+});
+test("VR Bank CSV gets the other party's IBAN on top of the server's reader, whose ids stay as they were", async () => {
+  const text = (await fixture("volksbank.csv")).toString("utf8").replace(/^\uFEFF/, "");
+  const file = engine.readBankText(text);
+  assert.equal(file.bank?.id, "volksbank");
+  assert.deepEqual(others(file), ["DE96100500000000123456", null, null, "DE34701500000000246810"]);
+  const server = parseVrBankCsv(text).transactions;
+  // The same ids as the server's reader, except the repeated booking's own id (see the VR Bank test above).
+  assert.deepEqual(ids(file).filter((_, i) => i !== 2), server.map((t) => t.externalId).filter((_, i) => i !== 2));
+  assert.ok(server.every((t) => !("counterpartyIban" in t)), "the server's reader is unchanged");
+});
+
 // ── Detection ──────────────────────────────────────────────────────────────────────────────────────────────
 
 test("detects CAMT, MT940, PayPal, known and unknown CSVs, and refuses ZIP archives", async () => {

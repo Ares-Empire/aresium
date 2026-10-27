@@ -2,7 +2,7 @@
 //
 // Bank funding: "Bankgutschrift auf PayPal-Konto" is the bank paying for a PayPal purchase (money moving
 // bank → PayPal), not income. The real expense is the separate PayPal payment row, so these funding rows are left
-// out of every dashboard figure.
+// out of every dashboard figure. English exports name them differently (ENGLISH_FUNDING below).
 //
 // Foreign currency: PayPal pays a purchase in a foreign currency with three rows, linked by the purchase's
 // transaction code:
@@ -13,10 +13,36 @@
 // conversion rows out. If the euro row is missing, the rows stay as they are and the code is reported, so a
 // gap is visible instead of silently dropping spending. Decided with Patrik 2026-10-24.
 
-/** A PayPal row funded from the bank account ("Bankgutschrift auf PayPal-Konto"), in its text or original row. */
+// PayPal's English names for money arriving in PayPal from the person's own bank account or card (checked
+// 2026-10-27). The activity download writes "Bank Deposit to PP Account" (often with a trailing space) for a bank
+// account and "General Card Deposit", in older files "General Credit Card Deposit", for a card: seen in public
+// importers' test files made from real exports, e.g. github.com/metabrainz/metabrainz.org misc/parse-paypal-us.py,
+// github.com/davistroy/open-brain scripts/financial-pipeline.py, github.com/NikolayMetchev/money-manager
+// PayPalCsvE2ETest.kt. The rest are PayPal's own names for the same transaction event codes, T0300–T0303 (bank
+// deposit into the PayPal account) and T0700–T0701 (credit card deposit):
+// https://developer.paypal.com/docs/transaction-search/transaction-event-codes/
+// Compared as whole values (a type column, or the description), never as part of a longer text.
+const ENGLISH_FUNDING = new Set([
+  "bank deposit to pp account",
+  "general card deposit",
+  "general credit card deposit",
+  "bank deposit to paypal account",
+  "paypal balance manager funding of paypal account",
+  "ach funding for funds recovery from account balance",
+  "electronic funds transfer funding",
+  "credit card deposit for negative paypal account balance",
+]);
+const plain = (value: unknown) => (typeof value === "string" ? value.trim().replace(/\s+/g, " ").toLowerCase() : "");
+
+/**
+ * A PayPal row funded from the person's bank account or card: "Bankgutschrift auf PayPal-Konto" in its text or
+ * original row, or one of PayPal's English names for it as its text or as a value of its original row.
+ */
 export function isPaypalBankFunding(t: { description: string; raw?: unknown }): boolean {
   const hay = (t.description + " " + JSON.stringify(t.raw ?? "")).toLowerCase();
-  return hay.includes("bankgutschrift auf paypal");
+  if (hay.includes("bankgutschrift auf paypal")) return true;
+  const values = t.raw && typeof t.raw === "object" ? Object.values(t.raw as Record<string, unknown>) : [];
+  return [t.description, ...values].some((value) => ENGLISH_FUNDING.has(plain(value)));
 }
 
 const CONVERSION_TYPES = new Set(["Allgemeine Währungsumrechnung", "General Currency Conversion"]);

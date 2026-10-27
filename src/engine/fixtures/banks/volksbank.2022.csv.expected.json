@@ -39,7 +39,8 @@
         "Mandatsreferenz": ""
       },
       "bookingDate": "2024-03-01T00:00:00.000Z",
-      "valueDate": "2024-03-01T00:00:00.000Z"
+      "valueDate": "2024-03-01T00:00:00.000Z",
+      "counterpartyIban": "DE34701500000000246810"
     },
     {
       "externalId": "8c746e54c9b5d828e8123e8a",

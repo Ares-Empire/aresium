@@ -12,6 +12,7 @@
       "currency": "EUR",
       "description": "Abschlag Strom März",
       "counterparty": "Fiktiv Stadtwerke",
+      "counterpartyIban": "DE34701500000000246810",
       "raw": {
         "Date": "2022-03-06",
         "Payee": "Fiktiv Stadtwerke",
@@ -50,6 +51,7 @@
       "currency": "EUR",
       "description": "Gehalt März",
       "counterparty": "Fiktiv Werke GmbH",
+      "counterpartyIban": "DE96100500000000123456",
       "raw": {
         "Date": "2022-03-03",
         "Payee": "Fiktiv Werke GmbH",

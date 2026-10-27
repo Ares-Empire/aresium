@@ -13,6 +13,7 @@
       "currency": "EUR",
       "description": "Abschlag Strom Januar",
       "counterparty": "Fiktiv Stadtwerke",
+      "counterpartyIban": "DE34701500000000246810",
       "raw": {
         "Buchungstag": "30.01.2024",
         "Wert": "30.01.2024",
@@ -43,6 +44,7 @@
       "currency": "EUR",
       "description": "Miete Februar",
       "counterparty": "Fiktiv Vermietung",
+      "counterpartyIban": "DE25100900000000202122",
       "raw": {
         "Buchungstag": "29.01.2024",
         "Wert": "29.01.2024",
@@ -73,6 +75,7 @@
       "currency": "EUR",
       "description": "Gehalt Januar",
       "counterparty": "Fiktiv Werke GmbH",
+      "counterpartyIban": "DE96100500000000123456",
       "raw": {
         "Buchungstag": "26.01.2024",
         "Wert": "26.01.2024",

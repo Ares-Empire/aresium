@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { readFile, rm } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
-import { buildReport, parseArgs, replay, run, scenarios } from "../../bench/run.js";
+import { buildReport, parseArgs, replay, run, scenarios, sortAll } from "../../bench/run.js";
+import { benchPayments, type ExportRow } from "../../bench/export.js";
 import { fakeData } from "../../bench/fake-data.js";
 import { CATEGORY_MAP, DATA_FILE, RESULTS_FILE, parseData, type BenchPayment } from "../../bench/data.js";
 import { DEFAULT_CATEGORIES, BUILT_IN_CATEGORIES } from "../engine/categories.js";
@@ -107,4 +108,81 @@ test("invalid input/flags never echo values and cannot silently broaden a run", 
   for (const bad of [null, [{}], [{ ...row("Tech", "Example"), trueCategory: "MARKED_UNKNOWN" }], [{ ...row("Tech", "Example"), date: "2025-02-31" }]]) {
     assert.throws(() => parseData(bad), (error: Error) => !error.message.includes("MARKED"));
   }
+});
+
+// Made-up payments with what the structural rules need, as the export writes them (aliases, not real accounts).
+const GIRO = { source: "bank", currency: "EUR", account: "account-1", accountIban: "iban-1" } as const;
+const SAVINGS = { source: "bank", currency: "EUR", account: "account-2", accountIban: "iban-2" } as const;
+const PAYPAL = { source: "paypal", currency: "EUR", account: "account-3", accountIban: null } as const;
+const at = (date: string, amount: number, trueCategory: string, counterparty: string, description: string, extra: Partial<BenchPayment>): BenchPayment =>
+  ({ reference: `ref-${date}-${amount}`, date, amount, description, counterparty, trueCategory, ...extra });
+const structuralRows = [
+  at("2025-03-10", -19.99, "Subscriptions", "Streamingdienst Beispiel", "Streamingdienst Beispiel", PAYPAL),
+  at("2025-03-10", 19.99, "Transfer", "Streamingdienst Beispiel", "Bankgutschrift auf PayPal-Konto", PAYPAL),
+  at("2025-03-11", -19.99, "Transfer", "PayPal Europe S.a.r.l. et Cie S.C.A", "PP.4711.PP . Ihr Einkauf bei Streamingdienst Beispiel", GIRO),
+  at("2025-03-15", -200, "Transfer", "Tagesgeld Beispiel", "Sparrate", { ...GIRO, counterpartyIban: "iban-2" }),
+  at("2025-03-16", 200, "Transfer", "Girokonto Beispiel", "Gutschrift", SAVINGS),
+  at("2025-03-20", -23.47, "Restaurants", "Pizzeria Beispiel", "Abendessen", GIRO), // equal amounts, no proof
+  at("2025-03-21", 23.47, "Restaurants", "Freundin Beispiel", "Anteil zurück", SAVINGS),
+];
+
+test("the bench sorts all payments so far in one call: PayPal's lines and an own transfer are sorted structurally", async () => {
+  for (const s of scenarios()) {
+    const transfer = s.structural("own-transfers");
+    assert.ok(transfer && s.acceptable(structuralRows[1]).includes(transfer), s.title);
+    // M1: everything at once. The funding row, the bank's PayPal line and both sides of the transfer; not the near-miss.
+    const first = sortAll(s, structuralRows, {});
+    assert.deepEqual(first.map((r) => r.structural), [false, true, true, true, true, false, false], s.title);
+    assert.ok(first.filter((r) => r.structural).every((r) => r.id === transfer));
+    // Alone, the bank's PayPal line has no PayPal export beside it, so it is not structural: why the whole list matters.
+    assert.equal(sortAll(s, [structuralRows[2]], {})[0].structural, false);
+    // M2: in date order, the transfer's first side cannot see its second yet; the second pairs with it.
+    assert.equal(sortAll(s, structuralRows.slice(0, 4), {})[3].structural, false);
+    assert.equal(sortAll(s, structuralRows.slice(0, 5), {})[4].structural, true);
+    const m2 = replay(structuralRows, s).predictions;
+    assert.deepEqual([m2[1], m2[2], m2[4]], [transfer, transfer, transfer], s.title);
+  }
+  const report = await buildReport(structuralRows);
+  assert.ok(report.includes("| M1: own transfers (structural rules) | 57.1% (4/7) |"));
+  assert.ok(report.includes("| M1: right among own transfers | 100.0% (4/4) |"));
+  assert.ok(report.includes("Payments with source and account: 7; with the other party's IBAN: 1."));
+  // The monthly imports see the whole month, so both sides of the transfer pair there.
+  const monthly = await buildReport(structuralRows, { groq: { apiKey: "fake", fetch: async (_, init) => {
+    const payload = JSON.parse(JSON.parse(String(init?.body)).messages[1].content);
+    return new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify({ results: payload.payments.map((p: AutoPayment) => ({ reference: p.reference, category: null })) }) } }], usage: { prompt_tokens: 1, completion_tokens: 1 } }));
+  } } });
+  assert.ok(monthly.includes("| Open after structural and starter rules |"));
+});
+
+test("bench data keeps the structural fields, checked like the rest without echoing values", () => {
+  assert.deepEqual(parseData(structuralRows), structuralRows);
+  for (const bad of [{ source: "MARKED_cash" }, { account: "" }, { accountIban: 7 }, { counterpartyIban: ["MARKED"] }, { currency: 978 }]) {
+    assert.throws(() => parseData([{ ...structuralRows[0], ...bad }]), (error: Error) => !error.message.includes("MARKED"));
+  }
+});
+
+test("the export takes source, account and the other party's IBAN from stored rows, as aliases", () => {
+  const giro = "DE89370400440532013000", savings = "DE02120300000000202051", friend = "DE75512108001245126199";
+  const row = (source: "bank" | "paypal", accountId: string, iban: string | null, raw: unknown, amount: number): ExportRow => ({
+    bookingDate: new Date("2025-03-15T00:00:00.000Z"), amount: { toString: () => String(amount) }, currency: "EUR",
+    description: "MARKED_TEXT", counterparty: null, source, accountId, account: { iban }, raw, category: { name: "Transfer" },
+  });
+  const payments = benchPayments([
+    // A VR Bank CSV row as the server stores it (column → cell), naming the savings account.
+    row("bank", "db-giro", giro, { "IBAN Auftragskonto": giro, "IBAN Zahlungsbeteiligter": savings.replace(/(.{4})/g, "$1 ") }, -200),
+    // A CAMT entry as the server stores it: money in, so the debtor's account (the giro account).
+    row("bank", "db-savings", savings, { CdtDbtInd: "CRDT", NtryDtls: { TxDtls: { RltdPties: { DbtrAcct: { Id: { IBAN: giro } } } } } }, 200),
+    // Money out to a friend: an IBAN that is none of the person's accounts gets its own alias.
+    row("bank", "db-giro", giro, { CdtDbtInd: "DBIT", NtryDtls: [{ TxDtls: [{ RltdPties: { CdtrAcct: { Id: { IBAN: friend } } } }] }] }, -20),
+    // PayPal rows have no IBAN, whatever their row holds.
+    row("paypal", "db-paypal", null, { Name: "Fiktiv Shop", "IBAN Zahlungsbeteiligter": friend }, -5),
+  ]);
+  assert.deepEqual(payments.map((p) => [p.source, p.account, p.accountIban, p.counterpartyIban, p.amount]), [
+    ["bank", "account-1", "iban-1", "iban-2", -200],
+    ["bank", "account-2", "iban-2", "iban-1", 200],
+    ["bank", "account-1", "iban-1", "iban-3", -20],
+    ["paypal", "account-3", null, null, -5],
+  ]);
+  assert.deepEqual(parseData(payments), payments);
+  assert.ok(!JSON.stringify(payments).includes("DE"), "no real IBAN in the bench data");
 });

@@ -38,7 +38,8 @@
         "Mandatsreferenz": ""
       },
       "bookingDate": "2026-02-03T00:00:00.000Z",
-      "valueDate": "2026-02-03T00:00:00.000Z"
+      "valueDate": "2026-02-03T00:00:00.000Z",
+      "counterpartyIban": "DE96100500000000123456"
     },
     {
       "externalId": "8969d092dab6da71f66c166d",
@@ -128,7 +129,8 @@
         "Mandatsreferenz": "FICT-MANDAT-7"
       },
       "bookingDate": "2026-02-06T00:00:00.000Z",
-      "valueDate": "2026-02-06T00:00:00.000Z"
+      "valueDate": "2026-02-06T00:00:00.000Z",
+      "counterpartyIban": "DE34701500000000246810"
     }
   ],
   "skipped": 0,

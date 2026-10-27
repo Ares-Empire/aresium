@@ -12,7 +12,7 @@ import { withOccurrences } from "./ids.js";
 import { readMt940 } from "./mt940.js";
 import { BANK_PROFILES, findProfile, profileLayout, type BankProfile } from "./profiles.js";
 import { BankFileError, findTable, readTable } from "./table.js";
-import { DATE_FORMATS, headerKey, parseAmountStrict, parseDate } from "./values.js";
+import { DATE_FORMATS, headerKey, normalizeIban, parseAmountStrict, parseDate } from "./values.js";
 import type { BankFile, BankTxn, CsvLayout } from "./types.js";
 
 export type Detection =
@@ -81,9 +81,22 @@ function isoTransactions(file: ParsedFile): BankTxn[] {
 const findKnown = (id: string) => BANK_PROFILES.find((p) => p.id === id);
 const bankName = (profile: BankProfile) => (profile.variant ? `${profile.bank} (${profile.variant})` : profile.bank);
 
+// The other party's IBAN in a CSV row kept as a record (column name → cell), from the profile's IBAN column.
+export function recordCounterpartyIban(record: unknown, profile: BankProfile): string | undefined {
+  if (!record || typeof record !== "object" || profile.columns.iban === undefined) return undefined;
+  const names = [profile.columns.iban].flat().filter((name): name is string => typeof name === "string");
+  for (const name of names) {
+    const value = (record as Record<string, unknown>)[name];
+    const iban = typeof value === "string" ? normalizeIban(value) : null;
+    if (iban) return iban;
+  }
+  return undefined;
+}
+
 // VR Bank CSV with its header on line 1: the server's reader, so ids stay what they were. Two changes on top,
 // both only where the server's reader went wrong: a second identical booking on the same day gets its own id
 // (it used to be lost as a duplicate), and a row without a booking date is skipped (it used to get today's date).
+// The other party's IBAN is added here (the server's reader leaves it in `raw`).
 function readVrBank(text: string, profile: BankProfile): BankFile {
   const parsed = parseVrBankCsv(text);
   const dateColumns = ["Buchungstag", "Buchung", "Buchungsdatum"];
@@ -98,12 +111,16 @@ function readVrBank(text: string, profile: BankProfile): BankFile {
   })));
   // Amounts as every other reader writes them ("-3.20", not the server's "-3.2"); the ids above keep the server's.
   const canonical = (v: string) => parseAmountStrict(v, "en") ?? v;
-  const transactions = isoTransactions({ ...parsed, transactions: kept }).map((t, i) => ({
-    ...t,
-    externalId: ids[i],
-    amount: canonical(t.amount),
-    ...(t.balance ? { balance: canonical(t.balance) } : {}),
-  }));
+  const transactions = isoTransactions({ ...parsed, transactions: kept }).map((t, i) => {
+    const counterpartyIban = recordCounterpartyIban(t.raw, profile);
+    return {
+      ...t,
+      externalId: ids[i],
+      amount: canonical(t.amount),
+      ...(t.balance ? { balance: canonical(t.balance) } : {}),
+      ...(counterpartyIban ? { counterpartyIban } : {}),
+    };
+  });
   const account = { name: parsed.account.name, currency: parsed.account.currency, ...(parsed.account.iban ? { iban: parsed.account.iban } : {}) };
   return {
     format: "csv",
