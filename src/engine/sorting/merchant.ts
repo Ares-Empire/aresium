@@ -1,12 +1,24 @@
-export type SortingPayment = { counterparty?: string | null; description?: string; bookingText?: string };
+export type SortingPayment = {
+  counterparty?: string | null; description?: string; bookingText?: string;
+  /** Negative = money out. The shop list reads it for the direction of the money; without it every rule applies. */
+  amount?: number;
+};
 
 // A finite suffix list avoids stripping arbitrary words from independent shop names.
 // Unknown towns stay in the key; adding more suffixes is deliberately conservative.
 const citySuffix = /(?:[\s,/*-]+)(?:münchen|muenchen|berlin|hamburg|köln|koeln|frankfurt(?: am main)?|stuttgart|düsseldorf|duesseldorf|leipzig|dresden|hannover|nürnberg|nuernberg|bremen|heidelberg|mannheim|karlsruhe|augsburg|bonn|essen|dortmund)(?:\s+(?:de|deu|deutschland))?\s*$/u;
 
+/** Who was paid or who paid, as the bank prints it: the counterparty, or the text when there is none; lower case. */
+export function payeeText(payment: SortingPayment): string {
+  return (payment.counterparty?.trim() || payment.description || payment.bookingText || "").toLowerCase().normalize("NFC");
+}
+
+/** The kind of booking some banks print before the merchant ("Kartenzahlung PENNY …", "SEPA-Lastschrift …"). */
+export const BOOKING_TYPE = /^(?:(?:sepa[ -])?(?:basis[ -]?)?lastschrift|kartenzahlung|debitkartenzahlung|kaufumsatz|sepa überweisung)\s*[:/-]?\s*/u;
+
 /** A correction groups merchant identities, not individual bookings. Empty keys are never learned. */
 export function merchantKey(payment: SortingPayment): string {
-  let text = (payment.counterparty?.trim() || payment.description || payment.bookingText || "").toLowerCase().normalize("NFC");
+  let text = payeeText(payment);
   const processor = /^paypal(?:\s|$|\()/u;
   if (processor.test(text)) {
     const details = (payment.description ?? payment.bookingText ?? "").toLowerCase().normalize("NFC");
@@ -20,7 +32,7 @@ export function merchantKey(payment: SortingPayment): string {
   }
   // Prefer a PayPal seller when one is present; a bare processor remains a processor.
   text = text.replace(/^paypal\s*\*\s*/u, "");
-  text = text.replace(/^(?:(?:sepa[ -])?(?:basis[ -]?)?lastschrift|kartenzahlung|debitkartenzahlung|kaufumsatz|sepa überweisung)\s*[:/-]?\s*/u, "");
+  text = text.replace(BOOKING_TYPE, "");
   // Booking metadata starts here, including creditor/mandate ids in debit descriptions.
   text = text.split(/\b(?:eref|mref|cred|iban|bic|mandatsreferenz|gläubiger-id|glaeubiger-id|kundenreferenz)\s*[:+]/u)[0];
   text = text.replace(/\b(?:karte(?:nnr|nnummer)?|karten-nr|card(?: number)?|terminal|beleg|trace|folge-nr)\.?\s*[:#-]?\s*[\d*x.-]+/gu, " ");

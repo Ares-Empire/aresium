@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { buildShopList, NSI, type ShopList } from "../../scripts/build-shop-list.js";
-import { DENY, MARKETPLACES, MERCHANTS, PLAIN_VOWEL_WORDS, RULES, SHORT_BRANDS } from "../../scripts/shop-list.de.js";
+import { DENY, MARKETPLACES, MERCHANTS, NO_BRANCHES, PLAIN_VOWEL_WORDS, RULES, SHORT_BRANDS } from "../../scripts/shop-list.de.js";
 import { BUILT_IN_CATEGORIES, DEFAULT_CATEGORIES, sortPayments, STARTER_RULES, starterCategory } from "./index.js";
 import { compileShopList } from "./sorting/shop-matcher.js";
 import { compactLength, shopSpellings, shopWords } from "./sorting/shop-words.js";
@@ -11,6 +11,9 @@ import shopFile from "./sorting/shops.de.json" with { type: "json" };
 const all = [...DEFAULT_CATEGORIES, ...BUILT_IN_CATEGORIES];
 const list = shopFile as unknown as ShopList;
 const sortText = (counterparty: string, description = "") => starterCategory({ counterparty, description }, all);
+// Negative amount = money out.
+const sortMoney = (amount: number, counterparty: string, description = "") =>
+  starterCategory({ counterparty, description, amount }, all);
 
 test("the shop list file is the generator's output: pinned NSI version, licence, hand-written rules in order", () => {
   assert.equal(list.nsi.version, NSI.version);
@@ -19,15 +22,20 @@ test("the shop list file is the generator's output: pinned NSI version, licence,
   assert.deepEqual(list.nsi.licenceText, NSI.licenceText);
   assert.match(list.about, /name-suggestion-index/);
   // Edit scripts/shop-list.de.ts, then `npm run shops`: the JSON must not lag behind the hand-written source.
-  assert.deepEqual(list.rules, RULES.map(([id, names]) => [id, [...names]]));
-  assert.deepEqual([...list.merchants].sort(), MERCHANTS.map(([id, names]) => [id, [...names]]).sort());
+  assert.deepEqual(list.rules, RULES.map(([id, names, direction]) => [id, [...names], direction]));
+  assert.deepEqual([...list.merchants].sort(), MERCHANTS.map(([id, names, direction]) => [id, [...names], direction]).sort());
+  assert.deepEqual(list.noBranches, NO_BRANCHES);
   assert.deepEqual(list.plainVowelWords, PLAIN_VOWEL_WORDS);
   const ids = new Set(all.map((c) => c.id));
   for (const part of [list.rules, list.merchants, list.brands]) for (const entry of part) {
-    assert.equal(entry.length, 2);
+    // Hand-written blocks say which way the money moves; brands count both ways.
+    assert.equal(entry.length, part === list.brands ? 2 : 3);
+    if (part !== list.brands) assert.ok(["out", "in", "both"].includes(entry[2] as string), `${entry[0]}: ${entry[2]}`);
     assert.ok(ids.has(entry[0]), entry[0]);
     assert.ok(entry[1].length > 0 && entry[1].every((name) => typeof name === "string" && name.trim() === name), entry[0]);
   }
+  const merchants = new Set(MERCHANTS.flatMap(([, names]) => names));
+  for (const name of NO_BRANCHES) assert.ok(merchants.has(name), name);
 });
 
 test("no pattern is three letters or shorter unless it is on the short-brand list", () => {
@@ -134,7 +142,7 @@ for (const [categoryId, texts] of Object.entries(matches)) test(`bank texts that
   for (const [counterparty, description] of texts) assert.equal(sortText(counterparty, description), categoryId, `${counterparty} | ${description ?? ""}`);
 });
 
-test("texts that must not match: people, words, prices, marketplaces and payment services", () => {
+test("texts that must not match: people, words, prices, marketplaces and payment services, either way the money moves", () => {
   for (const [counterparty, description] of [
     ["Max Müller", "Geburtstag"], ["Anna Kaiser", "Danke"], ["Penny Schmidt", ""], ["Norma Becker", ""], ["Jonas Spar", ""],
     ["", "Penny Lane 3"], ["Lisa Becker", "Total 23,50"], ["", "Total 23,50"], ["", "Action required"],
@@ -155,7 +163,10 @@ test("texts that must not match: people, words, prices, marketplaces and payment
     // reference codes are not words
     ["Beispiel GmbH", "Rechnung EREF: DB2026101234 MREF: DM00012345"], ["Beispiel GmbH", "EREF: DB-2026-1234 MREF: DM-77"],
     ["Beispiel GmbH", "USt-IdNr ATU12345678"], ["Beispiel GmbH", "Rechnung CRED: DE98ZZZ09999999999 IBAN: DE02120300000000202051"],
-  ] as const) assert.equal(sortText(counterparty, description), null, `${counterparty} | ${description}`);
+  ] as const) {
+    assert.equal(sortText(counterparty, description), null, `${counterparty} | ${description}`);
+    for (const amount of [-23.5, 23.5]) assert.equal(sortMoney(amount, counterparty, description), null, `${amount} ${counterparty} | ${description}`);
+  }
   // An employer's salary is salary, whatever the employer sells.
   assert.equal(sortText("Robert Bosch GmbH", "Gehalt 10/2026"), "salary");
   assert.equal(sortText("REWE Markt GmbH", "Gehalt 10/2026"), "salary");
@@ -206,6 +217,172 @@ test("the hand-written priorities: specific names beat the shop or service they 
     ["Miete netto Oktober", "rent"], ["Ferienwohnung Nordsee", "travel"]] as const) {
     assert.equal(sortText("Anna Beispiel", purpose), categoryId, purpose);
   }
+});
+
+// ── The direction of the money (brief 17) ─────────────────────────────────────────────────────────────────────────
+// [counterparty, description, category on money out, category on money in]
+const directions: [string, string, string | null, string | null][] = [
+  // Spending words: only money out. Money in with them is a parent, flatmate or friend paying, or a refund.
+  ["Hausverwaltung Beispiel GmbH", "Miete 11/2026", "rent", null],
+  ["Maria Beispiel", "Miete und Unterhalt November", "rent", null],
+  ["Lukas Beispiel", "Anteil Miete Oktober WG", "rent", null],
+  ["Max Beispiel", "Kaltmiete November", "rent", null],
+  ["Hausverwaltung Beispiel", "Nebenkostenabrechnung 2025 Guthaben", "rent", null],
+  ["Lukas Beispiel", "Nebenkosten Anteil Oktober", "utilities", null],
+  ["Stadtwerke Beispielstadt GmbH", "Abschlag Strom 11/2026", "utilities", null],
+  ["", "Kontoführungsentgelt 10/2026", "fees", null],
+  ["Lisa Beispiel", "Pizza gestern", "eating-out", null],
+  ["Lisa Beispiel", "Taxi vom Flughafen", "taxi-sharing", null],
+  ["Restaurant Olivo", "Abrechnung Oktober", "eating-out", null],
+  ["Technische Universität Beispielstadt", "Semesterbeitrag WS 2026/27", "education", null],
+  ["Apotheke am Markt", "", "health", null],
+  ["Lisa Beispiel", "Spende Sommerfest", "donations", null],
+  ["Finanzamt Beispielstadt", "Einkommensteuer 2025", "taxes", "taxes"],
+  ["Lisa Beispiel", "Einkommensteuer 2025", "taxes", null],
+  ["Staatsoberkasse Beispiel", "Steuererstattung 2025", null, "taxes"],
+  // Income words: only money in. Money out with them is paying someone.
+  ["Beispiel GmbH", "Gehalt Oktober 2026", null, "salary"],
+  ["Anna Beispiel", "Gehalt Babysitting Oktober", null, "salary"],
+  ["Tom Beispiel", "Lohn Umzugshilfe", null, "salary"],
+  ["Beispiel Verlag GmbH", "Honorar Artikel 10/2026", null, "salary"],
+  ["Dr. Beispiel Steuerberatung", "Honorar Steuererklärung 2025", "taxes", "salary"],
+  ["Landesamt für Finanzen", "Bezüge 10/2026", null, "salary"],
+  ["Bundeskasse", "BAföG 10/2026", null, "bafoeg-scholarships"],
+  ["Bundesverwaltungsamt", "BAföG Darlehen Rückzahlung", null, "bafoeg-scholarships"],
+  ["Familienkasse Bayern Süd", "Kindergeld", null, "kindergeld"],
+  ["Maria Beispiel", "Kindergeld Oktober", null, "kindergeld"],
+  ["", "Zinsgutschrift", null, "interest-dividends"],
+  ["momox GmbH", "Ankauf 1234", null, "selling-things"],
+  // Transfer words: both ways.
+  ["", "Umbuchung", "own-transfers", "own-transfers"],
+  ["Trade Republic Bank GmbH", "Sparplan", "savings-investing", "savings-investing"],
+  // Shop and brand names: both ways, money in is a refund.
+  ["Zalando SE", "Retoure 1234", "clothes", "clothes"],
+  ["REWE Markt GmbH", "Erstattung", "groceries", "groceries"],
+  ["Deutsche Lufthansa AG", "Erstattung Flug", "travel", "travel"],
+  ["Vonovia SE", "Kaution", "rent", "rent"],
+  ["Decathlon Deutschland SE & Co. KG", "Retoure", "sports-fitness", "sports-fitness"],
+  ["Deichmann-Schuhe 123", "", "clothes", "clothes"], // "schuhe" only on money out, the brand both ways
+  // A chain the list knows only through a generic word counts only on money out, like the word.
+  ["Pizza Hut Beispiel", "", "eating-out", null],
+  ["NETFLIX.COM", "", "subscriptions", "subscriptions"],
+  // Platforms that pay people: only money out, their money in is a payout.
+  ["Wolt", "Bestellung 1234", "eating-out", null],
+  ["Wolt Enterprises Deutschland GmbH", "Auszahlung Kurier 10/2026", "eating-out", null],
+  ["Lieferando.de", "Bestellung 1234", "eating-out", null],
+  ["Deliveroo", "", "eating-out", null],
+  ["Uber Eats", "", "eating-out", null],
+  ["UBER *TRIP HELP.UBER.COM", "", "taxi-sharing", null],
+  ["Uber BV", "Payout", "taxi-sharing", null],
+  ["UBER", "", "taxi-sharing", null],
+  ["Bolt Operations", "", "taxi-sharing", null],
+  ["FREENOW", "", "taxi-sharing", null],
+  ["BlaBlaCar", "Fahrt Beispielstadt", "taxi-sharing", null],
+  ["Flink SE", "", "groceries", null],
+  ["Airbnb Payments", "", "travel", null],
+  ["viagogo AG", "", "entertainment", null],
+  ["GoFundMe", "", "donations", null],
+  ["momox fashion", "", "clothes", null],
+  ["Studierendenwerk Beispielstadt", "Abrechnung 10/2026", "eating-out", null],
+  // Marketplaces never count, either way.
+  ["Etsy Ireland UC", "", null, null], ["Vinted UAB", "Auszahlung", null, null], ["eBay GmbH", "", null, null],
+];
+test("spending words count only on money out, income words only on money in, transfer words both ways", () => {
+  for (const [counterparty, description, out, into] of directions) {
+    assert.equal(sortMoney(-42.5, counterparty, description), out, `out: ${counterparty} | ${description}`);
+    assert.equal(sortMoney(42.5, counterparty, description), into, `in: ${counterparty} | ${description}`);
+  }
+});
+
+test("every hand-written name counts in its own direction and gives nothing in the other", () => {
+  for (const rule of STARTER_RULES) for (const amount of [-12.5, 12.5]) {
+    const counts = rule.direction === "both" || rule.direction === (amount < 0 ? "out" : "in");
+    assert.equal(starterCategory({ counterparty: rule.pattern, amount }, all), counts ? rule.categoryId : null,
+      `${rule.pattern} (${rule.direction}) ${amount}`);
+  }
+  // NSI brands are shop names: both ways.
+  assert.ok(STARTER_RULES.filter((rule) => rule.source === "brand").every((rule) => rule.direction === "both"));
+});
+
+test("without an amount, or with 0, the direction is unknown and every rule counts", () => {
+  assert.equal(sortText("Maria Beispiel", "Miete und Unterhalt November"), "rent");
+  assert.equal(sortMoney(0, "Maria Beispiel", "Miete und Unterhalt November"), "rent");
+  assert.equal(sortMoney(Number.NaN, "Beispiel GmbH", "Gehalt Oktober 2026"), "salary");
+  assert.equal(sortText("Wolt"), "eating-out");
+});
+
+test("sortPayments passes each payment's amount to the shop list", () => {
+  const payments = [
+    { counterparty: "Maria Beispiel", description: "Miete und Unterhalt November", amount: 650 },
+    { counterparty: "Hausverwaltung Beispiel GmbH", description: "Miete 11/2026", amount: -650 },
+    { counterparty: "Wolt Enterprises Deutschland GmbH", description: "Auszahlung Kurier 10/2026", amount: 412.3 },
+  ];
+  assert.deepEqual(sortPayments(payments, { categories: all }).map((r) => r.categoryId), [null, "rent", null]);
+});
+
+test("a longer name for the other direction still hides the shorter names inside it", () => {
+  const m = compileShopList({
+    rules: [["own", ["umbuchung"], "both"], ["travel", ["umbuchung flug"], "out"], ["airline", ["lufthansa"], "both"],
+      ["food", ["uber eats"], "out"], ["rent", ["miete"], "out"], ["salary", ["gehalt"], "in"]],
+    merchants: [["taxi", ["uber"], "out"], ["shop", ["penny"]]],
+    brands: [["brand", ["eats"]]],
+  });
+  const at = (amount: number, counterparty: string, description?: string) => m.match({ counterparty, description, amount });
+  assert.equal(at(-1, "Lufthansa", "Umbuchung Flug"), "travel");
+  assert.equal(at(1, "Lufthansa", "Umbuchung Flug"), "airline"); // not "umbuchung" inside it
+  assert.equal(at(1, "Anna Beispiel", "Umbuchung"), "own");
+  assert.equal(at(-1, "Uber Eats"), "food");
+  assert.equal(at(1, "Uber Eats"), null); // not "eats" (a brand) and not "uber" (a merchant)
+  assert.equal(at(1, "Uber"), null); // a merchant for money out decides on money in too: nothing
+  assert.equal(at(1, "Penny"), "shop"); // no direction given: both ways
+  assert.equal(at(1, "Anna Beispiel", "Miete"), null);
+  assert.equal(at(-1, "Anna Beispiel", "Miete Gehalt"), "rent");
+  assert.equal(at(1, "Anna Beispiel", "Miete Gehalt"), "salary");
+  // The real list: on money in, "Umbuchung Flug" is not an own transfer, so the airline decides.
+  assert.equal(sortMoney(180, "Deutsche Lufthansa AG", "Umbuchung Flug LH 1234 Erstattung"), "travel");
+  assert.equal(sortMoney(180, "Lisa Beispiel", "Umbuchung Flug"), null);
+  assert.equal(sortMoney(180, "", "Umbuchung"), "own-transfers");
+});
+
+// ── Branch numbers (brief 17) ─────────────────────────────────────────────────────────────────────────────────────
+test("a chain that counts only as the whole name also counts at the start, followed by a branch number", () => {
+  for (const [counterparty, description, categoryId] of [
+    ["PENNY 4211 GARCHING", "Kartenzahlung girocard 2026-10-20T12:34", "groceries"],
+    ["PENNY 4211>GARCHING", "", "groceries"],
+    ["NETTO 1234 Dachau", "", "groceries"],
+    ["NETTO 1234 DACHAU//DACHAU/DE", "", "groceries"],
+    ["NORMA 123", "", "groceries"], ["NORMA 12 Garching", "", "groceries"], ["SPAR 5678", "", "groceries"],
+    ["HIT 456 Eching", "", "groceries"], ["GLOBUS 12 Freising", "", "groceries"],
+    ["", "Kartenzahlung PENNY 4211 GARCHING", "groceries"],
+    ["JET 1234 Unterschleissheim", "", "car-fuel"], ["TOTAL 123456 Ismaning", "", "car-fuel"],
+    ["BAUHAUS 123 Garching", "", "household"], ["NORDSEE 12 Freising", "", "eating-out"],
+    ["DOUGLAS 1234 Erding", "", "personal-care"], ["THALIA 99 Landshut", "", "hobbies"],
+  ] as const) {
+    for (const amount of [-18.4, 18.4]) assert.equal(sortMoney(amount, counterparty, description), categoryId, `${amount} ${counterparty} | ${description}`);
+    assert.equal(sortText(counterparty, description), categoryId, `${counterparty} | ${description}`);
+  }
+  for (const [counterparty, description] of [
+    ["", "Penny Lane 3"], ["Penny Lane 3", ""], ["Max Müller 12", ""], ["MUELLER 1234 GARCHING", ""], ["Penny Schmidt 12", ""],
+    ["Anna Beispiel", "PENNY 4211 GARCHING"], // who was paid is the counterparty: a person
+    ["PENNY 1234567 GARCHING", ""], ["PENNY 4211A GARCHING", ""], ["PENNY4211 GARCHING", ""], ["PENNY 4 GARCHING", ""],
+    ["", "Total 23,50"], ["", "Total 23.50 EUR"], ["", "Norma 12:30 Treffen"], ["1234 PENNY GARCHING", ""],
+    ["CAMBIO 123 MADRID", ""], ["UBER 1234 AMSTERDAM", ""], ["FLINK 24 SCHLUESSELDIENST", ""],
+  ] as const) {
+    for (const amount of [-18.4, 18.4]) assert.equal(sortMoney(amount, counterparty, description), null, `${amount} ${counterparty} | ${description}`);
+  }
+  // Each in its direction: Uber is still Uber when the text says so.
+  assert.equal(sortMoney(-9.9, "UBER *TRIP 1234"), "taxi-sharing");
+});
+
+test("branch numbers in the matcher: only whole-merchant names, only first, 2 to 6 digits standing alone", () => {
+  const m = compileShopList({ rules: [], merchants: [["shop", ["penny", "die beispielkette"], "both"],
+    ["car", ["cambio"], "both"]], noBranches: ["cambio"], brands: [["brand", ["lane"]]] });
+  const at = (counterparty: string, description?: string) => m.match({ counterparty, description, amount: -5 });
+  assert.equal(at("PENNY 4211 GARCHING"), "shop");
+  assert.equal(at("Die Beispielkette 77 Freising"), "shop");
+  assert.equal(at("Penny Lane 3"), "brand"); // a word between: the brand "lane", not the merchant
+  assert.equal(at("CAMBIO 123 MADRID"), null);
+  assert.equal(at("Cambio"), "car");
 });
 
 test("every name keeps its category when only that category is chosen, and nothing else is returned", () => {
