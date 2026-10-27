@@ -88,6 +88,13 @@ function labelledPart(text: string, label: string, labels: string[]): string {
 const DEBIT_MARK = /^(s|soll|d|db|dbit|debit|belastung|lastschrift|-)$/i;
 const CREDIT_MARK = /^(h|haben|c|cr|crdt|credit|gutschrift|\+)$/i;
 
+// What a sign column's cell says: money out (S, Soll, D, Debit, Lastschrift, -), money in (H, Haben, C, Credit,
+// Gutschrift, +), or neither (the amount keeps its own sign).
+export function signMark(value: string): "debit" | "credit" | null {
+  const v = value.trim();
+  return DEBIT_MARK.test(v) ? "debit" : CREDIT_MARK.test(v) ? "credit" : null;
+}
+
 export function accountName(bank: string, iban?: string): string {
   return iban ? `${bank} ••${iban.slice(-4)}` : bank;
 }
@@ -137,10 +144,10 @@ export function readTable(rows: string[][], headerIndex: number, layout: CsvLayo
     let amount: string | null = null;
     if (c.amount !== undefined) {
       amount = parseAmountStrict(cell(row, c.amount), layout.numberFormat);
-      const mark = cell(row, c.sign);
+      const mark = signMark(cell(row, c.sign));
       if (amount && c.sign !== undefined) {
-        if (DEBIT_MARK.test(mark)) amount = negate(absolute(amount));
-        else if (CREDIT_MARK.test(mark)) amount = absolute(amount);
+        if (mark === "debit") amount = negate(absolute(amount));
+        else if (mark === "credit") amount = absolute(amount);
       }
     } else {
       const debit = parseAmountStrict(cell(row, c.debit), layout.numberFormat);

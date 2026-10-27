@@ -36,6 +36,10 @@ export interface Dashboard {
 }
 
 const money = (n: number) => Math.round(n * 100) / 100;
+// Payments without a category ("Not sorted" in the apps; engine/source.ts names them so). Their money in counts as
+// income ("Other") only, never as negative spending (Patrik, 2026-10-27): a salary from a new employer used to lower
+// "Not sorted"'s spending, and a month with more unsorted money in than out showed no "Not sorted" spending at all.
+const isUnsorted = (categoryName: string) => !categoryName || categoryName === "Uncategorised";
 const INCOME_META: Record<string, Category> = {
   Refunds: { name: "Refunds", icon: "RotateCcw", color: "#34E27A", kind: "income" },
   Other: { name: "Other", icon: "CircleHelp", color: "#9AA6B8", kind: "income" },
@@ -82,16 +86,18 @@ export function buildDashboard(source: DashboardSource): Dashboard {
     const mo = index === undefined ? undefined : byMonth[month];
     const validDay = !!mo && day >= 1 && day <= mo.dayExpense.length;
     const tags = t.tags || [];
-    const categoriesIn = [...new Set([t.categoryName, ...tags])];
+    // Unsorted money in is listed under "Other" income only: not under "Not sorted", not in its spending.
+    const unsortedIn = t.amount > 0 && isUnsorted(t.categoryName);
+    const categoriesIn = [...new Set([t.categoryName, ...tags])].filter((name) => !(unsortedIn && isUnsorted(name)));
     const isTransfer = catByName.get(t.categoryName)?.kind === "transfer";
-    const primaryBucket = !t.categoryName || t.categoryName === "Uncategorised" ? "Other"
+    const primaryBucket = isUnsorted(t.categoryName) ? "Other"
       : incomeBucketKeep.has(t.categoryName) ? t.categoryName : "Refunds";
     const buckets = t.amount > 0 && !isTransfer ? [...new Set([primaryBucket, ...tags.filter((n) => incomeBucketKeep.has(n))])] : [];
     transactions.push({
       id: t.id, date: t.date, day, month, amount: t.amount, categoryName: t.categoryName,
       tags: [...tags], place: t.place, city: t.city, categoriesIn, incomeBuckets: buckets,
     });
-    if (catByName.get(t.categoryName)?.kind === "spend") {
+    if (catByName.get(t.categoryName)?.kind === "spend" && !unsortedIn) {
       total.expense += -t.amount;
       if (mo) { mo.expense += -t.amount; if (validDay) mo.dayExpense[day - 1] += -t.amount; }
     }
