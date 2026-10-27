@@ -1,0 +1,10 @@
+"Fiktivbank eG";"Kontoumsätze"
+"Konto";"DE73 4306 0967 0000 7788 99"
+"Zeitraum";"01.02.2026 - 07.02.2026"
+
+"Buchungsdatum";"Valuta";"Gegenseite";"Buchungsinformation";"Lastschrift";"Gutschrift";"Kontostand"
+"07.02.2026";"07.02.2026";"Fiktiv Markt";"Einkauf Lebensmittel";"23,17";"";"1.152,03"
+"05.02.2026";"05.02.2026";"Märchenbäckerei";"Brötchen und Kuchen";"3,20";"";"1.175,20"
+"05.02.2026";"05.02.2026";"Märchenbäckerei";"Brötchen und Kuchen";"3,20";"";"1.178,40"
+"02.02.2026";"02.02.2026";"Fiktiv Werke GmbH";"Gehalt Februar";"";"1.181,60";"1.181,60"
+"";"";"";"Summe";"29,57";"1.181,60";""

@@ -1,0 +1,12 @@
+;
+"Umsätze Girokonto";"Zeitraum: 30 Tage";
+"Neuer Kontostand";"2.257,20 EUR";
+
+"Buchungstag";"Wertstellung (Valuta)";"Vorgang";"Buchungstext";"Umsatz in EUR";
+"offen";"--";"Kartenverfügung";"Kto/IBAN: DE00000000000000000000 Buchungstext: FIKTIV MARKT MUSTERSTADT 2026-02-07T10:15:00";"-23,17";
+"06.02.2026";"06.02.2026";"Lastschrift / Belastung";"Empfänger: Fiktiv Stadtwerke Kto/IBAN: DE34701500000000246810 BLZ/BIC: SSKMDEMMXXX Buchungstext: Abschlag Strom Februar Ref. FICT0001";"-36,40";
+"05.02.2026";"05.02.2026";"Kartenverfügung";"Kto/IBAN: DE00000000000000000000 Buchungstext: CAFE MÄRCHEN MUSTERSTADT 2026-02-05T08:10:00";"-3,20";
+"03.02.2026";"03.02.2026";"Übertrag / Überweisung";"Auftraggeber: Fiktiv Werke GmbH Kto/IBAN: DE96100500000000123456 BLZ/BIC: BELADEBEXXX Buchungstext: Gehalt Februar 2026 Ref. FICT0002";"1.800,00";
+
+"Alter Kontostand";"516,77 EUR";
+

@@ -1,0 +1,120 @@
+{
+  "format": "camt",
+  "account": {
+    "name": "Bank ••5790",
+    "currency": "EUR",
+    "iban": "DE84200411110000135790"
+  },
+  "transactions": [
+    {
+      "externalId": "FICT-E2E-4711",
+      "bookingDate": "2026-02-04T00:00:00.000Z",
+      "valueDate": "2026-02-04T00:00:00.000Z",
+      "amount": "-49.99",
+      "currency": "EUR",
+      "description": "Rechnung 02/2026",
+      "counterparty": "Fiktiv Mobilfunk",
+      "raw": {
+        "Amt": {
+          "#text": "49.99",
+          "@_Ccy": "EUR"
+        },
+        "CdtDbtInd": "DBIT",
+        "Sts": "BOOK",
+        "BookgDt": {
+          "Dt": "2026-02-04"
+        },
+        "ValDt": {
+          "Dt": "2026-02-04"
+        },
+        "NtryDtls": {
+          "TxDtls": {
+            "Refs": {
+              "EndToEndId": "FICT-E2E-4711"
+            },
+            "RltdPties": {
+              "Cdtr": {
+                "Nm": "Fiktiv Mobilfunk"
+              }
+            },
+            "RmtInf": {
+              "Ustrd": "Rechnung 02/2026"
+            }
+          }
+        }
+      }
+    },
+    {
+      "externalId": "3be0da3c90eb32ec145c2df3",
+      "bookingDate": "2026-02-04T00:00:00.000Z",
+      "valueDate": "2026-02-04T00:00:00.000Z",
+      "amount": "-7.50",
+      "currency": "EUR",
+      "description": "Kartenzahlung",
+      "counterparty": "Bäckerei Fiktiv",
+      "raw": {
+        "Amt": {
+          "#text": "7.50",
+          "@_Ccy": "EUR"
+        },
+        "CdtDbtInd": "DBIT",
+        "Sts": "BOOK",
+        "BookgDt": {
+          "Dt": "2026-02-04"
+        },
+        "ValDt": {
+          "Dt": "2026-02-04"
+        },
+        "NtryDtls": {
+          "TxDtls": {
+            "RltdPties": {
+              "Cdtr": {
+                "Nm": "Bäckerei Fiktiv"
+              }
+            },
+            "RmtInf": {
+              "Ustrd": "Kartenzahlung"
+            }
+          }
+        }
+      }
+    },
+    {
+      "externalId": "df7adc69106afce895b031b1",
+      "bookingDate": "2026-02-04T00:00:00.000Z",
+      "valueDate": "2026-02-04T00:00:00.000Z",
+      "amount": "-7.50",
+      "currency": "EUR",
+      "description": "Kartenzahlung",
+      "counterparty": "Bäckerei Fiktiv",
+      "raw": {
+        "Amt": {
+          "#text": "7.50",
+          "@_Ccy": "EUR"
+        },
+        "CdtDbtInd": "DBIT",
+        "Sts": "BOOK",
+        "BookgDt": {
+          "Dt": "2026-02-04"
+        },
+        "ValDt": {
+          "Dt": "2026-02-04"
+        },
+        "NtryDtls": {
+          "TxDtls": {
+            "RltdPties": {
+              "Cdtr": {
+                "Nm": "Bäckerei Fiktiv"
+              }
+            },
+            "RmtInf": {
+              "Ustrd": "Kartenzahlung"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "skipped": 1,
+  "encoding": "utf-8"
+}

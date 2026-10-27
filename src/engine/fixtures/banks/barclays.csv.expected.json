@@ -1,0 +1,136 @@
+{
+  "format": "csv",
+  "account": {
+    "name": "Barclays ••8877",
+    "currency": "EUR",
+    "iban": "DE97201306000000998877"
+  },
+  "transactions": [
+    {
+      "externalId": "FICT0000000003",
+      "bookingDate": "2026-02-04T00:00:00.000Z",
+      "valueDate": "2026-02-05T00:00:00.000Z",
+      "amount": "100.00",
+      "currency": "EUR",
+      "description": "Gutschrift",
+      "counterparty": "Gutschrift",
+      "raw": {
+        "Referenznummer": "FICT0000000003",
+        "Buchungsdatum": "04.02.2026",
+        "Buchungsdatum (2)": "05.02.2026",
+        "Betrag": "100,00 €",
+        "Beschreibung": "Gutschrift",
+        "Typ": "Gutschrift",
+        "Status": "Berechnet",
+        "Kartennummer": "4000********1234",
+        "Originalbetrag": "",
+        "Mögliche Zahlpläne": "",
+        "Land": "",
+        "Name des Karteninhabers": "Erika Mustermann",
+        "Kartennetzwerk": "Visa",
+        "Kontaktlose Bezahlung": "",
+        "Details": ""
+      }
+    },
+    {
+      "externalId": "FICT0000000002",
+      "bookingDate": "2026-02-02T00:00:00.000Z",
+      "valueDate": "2026-02-03T00:00:00.000Z",
+      "amount": "-1619.25",
+      "currency": "EUR",
+      "description": "FIKTIV REISEBUERO HAMBURG DE",
+      "counterparty": "Fiktiv Reisebüro",
+      "raw": {
+        "Referenznummer": "FICT0000000002",
+        "Buchungsdatum": "02.02.2026",
+        "Buchungsdatum (2)": "03.02.2026",
+        "Betrag": "-1.619,25 €",
+        "Beschreibung": "Fiktiv Reisebüro",
+        "Typ": "Belastung",
+        "Status": "noch nicht abgerechnet",
+        "Kartennummer": "4000********1234",
+        "Originalbetrag": "",
+        "Mögliche Zahlpläne": "",
+        "Land": "Deutschland",
+        "Name des Karteninhabers": "Erika Mustermann",
+        "Kartennetzwerk": "Visa",
+        "Kontaktlose Bezahlung": "Nein",
+        "Details": "FIKTIV REISEBUERO HAMBURG DE"
+      }
+    },
+    {
+      "externalId": "FICT0000000001",
+      "bookingDate": "2026-02-01T00:00:00.000Z",
+      "valueDate": "2026-02-02T00:00:00.000Z",
+      "amount": "-23.17",
+      "currency": "EUR",
+      "description": "FIKTIV MARKT MUSTERSTADT DE",
+      "counterparty": "Fiktiv Markt",
+      "raw": {
+        "Referenznummer": "FICT0000000001",
+        "Buchungsdatum": "01.02.2026",
+        "Buchungsdatum (2)": "02.02.2026",
+        "Betrag": "-23,17 €",
+        "Beschreibung": "Fiktiv Markt",
+        "Typ": "Belastung",
+        "Status": "Berechnet",
+        "Kartennummer": "4000********1234",
+        "Originalbetrag": "",
+        "Mögliche Zahlpläne": "",
+        "Land": "Deutschland",
+        "Name des Karteninhabers": "Erika Mustermann",
+        "Kartennetzwerk": "Visa",
+        "Kontaktlose Bezahlung": "Ja",
+        "Details": "FIKTIV MARKT MUSTERSTADT DE"
+      }
+    }
+  ],
+  "skipped": 1,
+  "layout": {
+    "version": 1,
+    "name": "Barclays",
+    "profile": "barclays",
+    "separator": ";",
+    "header": [
+      "Referenznummer",
+      "Buchungsdatum",
+      "Buchungsdatum",
+      "Betrag",
+      "Beschreibung",
+      "Typ",
+      "Status",
+      "Kartennummer",
+      "Originalbetrag",
+      "Mögliche Zahlpläne",
+      "Land",
+      "Name des Karteninhabers",
+      "Kartennetzwerk",
+      "Kontaktlose Bezahlung",
+      "Details"
+    ],
+    "dateFormat": "DD.MM.YYYY",
+    "numberFormat": "de",
+    "columns": {
+      "date": 1,
+      "valueDate": 2,
+      "amount": 3,
+      "kind": 5,
+      "reference": 0,
+      "status": 6,
+      "counterparty": [
+        4
+      ],
+      "text": [
+        14
+      ]
+    },
+    "skipStatus": [
+      "vorgemerkt"
+    ]
+  },
+  "bank": {
+    "id": "barclays",
+    "name": "Barclays (Excel export saved as CSV)"
+  },
+  "encoding": "utf-8"
+}

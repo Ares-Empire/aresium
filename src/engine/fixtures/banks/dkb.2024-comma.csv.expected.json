@@ -1,0 +1,99 @@
+{
+  "format": "csv",
+  "account": {
+    "name": "DKB ••6699",
+    "currency": "EUR",
+    "iban": "DE55120300000000556699"
+  },
+  "transactions": [
+    {
+      "externalId": "1e1df6cefe121f41085bff97",
+      "bookingDate": "2024-10-30T00:00:00.000Z",
+      "valueDate": "2024-10-30T00:00:00.000Z",
+      "amount": "-8.70",
+      "currency": "EUR",
+      "description": "Einkauf",
+      "counterparty": "Fiktiv Markt",
+      "raw": {
+        "Buchungsdatum": "30.10.24",
+        "Wertstellung": "30.10.24",
+        "Status": "Gebucht",
+        "Zahlungspflichtige*r": "Erika Mustermann",
+        "Zahlungsempfänger*in": "Fiktiv Markt",
+        "Verwendungszweck": "Einkauf",
+        "Umsatztyp": "Ausgang",
+        "IBAN": "",
+        "Betrag (€)": "-8,7",
+        "Gläubiger-ID": "",
+        "Mandatsreferenz": "",
+        "Kundenreferenz": ""
+      }
+    },
+    {
+      "externalId": "1858c86fc0efdaffb0df6c22",
+      "bookingDate": "2024-10-29T00:00:00.000Z",
+      "valueDate": "2024-10-29T00:00:00.000Z",
+      "amount": "1000.00",
+      "currency": "EUR",
+      "description": "Gehalt Oktober",
+      "counterparty": "Fiktiv Werke GmbH",
+      "raw": {
+        "Buchungsdatum": "29.10.24",
+        "Wertstellung": "29.10.24",
+        "Status": "Gebucht",
+        "Zahlungspflichtige*r": "Fiktiv Werke GmbH",
+        "Zahlungsempfänger*in": "Erika Mustermann",
+        "Verwendungszweck": "Gehalt Oktober",
+        "Umsatztyp": "Eingang",
+        "IBAN": "DE96100500000000123456",
+        "Betrag (€)": "1.000",
+        "Gläubiger-ID": "",
+        "Mandatsreferenz": "",
+        "Kundenreferenz": ""
+      }
+    }
+  ],
+  "skipped": 0,
+  "layout": {
+    "version": 1,
+    "name": "DKB",
+    "profile": "dkb",
+    "separator": ",",
+    "header": [
+      "Buchungsdatum",
+      "Wertstellung",
+      "Status",
+      "Zahlungspflichtige*r",
+      "Zahlungsempfänger*in",
+      "Verwendungszweck",
+      "Umsatztyp",
+      "IBAN",
+      "Betrag (€)",
+      "Gläubiger-ID",
+      "Mandatsreferenz",
+      "Kundenreferenz"
+    ],
+    "dateFormat": "DD.MM.YY",
+    "numberFormat": "de",
+    "columns": {
+      "date": 0,
+      "valueDate": 1,
+      "amount": 8,
+      "payer": 3,
+      "payee": 4,
+      "iban": 7,
+      "status": 2,
+      "text": [
+        5
+      ]
+    },
+    "skipStatus": [
+      "vorgemerkt"
+    ]
+  },
+  "bank": {
+    "id": "dkb",
+    "name": "DKB (Girokonto, since 2023)"
+  },
+  "encoding": "utf-8"
+}

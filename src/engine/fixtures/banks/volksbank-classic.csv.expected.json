@@ -1,0 +1,128 @@
+{
+  "format": "csv",
+  "account": {
+    "name": "VR Bank",
+    "currency": "EUR"
+  },
+  "transactions": [
+    {
+      "externalId": "83c997ce63bde9c6da7f65d5",
+      "bookingDate": "2019-06-18T00:00:00.000Z",
+      "valueDate": "2019-06-18T00:00:00.000Z",
+      "amount": "-650.00",
+      "currency": "EUR",
+      "description": "ÜBERWEISUNG Miete Juni Verwendete TAN: 123456",
+      "counterparty": "Fiktiv Vermietung",
+      "raw": {
+        "Buchungstag": "18.06.2019",
+        "Valuta": "18.06.2019",
+        "Auftraggeber/Zahlungsempfänger": "Erika Mustermann",
+        "Empfänger/Zahlungspflichtiger": "Fiktiv Vermietung",
+        "Konto-Nr.": "0000246810",
+        "IBAN": "DE34701500000000246810",
+        "BLZ": "70150000",
+        "BIC": "SSKMDEMMXXX",
+        "Vorgang/Verwendungszweck": "ÜBERWEISUNG\nMiete Juni\nVerwendete TAN: 123456",
+        "Kundenreferenz": "",
+        "Währung": "EUR",
+        "Umsatz": "650,00",
+        "Column 13": "S"
+      }
+    },
+    {
+      "externalId": "02fb7c2aea7c2a71e705528c",
+      "bookingDate": "2019-06-17T00:00:00.000Z",
+      "valueDate": "2019-06-17T00:00:00.000Z",
+      "amount": "-41.95",
+      "currency": "EUR",
+      "description": "KARTENZAHLUNG Fiktiv Markt Musterstadt",
+      "counterparty": "Fiktiv Markt",
+      "raw": {
+        "Buchungstag": "17.06.2019",
+        "Valuta": "17.06.2019",
+        "Auftraggeber/Zahlungsempfänger": "Erika Mustermann",
+        "Empfänger/Zahlungspflichtiger": "Fiktiv Markt",
+        "Konto-Nr.": "",
+        "IBAN": "",
+        "BLZ": "",
+        "BIC": "",
+        "Vorgang/Verwendungszweck": "KARTENZAHLUNG\nFiktiv Markt Musterstadt",
+        "Kundenreferenz": "",
+        "Währung": "EUR",
+        "Umsatz": "41,95",
+        "Column 13": "S"
+      }
+    },
+    {
+      "externalId": "230af8495331753f16820b9b",
+      "bookingDate": "2019-06-14T00:00:00.000Z",
+      "valueDate": "2019-06-14T00:00:00.000Z",
+      "amount": "1800.00",
+      "currency": "EUR",
+      "description": "GUTSCHRIFT Gehalt Juni",
+      "counterparty": "Fiktiv Werke GmbH",
+      "raw": {
+        "Buchungstag": "14.06.2019",
+        "Valuta": "14.06.2019",
+        "Auftraggeber/Zahlungsempfänger": "Erika Mustermann",
+        "Empfänger/Zahlungspflichtiger": "Fiktiv Werke GmbH",
+        "Konto-Nr.": "0000123456",
+        "IBAN": "DE96100500000000123456",
+        "BLZ": "10050000",
+        "BIC": "BELADEBEXXX",
+        "Vorgang/Verwendungszweck": "GUTSCHRIFT\nGehalt Juni",
+        "Kundenreferenz": "",
+        "Währung": "EUR",
+        "Umsatz": "1.800,00",
+        "Column 13": "H"
+      }
+    }
+  ],
+  "skipped": 2,
+  "layout": {
+    "version": 1,
+    "name": "VR Bank",
+    "profile": "volksbank-classic",
+    "separator": ";",
+    "header": [
+      "Buchungstag",
+      "Valuta",
+      "Auftraggeber/Zahlungsempfänger",
+      "Empfänger/Zahlungspflichtiger",
+      "Konto-Nr.",
+      "IBAN",
+      "BLZ",
+      "BIC",
+      "Vorgang/Verwendungszweck",
+      "Kundenreferenz",
+      "Währung",
+      "Umsatz"
+    ],
+    "dateFormat": "DD.MM.YYYY",
+    "numberFormat": "de",
+    "columns": {
+      "date": 0,
+      "valueDate": 1,
+      "amount": 11,
+      "sign": 12,
+      "iban": 5,
+      "currency": 10,
+      "status": 9,
+      "counterparty": [
+        3
+      ],
+      "text": [
+        8
+      ]
+    },
+    "skipStatus": [
+      "anfangssaldo",
+      "endsaldo"
+    ]
+  },
+  "bank": {
+    "id": "volksbank-classic",
+    "name": "VR Bank (Fiducia CSV, until 2021)"
+  },
+  "encoding": "windows-1252"
+}

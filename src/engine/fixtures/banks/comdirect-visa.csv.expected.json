@@ -1,0 +1,79 @@
+{
+  "format": "csv",
+  "account": {
+    "name": "comdirect Visa",
+    "currency": "EUR"
+  },
+  "transactions": [
+    {
+      "externalId": "3ceba33dfac6111745f0afbb",
+      "bookingDate": "2026-02-02T00:00:00.000Z",
+      "valueDate": "2026-02-04T00:00:00.000Z",
+      "amount": "-29.90",
+      "currency": "EUR",
+      "description": "FIKTIV BAHN",
+      "counterparty": "FIKTIV BAHN",
+      "raw": {
+        "Buchungstag": "04.02.2026",
+        "Umsatztag": "02.02.2026",
+        "Vorgang": "Visa-Umsatz",
+        "Referenz": "FICT000001",
+        "Buchungstext": "FIKTIV BAHN",
+        "Umsatz in EUR": "-29,90",
+        "Column 7": ""
+      }
+    },
+    {
+      "externalId": "6f6569416cd4fab663025317",
+      "bookingDate": "2026-02-05T00:00:00.000Z",
+      "valueDate": "2026-02-06T00:00:00.000Z",
+      "amount": "-9.99",
+      "currency": "EUR",
+      "description": "FIKTIV STREAMING",
+      "counterparty": "FIKTIV STREAMING",
+      "raw": {
+        "Buchungstag": "06.02.2026",
+        "Umsatztag": "05.02.2026",
+        "Vorgang": "Visa-Umsatz",
+        "Referenz": "FICT000002",
+        "Buchungstext": "FIKTIV STREAMING",
+        "Umsatz in EUR": "-9,99",
+        "Column 7": ""
+      }
+    }
+  ],
+  "skipped": 2,
+  "layout": {
+    "version": 1,
+    "name": "comdirect Visa",
+    "profile": "comdirect-visa",
+    "separator": ";",
+    "header": [
+      "Buchungstag",
+      "Umsatztag",
+      "Vorgang",
+      "Referenz",
+      "Buchungstext",
+      "Umsatz in EUR"
+    ],
+    "dateFormat": "DD.MM.YYYY",
+    "numberFormat": "de",
+    "columns": {
+      "date": 1,
+      "valueDate": 0,
+      "amount": 5,
+      "status": 0,
+      "counterparty": [
+        4
+      ]
+    },
+    "skipStatus": [
+      "offen"
+    ]
+  },
+  "bank": {
+    "id": "comdirect-visa",
+    "name": "comdirect Visa (Kreditkarte)"
+  },
+  "encoding": "windows-1252"
+}

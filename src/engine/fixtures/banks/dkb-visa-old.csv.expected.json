@@ -1,0 +1,75 @@
+{
+  "format": "csv",
+  "account": {
+    "name": "DKB Visa",
+    "currency": "EUR"
+  },
+  "transactions": [
+    {
+      "externalId": "ab8c906de984f6ae9cd08000",
+      "bookingDate": "2023-03-04T00:00:00.000Z",
+      "valueDate": "2023-03-06T00:00:00.000Z",
+      "amount": "-110.46",
+      "currency": "EUR",
+      "description": "FIKTIV HOTEL LONDON",
+      "counterparty": "FIKTIV HOTEL LONDON",
+      "raw": {
+        "Umsatz abgerechnet und nicht im Saldo enthalten": "Nein",
+        "Wertstellung": "06.03.2023",
+        "Belegdatum": "04.03.2023",
+        "Beschreibung": "FIKTIV HOTEL LONDON",
+        "Betrag (EUR)": "-110,46",
+        "Ursprünglicher Betrag": "-95,00 GBP",
+        "Column 7": ""
+      }
+    },
+    {
+      "externalId": "8bd29e9d6a510df3f78ce073",
+      "bookingDate": "2023-03-02T00:00:00.000Z",
+      "valueDate": "2023-03-03T00:00:00.000Z",
+      "amount": "-29.90",
+      "currency": "EUR",
+      "description": "FIKTIV BAHN",
+      "counterparty": "FIKTIV BAHN",
+      "raw": {
+        "Umsatz abgerechnet und nicht im Saldo enthalten": "Ja",
+        "Wertstellung": "03.03.2023",
+        "Belegdatum": "02.03.2023",
+        "Beschreibung": "FIKTIV BAHN",
+        "Betrag (EUR)": "-29,90",
+        "Ursprünglicher Betrag": "",
+        "Column 7": ""
+      }
+    }
+  ],
+  "skipped": 0,
+  "layout": {
+    "version": 1,
+    "name": "DKB Visa",
+    "profile": "dkb-visa-old",
+    "separator": ";",
+    "header": [
+      "Umsatz abgerechnet und nicht im Saldo enthalten",
+      "Wertstellung",
+      "Belegdatum",
+      "Beschreibung",
+      "Betrag (EUR)",
+      "Ursprünglicher Betrag"
+    ],
+    "dateFormat": "DD.MM.YYYY",
+    "numberFormat": "de",
+    "columns": {
+      "date": 2,
+      "valueDate": 1,
+      "amount": 4,
+      "counterparty": [
+        3
+      ]
+    }
+  },
+  "bank": {
+    "id": "dkb-visa-old",
+    "name": "DKB Visa (Kreditkarte, until 2023)"
+  },
+  "encoding": "windows-1252"
+}

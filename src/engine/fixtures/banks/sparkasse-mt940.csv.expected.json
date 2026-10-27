@@ -1,0 +1,122 @@
+{
+  "format": "csv",
+  "account": {
+    "name": "Sparkasse ••7654",
+    "currency": "EUR",
+    "iban": "DE45760501010000987654"
+  },
+  "transactions": [
+    {
+      "externalId": "c71fce3df1c79e4d3b4c8ad4",
+      "bookingDate": "2026-02-06T00:00:00.000Z",
+      "valueDate": "2026-02-06T00:00:00.000Z",
+      "amount": "-36.40",
+      "currency": "EUR",
+      "description": "Abschlag Strom Februar",
+      "counterparty": "Fiktiv Stadtwerke",
+      "raw": {
+        "Auftragskonto": "DE45760501010000987654",
+        "Buchungstag": "06.02.26",
+        "Valutadatum": "06.02.26",
+        "Buchungstext": "FOLGELASTSCHRIFT",
+        "Verwendungszweck": "EREF+FICT-E2E-0001 MREF+FICT-MANDAT-7 CRED+DE98ZZZ09999999999 SVWZ+Abschlag Strom Februar",
+        "Beguenstigter/Zahlungspflichtiger": "Fiktiv Stadtwerke",
+        "Kontonummer": "DE34701500000000246810",
+        "BLZ": "SSKMDEMMXXX",
+        "Betrag": "-36,40",
+        "Waehrung": "EUR",
+        "Info": "Umsatz gebucht"
+      }
+    },
+    {
+      "externalId": "2a7805c1c5ed2598c667b2c4",
+      "bookingDate": "2026-02-04T00:00:00.000Z",
+      "valueDate": "2026-02-04T00:00:00.000Z",
+      "amount": "-650.00",
+      "currency": "EUR",
+      "description": "Miete Februar Wohnung 3 DATUM 04.02.2026, 09.12 UHR",
+      "counterparty": "Erika Mustermann",
+      "raw": {
+        "Auftragskonto": "DE45760501010000987654",
+        "Buchungstag": "04.02.26",
+        "Valutadatum": "04.02.26",
+        "Buchungstext": "ONLINE-UEBERWEISUNG",
+        "Verwendungszweck": "SVWZ+Miete Februar Wohnung 3 DATUM 04.02.2026, 09.12 UHR",
+        "Beguenstigter/Zahlungspflichtiger": "Erika Mustermann",
+        "Kontonummer": "DE25100900000000202122",
+        "BLZ": "BEVODEBBXXX",
+        "Betrag": "-650,00",
+        "Waehrung": "EUR",
+        "Info": "Umsatz gebucht"
+      }
+    },
+    {
+      "externalId": "e27f985b8ddbdc138ad57b51",
+      "bookingDate": "2026-02-03T00:00:00.000Z",
+      "valueDate": "2026-02-03T00:00:00.000Z",
+      "amount": "1800.00",
+      "currency": "EUR",
+      "description": "Gehalt Februar 2026",
+      "counterparty": "Fiktiv Werke GmbH",
+      "raw": {
+        "Auftragskonto": "DE45760501010000987654",
+        "Buchungstag": "03.02.26",
+        "Valutadatum": "03.02.26",
+        "Buchungstext": "GUTSCHR. UEBERWEISUNG",
+        "Verwendungszweck": "EREF+LOHN-2026-02 SVWZ+Gehalt Februar 2026",
+        "Beguenstigter/Zahlungspflichtiger": "Fiktiv Werke GmbH",
+        "Kontonummer": "DE96100500000000123456",
+        "BLZ": "BELADEBEXXX",
+        "Betrag": "1800,00",
+        "Waehrung": "EUR",
+        "Info": "Umsatz gebucht"
+      }
+    }
+  ],
+  "skipped": 0,
+  "layout": {
+    "version": 1,
+    "name": "Sparkasse",
+    "profile": "sparkasse-mt940",
+    "separator": ";",
+    "header": [
+      "Auftragskonto",
+      "Buchungstag",
+      "Valutadatum",
+      "Buchungstext",
+      "Verwendungszweck",
+      "Beguenstigter/Zahlungspflichtiger",
+      "Kontonummer",
+      "BLZ",
+      "Betrag",
+      "Waehrung",
+      "Info"
+    ],
+    "dateFormat": "DD.MM.YY",
+    "numberFormat": "de",
+    "columns": {
+      "date": 1,
+      "valueDate": 2,
+      "amount": 8,
+      "kind": 3,
+      "iban": 6,
+      "accountIban": 0,
+      "currency": 9,
+      "status": 10,
+      "counterparty": [
+        5
+      ],
+      "text": [
+        4
+      ]
+    },
+    "skipStatus": [
+      "vorgemerkt"
+    ]
+  },
+  "bank": {
+    "id": "sparkasse-mt940",
+    "name": "Sparkasse (CSV-MT940)"
+  },
+  "encoding": "utf-8"
+}

@@ -1,0 +1,149 @@
+{
+  "format": "csv",
+  "account": {
+    "name": "Deutsche Bank",
+    "currency": "EUR"
+  },
+  "transactions": [
+    {
+      "externalId": "d44748000bae62ed74f64f88",
+      "bookingDate": "2024-01-30T00:00:00.000Z",
+      "valueDate": "2024-01-30T00:00:00.000Z",
+      "amount": "-54.00",
+      "currency": "EUR",
+      "description": "Abschlag Strom Januar",
+      "counterparty": "Fiktiv Stadtwerke",
+      "raw": {
+        "Buchungstag": "30.01.2024",
+        "Wert": "30.01.2024",
+        "Umsatzart": "SEPA-Lastschrift von",
+        "Begünstigter / Auftraggeber": "Fiktiv Stadtwerke",
+        "Verwendungszweck": "Abschlag Strom Januar",
+        "IBAN": "DE34701500000000246810",
+        "BIC": "SSKMDEMMXXX",
+        "Kundenreferenz": "FICT-E2E-0005",
+        "Mandatsreferenz": "FICT-MANDAT-7",
+        "Gläubiger ID": "DE98ZZZ09999999999",
+        "Fremde Gebühren": "",
+        "Betrag": "",
+        "Abweichender Empfänger": "",
+        "Abweichender Auftraggeber": "",
+        "Anzahl der Aufträge": "",
+        "Anzahl der Schecks": "",
+        "Soll": "-54,00",
+        "Haben": "",
+        "Währung": "EUR"
+      }
+    },
+    {
+      "externalId": "df41d73b51db85229ef982f6",
+      "bookingDate": "2024-01-29T00:00:00.000Z",
+      "valueDate": "2024-01-29T00:00:00.000Z",
+      "amount": "-650.00",
+      "currency": "EUR",
+      "description": "Miete Februar",
+      "counterparty": "Fiktiv Vermietung",
+      "raw": {
+        "Buchungstag": "29.01.2024",
+        "Wert": "29.01.2024",
+        "Umsatzart": "SEPA-Überweisung an",
+        "Begünstigter / Auftraggeber": "Fiktiv Vermietung",
+        "Verwendungszweck": "Miete Februar",
+        "IBAN": "DE25100900000000202122",
+        "BIC": "BEVODEBBXXX",
+        "Kundenreferenz": "",
+        "Mandatsreferenz": "",
+        "Gläubiger ID": "",
+        "Fremde Gebühren": "",
+        "Betrag": "",
+        "Abweichender Empfänger": "",
+        "Abweichender Auftraggeber": "",
+        "Anzahl der Aufträge": "",
+        "Anzahl der Schecks": "",
+        "Soll": "-650,00",
+        "Haben": "",
+        "Währung": "EUR"
+      }
+    },
+    {
+      "externalId": "3b077f8fa6c1cadd80bcfd00",
+      "bookingDate": "2024-01-26T00:00:00.000Z",
+      "valueDate": "2024-01-26T00:00:00.000Z",
+      "amount": "1800.00",
+      "currency": "EUR",
+      "description": "Gehalt Januar",
+      "counterparty": "Fiktiv Werke GmbH",
+      "raw": {
+        "Buchungstag": "26.01.2024",
+        "Wert": "26.01.2024",
+        "Umsatzart": "SEPA-Gutschrift von",
+        "Begünstigter / Auftraggeber": "Fiktiv Werke GmbH",
+        "Verwendungszweck": "Gehalt Januar",
+        "IBAN": "DE96100500000000123456",
+        "BIC": "BELADEBEXXX",
+        "Kundenreferenz": "LOHN-2024-01",
+        "Mandatsreferenz": "",
+        "Gläubiger ID": "",
+        "Fremde Gebühren": "",
+        "Betrag": "",
+        "Abweichender Empfänger": "",
+        "Abweichender Auftraggeber": "",
+        "Anzahl der Aufträge": "",
+        "Anzahl der Schecks": "",
+        "Soll": "",
+        "Haben": "1.800,00",
+        "Währung": "EUR"
+      }
+    }
+  ],
+  "skipped": 1,
+  "layout": {
+    "version": 1,
+    "name": "Deutsche Bank",
+    "profile": "deutsche-bank-old",
+    "separator": ";",
+    "header": [
+      "Buchungstag",
+      "Wert",
+      "Umsatzart",
+      "Begünstigter / Auftraggeber",
+      "Verwendungszweck",
+      "IBAN",
+      "BIC",
+      "Kundenreferenz",
+      "Mandatsreferenz",
+      "Gläubiger ID",
+      "Fremde Gebühren",
+      "Betrag",
+      "Abweichender Empfänger",
+      "Abweichender Auftraggeber",
+      "Anzahl der Aufträge",
+      "Anzahl der Schecks",
+      "Soll",
+      "Haben",
+      "Währung"
+    ],
+    "dateFormat": "DD.MM.YYYY",
+    "numberFormat": "de",
+    "columns": {
+      "date": 0,
+      "valueDate": 1,
+      "debit": 16,
+      "credit": 17,
+      "kind": 2,
+      "iban": 5,
+      "currency": 18,
+      "counterparty": [
+        3
+      ],
+      "text": [
+        4
+      ]
+    }
+  },
+  "bank": {
+    "id": "deutsche-bank-old",
+    "name": "Deutsche Bank (until 2025)"
+  },
+  "encoding": "windows-1252"
+}

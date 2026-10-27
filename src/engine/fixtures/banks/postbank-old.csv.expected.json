@@ -1,0 +1,88 @@
+{
+  "format": "csv",
+  "account": {
+    "name": "Postbank ••7788",
+    "currency": "EUR",
+    "iban": "DE50100100100000667788"
+  },
+  "transactions": [
+    {
+      "externalId": "176b2a7b350b35008d5800b4",
+      "bookingDate": "2021-12-06T00:00:00.000Z",
+      "valueDate": "2021-12-06T00:00:00.000Z",
+      "amount": "-36.40",
+      "balance": "2257.20",
+      "currency": "EUR",
+      "description": "Abschlag Strom Dezember",
+      "counterparty": "Fiktiv Stadtwerke",
+      "raw": {
+        "Buchungsdatum": "06.12.2021",
+        "Wertstellung": "06.12.2021",
+        "Umsatzart": "Lastschrift",
+        "Buchungsdetails": "Abschlag Strom Dezember",
+        "Auftraggeber": "Erika Mustermann",
+        "Empfänger": "Fiktiv Stadtwerke",
+        "Betrag (€)": "-36,40 €",
+        "Saldo (€)": "2.257,20 €",
+        "Column 9": ""
+      }
+    },
+    {
+      "externalId": "abb96a0e4adfd602db2c9cc2",
+      "bookingDate": "2021-12-03T00:00:00.000Z",
+      "valueDate": "2021-12-03T00:00:00.000Z",
+      "amount": "1800.00",
+      "balance": "2293.60",
+      "currency": "EUR",
+      "description": "Gehalt Dezember",
+      "counterparty": "Fiktiv Werke GmbH",
+      "raw": {
+        "Buchungsdatum": "03.12.2021",
+        "Wertstellung": "03.12.2021",
+        "Umsatzart": "Gutschrift",
+        "Buchungsdetails": "Gehalt Dezember",
+        "Auftraggeber": "Fiktiv Werke GmbH",
+        "Empfänger": "Erika Mustermann",
+        "Betrag (€)": "1.800,00 €",
+        "Saldo (€)": "2.293,60 €",
+        "Column 9": ""
+      }
+    }
+  ],
+  "skipped": 0,
+  "layout": {
+    "version": 1,
+    "name": "Postbank",
+    "profile": "postbank-old",
+    "separator": ";",
+    "header": [
+      "Buchungsdatum",
+      "Wertstellung",
+      "Umsatzart",
+      "Buchungsdetails",
+      "Auftraggeber",
+      "Empfänger",
+      "Betrag (€)",
+      "Saldo (€)"
+    ],
+    "dateFormat": "DD.MM.YYYY",
+    "numberFormat": "de",
+    "columns": {
+      "date": 0,
+      "valueDate": 1,
+      "amount": 6,
+      "payer": 4,
+      "payee": 5,
+      "kind": 2,
+      "balance": 7,
+      "text": [
+        3
+      ]
+    }
+  },
+  "bank": {
+    "id": "postbank-old",
+    "name": "Postbank (Umsatzauskunft, until 2023)"
+  },
+  "encoding": "utf-8"
+}

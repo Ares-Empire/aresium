@@ -1,0 +1,109 @@
+{
+  "format": "csv",
+  "account": {
+    "name": "comdirect",
+    "currency": "EUR"
+  },
+  "transactions": [
+    {
+      "externalId": "7fbdc900f2e7f5368090d301",
+      "bookingDate": "2026-02-06T00:00:00.000Z",
+      "valueDate": "2026-02-06T00:00:00.000Z",
+      "amount": "-36.40",
+      "currency": "EUR",
+      "description": "Abschlag Strom Februar",
+      "counterparty": "Fiktiv Stadtwerke",
+      "raw": {
+        "Buchungstag": "06.02.2026",
+        "Wertstellung (Valuta)": "06.02.2026",
+        "Vorgang": "Lastschrift / Belastung",
+        "Buchungstext": "Empfänger: Fiktiv Stadtwerke Kto/IBAN: DE34701500000000246810 BLZ/BIC: SSKMDEMMXXX Buchungstext: Abschlag Strom Februar Ref. FICT0001",
+        "Umsatz in EUR": "-36,40",
+        "Column 6": ""
+      }
+    },
+    {
+      "externalId": "c9b0da3813775cc8d5396d83",
+      "bookingDate": "2026-02-05T00:00:00.000Z",
+      "valueDate": "2026-02-05T00:00:00.000Z",
+      "amount": "-3.20",
+      "currency": "EUR",
+      "description": "CAFE MÄRCHEN MUSTERSTADT 2026-02-05T08:10:00",
+      "counterparty": null,
+      "raw": {
+        "Buchungstag": "05.02.2026",
+        "Wertstellung (Valuta)": "05.02.2026",
+        "Vorgang": "Kartenverfügung",
+        "Buchungstext": "Kto/IBAN: DE00000000000000000000 Buchungstext: CAFE MÄRCHEN MUSTERSTADT 2026-02-05T08:10:00",
+        "Umsatz in EUR": "-3,20",
+        "Column 6": ""
+      }
+    },
+    {
+      "externalId": "839d0fec43e17ba493898127",
+      "bookingDate": "2026-02-03T00:00:00.000Z",
+      "valueDate": "2026-02-03T00:00:00.000Z",
+      "amount": "1800.00",
+      "currency": "EUR",
+      "description": "Gehalt Februar 2026",
+      "counterparty": "Fiktiv Werke GmbH",
+      "raw": {
+        "Buchungstag": "03.02.2026",
+        "Wertstellung (Valuta)": "03.02.2026",
+        "Vorgang": "Übertrag / Überweisung",
+        "Buchungstext": "Auftraggeber: Fiktiv Werke GmbH Kto/IBAN: DE96100500000000123456 BLZ/BIC: BELADEBEXXX Buchungstext: Gehalt Februar 2026 Ref. FICT0002",
+        "Umsatz in EUR": "1.800,00",
+        "Column 6": ""
+      }
+    }
+  ],
+  "skipped": 2,
+  "layout": {
+    "version": 1,
+    "name": "comdirect",
+    "profile": "comdirect",
+    "separator": ";",
+    "header": [
+      "Buchungstag",
+      "Wertstellung (Valuta)",
+      "Vorgang",
+      "Buchungstext",
+      "Umsatz in EUR"
+    ],
+    "dateFormat": "DD.MM.YYYY",
+    "numberFormat": "de",
+    "columns": {
+      "date": 0,
+      "valueDate": 1,
+      "amount": 4,
+      "kind": 2,
+      "text": [
+        3
+      ]
+    },
+    "labelledText": {
+      "labels": [
+        "Auftraggeber",
+        "Empfänger",
+        "Zahlungspflichtiger",
+        "Kto/IBAN",
+        "BLZ/BIC",
+        "Buchungstext",
+        "Ref"
+      ],
+      "counterparty": [
+        "Empfänger",
+        "Zahlungspflichtiger",
+        "Auftraggeber"
+      ],
+      "text": [
+        "Buchungstext"
+      ]
+    }
+  },
+  "bank": {
+    "id": "comdirect",
+    "name": "comdirect (Girokonto)"
+  },
+  "encoding": "windows-1252"
+}

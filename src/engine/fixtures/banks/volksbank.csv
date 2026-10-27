@@ -1,0 +1,5 @@
+﻿Bezeichnung Auftragskonto;IBAN Auftragskonto;BIC Auftragskonto;Bankname Auftragskonto;Buchungstag;Valutadatum;Name Zahlungsbeteiligter;IBAN Zahlungsbeteiligter;BIC (SWIFT-Code) Zahlungsbeteiligter;Buchungstext;Verwendungszweck;Betrag;Waehrung;Saldo nach Buchung;Bemerkung;Gekennzeichneter Umsatz;Glaeubiger ID;Mandatsreferenz
+Girokonto;DE25100900000000202122;BEVODEBBXXX;Fiktive Volksbank eG;03.02.2026;03.02.2026;Fiktiv Werke GmbH;DE96100500000000123456;BELADEBEXXX;Gutschrift;Gehalt Februar 2026;1800;EUR;2300;;;;
+Girokonto;DE25100900000000202122;BEVODEBBXXX;Fiktive Volksbank eG;04.02.2026;04.02.2026;Café Märchen;;;Kartenzahlung;Kartenzahlung girocard;-3,2;EUR;2296,8;;;;
+Girokonto;DE25100900000000202122;BEVODEBBXXX;Fiktive Volksbank eG;04.02.2026;04.02.2026;Café Märchen;;;Kartenzahlung;Kartenzahlung girocard;-3,2;EUR;2293,6;;;;
+Girokonto;DE25100900000000202122;BEVODEBBXXX;Fiktive Volksbank eG;06.02.2026;06.02.2026;Fiktiv Stadtwerke;DE34701500000000246810;SSKMDEMMXXX;Basislastschrift;Abschlag Strom Februar;-36,40;EUR;2257,20;;;DE98ZZZ09999999999;FICT-MANDAT-7

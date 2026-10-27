@@ -1,0 +1,133 @@
+{
+  "format": "csv",
+  "account": {
+    "name": "ING ••4321",
+    "currency": "EUR",
+    "iban": "DE67500105170000654321"
+  },
+  "transactions": [
+    {
+      "externalId": "b775445a6832598ac9af3166",
+      "bookingDate": "2026-02-06T00:00:00.000Z",
+      "valueDate": "2026-02-06T00:00:00.000Z",
+      "amount": "-36.40",
+      "balance": "2257.20",
+      "currency": "EUR",
+      "description": "Abschlag Strom Februar",
+      "counterparty": "Fiktiv Stadtwerke",
+      "raw": {
+        "Buchung": "06.02.2026",
+        "Wertstellungsdatum": "06.02.2026",
+        "Auftraggeber/Empfänger": "Fiktiv Stadtwerke",
+        "Buchungstext": "Lastschrift",
+        "Verwendungszweck": "Abschlag Strom Februar",
+        "Saldo": "2.257,20",
+        "Währung": "EUR",
+        "Betrag": "-36,40",
+        "Währung (2)": "EUR"
+      }
+    },
+    {
+      "externalId": "f2059353ab90b82999e98536",
+      "bookingDate": "2026-02-05T00:00:00.000Z",
+      "valueDate": "2026-02-05T00:00:00.000Z",
+      "amount": "-3.20",
+      "balance": "2293.60",
+      "currency": "EUR",
+      "description": "Lastschrift",
+      "counterparty": "Café Märchen",
+      "raw": {
+        "Buchung": "05.02.2026",
+        "Wertstellungsdatum": "05.02.2026",
+        "Auftraggeber/Empfänger": "Café Märchen",
+        "Buchungstext": "Lastschrift",
+        "Verwendungszweck": "",
+        "Saldo": "2.293,60",
+        "Währung": "EUR",
+        "Betrag": "-3,20",
+        "Währung (2)": "EUR"
+      }
+    },
+    {
+      "externalId": "b2b572cbcb53f7efc386e160",
+      "bookingDate": "2026-02-05T00:00:00.000Z",
+      "valueDate": "2026-02-05T00:00:00.000Z",
+      "amount": "-3.20",
+      "balance": "2296.80",
+      "currency": "EUR",
+      "description": "Lastschrift",
+      "counterparty": "Café Märchen",
+      "raw": {
+        "Buchung": "05.02.2026",
+        "Wertstellungsdatum": "05.02.2026",
+        "Auftraggeber/Empfänger": "Café Märchen",
+        "Buchungstext": "Lastschrift",
+        "Verwendungszweck": "",
+        "Saldo": "2.296,80",
+        "Währung": "EUR",
+        "Betrag": "-3,20",
+        "Währung (2)": "EUR"
+      }
+    },
+    {
+      "externalId": "8137aaa870ad320805cf24f3",
+      "bookingDate": "2026-02-03T00:00:00.000Z",
+      "valueDate": "2026-02-03T00:00:00.000Z",
+      "amount": "1800.00",
+      "balance": "2300.00",
+      "currency": "EUR",
+      "description": "Gehalt Februar 2026",
+      "counterparty": "Fiktiv Werke GmbH",
+      "raw": {
+        "Buchung": "03.02.2026",
+        "Wertstellungsdatum": "03.02.2026",
+        "Auftraggeber/Empfänger": "Fiktiv Werke GmbH",
+        "Buchungstext": "Gehalt/Rente",
+        "Verwendungszweck": "Gehalt Februar 2026",
+        "Saldo": "2.300,00",
+        "Währung": "EUR",
+        "Betrag": "1.800,00",
+        "Währung (2)": "EUR"
+      }
+    }
+  ],
+  "skipped": 0,
+  "layout": {
+    "version": 1,
+    "name": "ING",
+    "profile": "ing",
+    "separator": ";",
+    "header": [
+      "Buchung",
+      "Wertstellungsdatum",
+      "Auftraggeber/Empfänger",
+      "Buchungstext",
+      "Verwendungszweck",
+      "Saldo",
+      "Währung",
+      "Betrag",
+      "Währung"
+    ],
+    "dateFormat": "DD.MM.YYYY",
+    "numberFormat": "de",
+    "columns": {
+      "date": 0,
+      "valueDate": 1,
+      "amount": 7,
+      "kind": 3,
+      "balance": 5,
+      "currency": 8,
+      "counterparty": [
+        2
+      ],
+      "text": [
+        4
+      ]
+    }
+  },
+  "bank": {
+    "id": "ing",
+    "name": "ING (Umsatzanzeige)"
+  },
+  "encoding": "windows-1252"
+}

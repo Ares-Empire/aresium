@@ -1,0 +1,166 @@
+{
+  "format": "csv",
+  "account": {
+    "name": "Trade Republic",
+    "currency": "EUR"
+  },
+  "transactions": [
+    {
+      "externalId": "3f2b1c4d-0000-4000-8000-000000000001",
+      "bookingDate": "2026-04-20T00:00:00.000Z",
+      "amount": "500.00",
+      "currency": "EUR",
+      "description": "Sparen Einzahlung",
+      "counterparty": "Erika Mustermann",
+      "raw": {
+        "datetime": "2026-04-20T07:21:17.574610Z",
+        "date": "2026-04-20",
+        "account_type": "DEFAULT",
+        "category": "CASH",
+        "type": "CUSTOMER_INPAYMENT",
+        "asset_class": "",
+        "name": "",
+        "symbol": "",
+        "shares": "",
+        "price": "",
+        "amount": "500.000000",
+        "fee": "",
+        "tax": "",
+        "currency": "EUR",
+        "original_amount": "",
+        "original_currency": "",
+        "fx_rate": "",
+        "description": "Einzahlung",
+        "transaction_id": "3f2b1c4d-0000-4000-8000-000000000001",
+        "counterparty_name": "Erika Mustermann",
+        "counterparty_iban": "DE96100500000000123456",
+        "payment_reference": "Sparen",
+        "mcc_code": ""
+      }
+    },
+    {
+      "externalId": "3f2b1c4d-0000-4000-8000-000000000002",
+      "bookingDate": "2026-04-21T00:00:00.000Z",
+      "amount": "-265.96",
+      "currency": "EUR",
+      "description": "Kauf Fiktiv Welt ETF",
+      "counterparty": "Fiktiv Welt ETF",
+      "raw": {
+        "datetime": "2026-04-21T09:00:00.000Z",
+        "date": "2026-04-21",
+        "account_type": "DEFAULT",
+        "category": "TRADING",
+        "type": "BUY",
+        "asset_class": "FUND",
+        "name": "Fiktiv Welt ETF",
+        "symbol": "XF0000000001",
+        "shares": "2.5000000000",
+        "price": "105.9840000000",
+        "amount": "-264.960000",
+        "fee": "-1.00",
+        "tax": "",
+        "currency": "EUR",
+        "original_amount": "",
+        "original_currency": "",
+        "fx_rate": "",
+        "description": "Kauf Fiktiv Welt ETF",
+        "transaction_id": "3f2b1c4d-0000-4000-8000-000000000002",
+        "counterparty_name": "",
+        "counterparty_iban": "",
+        "payment_reference": "",
+        "mcc_code": ""
+      }
+    },
+    {
+      "externalId": "3f2b1c4d-0000-4000-8000-000000000003",
+      "bookingDate": "2026-04-22T00:00:00.000Z",
+      "amount": "-27.27",
+      "currency": "EUR",
+      "description": "Fiktiv Restaurant",
+      "counterparty": "Fiktiv Restaurant",
+      "raw": {
+        "datetime": "2026-04-22T17:30:05Z",
+        "date": "2026-04-22",
+        "account_type": "DEFAULT",
+        "category": "CASH",
+        "type": "CARD_TRANSACTION",
+        "asset_class": "",
+        "name": "Fiktiv Restaurant",
+        "symbol": "",
+        "shares": "",
+        "price": "",
+        "amount": "-27.270000",
+        "fee": "",
+        "tax": "",
+        "currency": "EUR",
+        "original_amount": "",
+        "original_currency": "",
+        "fx_rate": "",
+        "description": "",
+        "transaction_id": "3f2b1c4d-0000-4000-8000-000000000003",
+        "counterparty_name": "",
+        "counterparty_iban": "",
+        "payment_reference": "",
+        "mcc_code": "5812"
+      }
+    }
+  ],
+  "skipped": 0,
+  "layout": {
+    "version": 1,
+    "name": "Trade Republic",
+    "profile": "trade-republic",
+    "separator": ",",
+    "header": [
+      "datetime",
+      "date",
+      "account_type",
+      "category",
+      "type",
+      "asset_class",
+      "name",
+      "symbol",
+      "shares",
+      "price",
+      "amount",
+      "fee",
+      "tax",
+      "currency",
+      "original_amount",
+      "original_currency",
+      "fx_rate",
+      "description",
+      "transaction_id",
+      "counterparty_name",
+      "counterparty_iban",
+      "payment_reference",
+      "mcc_code"
+    ],
+    "dateFormat": "YYYY-MM-DD",
+    "numberFormat": "en",
+    "columns": {
+      "date": 1,
+      "amount": 10,
+      "iban": 20,
+      "currency": 13,
+      "reference": 18,
+      "counterparty": [
+        19,
+        6
+      ],
+      "text": [
+        21,
+        17
+      ],
+      "addAmounts": [
+        11,
+        12
+      ]
+    }
+  },
+  "bank": {
+    "id": "trade-republic",
+    "name": "Trade Republic (Transaktionsexport, since 2026)"
+  },
+  "encoding": "utf-8"
+}

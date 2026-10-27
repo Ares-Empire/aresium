@@ -1,0 +1,78 @@
+{
+  "format": "csv",
+  "bank": {
+    "id": "volksbank",
+    "name": "VR Bank (Atruvia CSV, since 2022)"
+  },
+  "account": {
+    "name": "VR Bank ••2122",
+    "currency": "EUR",
+    "iban": "DE25100900000000202122"
+  },
+  "transactions": [
+    {
+      "externalId": "66d8658053e5747db37948bd",
+      "amount": "-650.00",
+      "balance": "1150.00",
+      "currency": "EUR",
+      "description": "Miete März",
+      "counterparty": "Fiktiv Vermietung",
+      "raw": {
+        "Bezeichnung Auftragskonto": "Girokonto",
+        "IBAN Auftragskonto": "DE25100900000000202122",
+        "BIC Auftragskonto": "BEVODEBBXXX",
+        "Bankname Auftragskonto": "Fiktive Volksbank eG",
+        "Buchungstag": "01.03.2024",
+        "Valutadatum": "01.03.2024",
+        "Name Zahlungsbeteiligter": "Fiktiv Vermietung",
+        "IBAN Zahlungsbeteiligter": "DE34701500000000246810",
+        "BIC (SWIFT-Code) Zahlungsbeteiligter": "SSKMDEMMXXX",
+        "Buchungstext": "Dauerauftrag",
+        "Verwendungszweck": "Miete März",
+        "Betrag": "-650,00",
+        "Waehrung": "EUR",
+        "Saldo nach Buchung": "1150,00",
+        "Bemerkung": "",
+        "Kategorie": "Wohnen",
+        "Steuerrelevant": "",
+        "Glaeubiger ID": "",
+        "Mandatsreferenz": ""
+      },
+      "bookingDate": "2024-03-01T00:00:00.000Z",
+      "valueDate": "2024-03-01T00:00:00.000Z"
+    },
+    {
+      "externalId": "8c746e54c9b5d828e8123e8a",
+      "amount": "-41.95",
+      "balance": "1108.05",
+      "currency": "EUR",
+      "description": "Einkauf",
+      "counterparty": "Fiktiv Markt",
+      "raw": {
+        "Bezeichnung Auftragskonto": "Girokonto",
+        "IBAN Auftragskonto": "DE25100900000000202122",
+        "BIC Auftragskonto": "BEVODEBBXXX",
+        "Bankname Auftragskonto": "Fiktive Volksbank eG",
+        "Buchungstag": "02.03.2024",
+        "Valutadatum": "02.03.2024",
+        "Name Zahlungsbeteiligter": "Fiktiv Markt",
+        "IBAN Zahlungsbeteiligter": "",
+        "BIC (SWIFT-Code) Zahlungsbeteiligter": "",
+        "Buchungstext": "Kartenzahlung",
+        "Verwendungszweck": "Einkauf",
+        "Betrag": "-41,95",
+        "Waehrung": "EUR",
+        "Saldo nach Buchung": "1108,05",
+        "Bemerkung": "",
+        "Kategorie": "Lebensmittel",
+        "Steuerrelevant": "",
+        "Glaeubiger ID": "",
+        "Mandatsreferenz": ""
+      },
+      "bookingDate": "2024-03-02T00:00:00.000Z",
+      "valueDate": "2024-03-02T00:00:00.000Z"
+    }
+  ],
+  "skipped": 0,
+  "encoding": "utf-8"
+}

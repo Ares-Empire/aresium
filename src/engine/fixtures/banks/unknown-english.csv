@@ -1,0 +1,4 @@
+Transaction date,Posting date,Merchant,Details,Amount,Currency,Running balance
+13/02/2026,14/02/2026,Fiktiv Coffee,Card payment,-3.50,EUR,996.50
+14/02/2026,14/02/2026,"Fiktiv Books, Ltd",Card payment,-21.99,EUR,974.51
+15/02/2026,16/02/2026,Fiktiv Employer,Salary,"2,000.00",EUR,"2,974.51"

@@ -1,0 +1,145 @@
+{
+  "format": "csv",
+  "account": {
+    "name": "Deutsche Bank ••3334",
+    "currency": "EUR",
+    "iban": "DE33100700000000323334"
+  },
+  "transactions": [
+    {
+      "externalId": "48a09d2050a825433bc6d330",
+      "bookingDate": "2026-02-06T00:00:00.000Z",
+      "valueDate": "2026-02-06T00:00:00.000Z",
+      "amount": "-36.40",
+      "currency": "EUR",
+      "description": "Abschlag Strom Februar",
+      "counterparty": "Fiktiv Stadtwerke",
+      "raw": {
+        "Buchungstag": "6.2.2026",
+        "Wert": "6.2.2026",
+        "Umsatzart": "SEPA-Lastschrift",
+        "Begünstigter / Auftraggeber": "Fiktiv Stadtwerke",
+        "Verwendungszweck": "Abschlag Strom Februar",
+        "IBAN / Kontonummer": "DE34701500000000246810",
+        "BIC": "SSKMDEMMXXX",
+        "Kundenreferenz": "FICT-E2E-0001",
+        "Mandatsreferenz": "FICT-MANDAT-7",
+        "Gläubiger ID": "DE98ZZZ09999999999",
+        "Fremde Gebühren": "",
+        "Betrag": "-36,4",
+        "Abweichender Empfänger": "",
+        "Anzahl der Aufträge": "",
+        "Anzahl der Schecks": "",
+        "Soll": "-36,4",
+        "Haben": "",
+        "Währung": "EUR"
+      }
+    },
+    {
+      "externalId": "c4d2042c2072dfb740a52d2a",
+      "bookingDate": "2026-02-04T00:00:00.000Z",
+      "valueDate": "2026-02-04T00:00:00.000Z",
+      "amount": "-1080.00",
+      "currency": "EUR",
+      "description": "Miete Februar",
+      "counterparty": "Fiktiv Vermietung",
+      "raw": {
+        "Buchungstag": "4.2.2026",
+        "Wert": "4.2.2026",
+        "Umsatzart": "SEPA-Überweisung",
+        "Begünstigter / Auftraggeber": "Fiktiv Vermietung",
+        "Verwendungszweck": "Miete Februar",
+        "IBAN / Kontonummer": "DE25100900000000202122",
+        "BIC": "BEVODEBBXXX",
+        "Kundenreferenz": "",
+        "Mandatsreferenz": "",
+        "Gläubiger ID": "",
+        "Fremde Gebühren": "",
+        "Betrag": "-1.080",
+        "Abweichender Empfänger": "",
+        "Anzahl der Aufträge": "",
+        "Anzahl der Schecks": "",
+        "Soll": "-1.080",
+        "Haben": "",
+        "Währung": "EUR"
+      }
+    },
+    {
+      "externalId": "9ff9e62da94c532eb083622d",
+      "bookingDate": "2026-02-03T00:00:00.000Z",
+      "valueDate": "2026-02-03T00:00:00.000Z",
+      "amount": "1800.00",
+      "currency": "EUR",
+      "description": "Gehalt Februar 2026",
+      "counterparty": "Fiktiv Werke GmbH",
+      "raw": {
+        "Buchungstag": "3.2.2026",
+        "Wert": "3.2.2026",
+        "Umsatzart": "SEPA-Überweisung",
+        "Begünstigter / Auftraggeber": "Fiktiv Werke GmbH",
+        "Verwendungszweck": "Gehalt Februar 2026",
+        "IBAN / Kontonummer": "DE96100500000000123456",
+        "BIC": "BELADEBEXXX",
+        "Kundenreferenz": "LOHN-2026-02",
+        "Mandatsreferenz": "",
+        "Gläubiger ID": "",
+        "Fremde Gebühren": "",
+        "Betrag": "1.800",
+        "Abweichender Empfänger": "",
+        "Anzahl der Aufträge": "",
+        "Anzahl der Schecks": "",
+        "Soll": "",
+        "Haben": "1.800",
+        "Währung": "EUR"
+      }
+    }
+  ],
+  "skipped": 1,
+  "layout": {
+    "version": 1,
+    "name": "Deutsche Bank",
+    "profile": "deutsche-bank",
+    "separator": ";",
+    "header": [
+      "Buchungstag",
+      "Wert",
+      "Umsatzart",
+      "Begünstigter / Auftraggeber",
+      "Verwendungszweck",
+      "IBAN / Kontonummer",
+      "BIC",
+      "Kundenreferenz",
+      "Mandatsreferenz",
+      "Gläubiger ID",
+      "Fremde Gebühren",
+      "Betrag",
+      "Abweichender Empfänger",
+      "Anzahl der Aufträge",
+      "Anzahl der Schecks",
+      "Soll",
+      "Haben",
+      "Währung"
+    ],
+    "dateFormat": "DD.MM.YYYY",
+    "numberFormat": "de",
+    "columns": {
+      "date": 0,
+      "valueDate": 1,
+      "amount": 11,
+      "kind": 2,
+      "iban": 5,
+      "currency": 17,
+      "counterparty": [
+        3
+      ],
+      "text": [
+        4
+      ]
+    }
+  },
+  "bank": {
+    "id": "deutsche-bank",
+    "name": "Deutsche Bank (since 2023 at Postbank, 2025 at Deutsche Bank)"
+  },
+  "encoding": "utf-8"
+}

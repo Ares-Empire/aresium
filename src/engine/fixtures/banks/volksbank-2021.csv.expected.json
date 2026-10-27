@@ -1,0 +1,133 @@
+{
+  "format": "csv",
+  "account": {
+    "name": "VR Bank",
+    "currency": "EUR"
+  },
+  "transactions": [
+    {
+      "externalId": "bf10c69041ed7b5b3929fd15",
+      "bookingDate": "2022-01-03T00:00:00.000Z",
+      "valueDate": "2022-01-03T00:00:00.000Z",
+      "amount": "1800.00",
+      "currency": "EUR",
+      "description": "GUTSCHRIFT Gehalt Dezember",
+      "counterparty": "Fiktiv Werke GmbH",
+      "raw": {
+        "Buchungstag": "03.01.2022",
+        "Valuta": "03.01.2022",
+        "Textschlüssel": "051",
+        "Primanota": "0931",
+        "Zahlungsempfänger": "Fiktiv Werke GmbH",
+        "ZahlungsempfängerKto": "0000123456",
+        "ZahlungsempfängerIBAN": "DE96100500000000123456",
+        "ZahlungsempfängerBLZ": "10050000",
+        "ZahlungsempfängerBIC": "BELADEBEXXX",
+        "Vorgang/Verwendungszweck": "GUTSCHRIFT Gehalt Dezember",
+        "Kundenreferenz": "NONREF",
+        "Währung": "EUR",
+        "Umsatz": "1.800,00",
+        "Soll/Haben": "H"
+      }
+    },
+    {
+      "externalId": "048fb678d73810bf51f3aef9",
+      "bookingDate": "2022-01-04T00:00:00.000Z",
+      "valueDate": "2022-01-04T00:00:00.000Z",
+      "amount": "-41.95",
+      "currency": "EUR",
+      "description": "KARTENZAHLUNG Einkauf Fiktiv Markt Musterstadt",
+      "counterparty": "Fiktiv Markt",
+      "raw": {
+        "Buchungstag": "04.01.2022",
+        "Valuta": "04.01.2022",
+        "Textschlüssel": "005",
+        "Primanota": "9248",
+        "Zahlungsempfänger": "Fiktiv Markt",
+        "ZahlungsempfängerKto": "",
+        "ZahlungsempfängerIBAN": "",
+        "ZahlungsempfängerBLZ": "",
+        "ZahlungsempfängerBIC": "",
+        "Vorgang/Verwendungszweck": "KARTENZAHLUNG Einkauf Fiktiv Markt Musterstadt",
+        "Kundenreferenz": "NONREF",
+        "Währung": "EUR",
+        "Umsatz": "41,95",
+        "Soll/Haben": "S"
+      }
+    },
+    {
+      "externalId": "2266bbdcee6fb8fbd3c27000",
+      "bookingDate": "2022-01-05T00:00:00.000Z",
+      "valueDate": "2022-01-05T00:00:00.000Z",
+      "amount": "-36.40",
+      "currency": "EUR",
+      "description": "LASTSCHRIFT Abschlag Strom Januar",
+      "counterparty": "Fiktiv Stadtwerke",
+      "raw": {
+        "Buchungstag": "05.01.2022",
+        "Valuta": "05.01.2022",
+        "Textschlüssel": "105",
+        "Primanota": "0931",
+        "Zahlungsempfänger": "Fiktiv Stadtwerke",
+        "ZahlungsempfängerKto": "0000246810",
+        "ZahlungsempfängerIBAN": "DE34701500000000246810",
+        "ZahlungsempfängerBLZ": "70150000",
+        "ZahlungsempfängerBIC": "SSKMDEMMXXX",
+        "Vorgang/Verwendungszweck": "LASTSCHRIFT Abschlag Strom Januar",
+        "Kundenreferenz": "FICT-E2E-0002",
+        "Währung": "EUR",
+        "Umsatz": "36,40",
+        "Soll/Haben": "S"
+      }
+    }
+  ],
+  "skipped": 2,
+  "layout": {
+    "version": 1,
+    "name": "VR Bank",
+    "profile": "volksbank-2021",
+    "separator": ";",
+    "header": [
+      "Buchungstag",
+      "Valuta",
+      "Textschlüssel",
+      "Primanota",
+      "Zahlungsempfänger",
+      "ZahlungsempfängerKto",
+      "ZahlungsempfängerIBAN",
+      "ZahlungsempfängerBLZ",
+      "ZahlungsempfängerBIC",
+      "Vorgang/Verwendungszweck",
+      "Kundenreferenz",
+      "Währung",
+      "Umsatz",
+      "Soll/Haben"
+    ],
+    "dateFormat": "DD.MM.YYYY",
+    "numberFormat": "de",
+    "columns": {
+      "date": 0,
+      "valueDate": 1,
+      "amount": 12,
+      "sign": 13,
+      "iban": 6,
+      "currency": 11,
+      "status": 10,
+      "counterparty": [
+        4
+      ],
+      "text": [
+        9
+      ]
+    },
+    "skipStatus": [
+      "anfangssaldo",
+      "endsaldo"
+    ]
+  },
+  "bank": {
+    "id": "volksbank-2021",
+    "name": "VR Bank (Fiducia CSV, 2021–2022)"
+  },
+  "encoding": "windows-1252"
+}

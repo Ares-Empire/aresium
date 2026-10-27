@@ -1,0 +1,148 @@
+{
+  "format": "csv",
+  "account": {
+    "name": "C24",
+    "currency": "EUR"
+  },
+  "transactions": [
+    {
+      "externalId": "2783bfe26e108c1958454cd5",
+      "bookingDate": "2026-02-05T00:00:00.000Z",
+      "amount": "-3.20",
+      "currency": "EUR",
+      "description": "Café Märchen Musterstadt",
+      "counterparty": "Café Märchen",
+      "raw": {
+        "Transaktionstyp": "Kartenzahlung",
+        "Buchungsdatum": "05.02.2026",
+        "Karteneinsatz": "05.02.2026 08:10",
+        "Betrag": "-3,20 €",
+        "Zahlungsempfänger": "Café Märchen",
+        "IBAN": "",
+        "BIC": "",
+        "Verwendungszweck": "",
+        "Beschreibung": "Café Märchen Musterstadt",
+        "Kontonummer": "0000262728",
+        "Kontoname": "C24 Smartkonto",
+        "Kategorie": "Essen & Trinken",
+        "Unterkategorie": "Café",
+        "Bargeldabhebung": ""
+      }
+    },
+    {
+      "externalId": "943138bdbd4af6be19d6c7c6",
+      "bookingDate": "2026-02-05T00:00:00.000Z",
+      "amount": "-3.20",
+      "currency": "EUR",
+      "description": "Café Märchen Musterstadt",
+      "counterparty": "Café Märchen",
+      "raw": {
+        "Transaktionstyp": "Kartenzahlung",
+        "Buchungsdatum": "05.02.2026",
+        "Karteneinsatz": "05.02.2026 08:10",
+        "Betrag": "-3,20 €",
+        "Zahlungsempfänger": "Café Märchen",
+        "IBAN": "",
+        "BIC": "",
+        "Verwendungszweck": "",
+        "Beschreibung": "Café Märchen Musterstadt",
+        "Kontonummer": "0000262728",
+        "Kontoname": "C24 Smartkonto",
+        "Kategorie": "Essen & Trinken",
+        "Unterkategorie": "Café",
+        "Bargeldabhebung": ""
+      }
+    },
+    {
+      "externalId": "b7a3289c86f0276bcbfe009f",
+      "bookingDate": "2026-02-04T00:00:00.000Z",
+      "amount": "-650.00",
+      "currency": "EUR",
+      "description": "Miete Februar",
+      "counterparty": "Fiktiv Vermietung",
+      "raw": {
+        "Transaktionstyp": "SEPA-Überweisung",
+        "Buchungsdatum": "04.02.2026",
+        "Karteneinsatz": "",
+        "Betrag": "-650,00 €",
+        "Zahlungsempfänger": "Fiktiv Vermietung",
+        "IBAN": "DE25100900000000202122",
+        "BIC": "BEVODEBBXXX",
+        "Verwendungszweck": "Miete Februar",
+        "Beschreibung": "",
+        "Kontonummer": "0000262728",
+        "Kontoname": "C24 Smartkonto",
+        "Kategorie": "Wohnen",
+        "Unterkategorie": "Miete",
+        "Bargeldabhebung": ""
+      }
+    },
+    {
+      "externalId": "6208c94a7753abd727822adc",
+      "bookingDate": "2026-02-03T00:00:00.000Z",
+      "amount": "1800.00",
+      "currency": "EUR",
+      "description": "Gehalt Februar 2026",
+      "counterparty": "Fiktiv Werke GmbH",
+      "raw": {
+        "Transaktionstyp": "SEPA-Überweisung",
+        "Buchungsdatum": "03.02.2026",
+        "Karteneinsatz": "",
+        "Betrag": "1800,00 €",
+        "Zahlungsempfänger": "Fiktiv Werke GmbH",
+        "IBAN": "DE96100500000000123456",
+        "BIC": "BELADEBEXXX",
+        "Verwendungszweck": "Gehalt Februar 2026",
+        "Beschreibung": "",
+        "Kontonummer": "0000262728",
+        "Kontoname": "C24 Smartkonto",
+        "Kategorie": "Einkommen",
+        "Unterkategorie": "Gehalt",
+        "Bargeldabhebung": ""
+      }
+    }
+  ],
+  "skipped": 0,
+  "layout": {
+    "version": 1,
+    "name": "C24",
+    "profile": "c24",
+    "separator": ",",
+    "header": [
+      "Transaktionstyp",
+      "Buchungsdatum",
+      "Karteneinsatz",
+      "Betrag",
+      "Zahlungsempfänger",
+      "IBAN",
+      "BIC",
+      "Verwendungszweck",
+      "Beschreibung",
+      "Kontonummer",
+      "Kontoname",
+      "Kategorie",
+      "Unterkategorie",
+      "Bargeldabhebung"
+    ],
+    "dateFormat": "DD.MM.YYYY",
+    "numberFormat": "de",
+    "columns": {
+      "date": 1,
+      "amount": 3,
+      "kind": 0,
+      "iban": 5,
+      "counterparty": [
+        4
+      ],
+      "text": [
+        7,
+        8
+      ]
+    }
+  },
+  "bank": {
+    "id": "c24",
+    "name": "C24 (Smartkonto)"
+  },
+  "encoding": "utf-8"
+}

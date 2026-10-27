@@ -1,0 +1,182 @@
+{
+  "format": "csv",
+  "transactions": [],
+  "needsLayout": {
+    "layout": {
+      "version": 1,
+      "separator": ",",
+      "header": [
+        "Transaction date",
+        "Posting date",
+        "Merchant",
+        "Details",
+        "Amount",
+        "Currency",
+        "Running balance"
+      ],
+      "dateFormat": "DD/MM/YYYY",
+      "numberFormat": "en",
+      "columns": {
+        "date": 0,
+        "valueDate": 1,
+        "amount": 4,
+        "counterparty": [
+          2
+        ],
+        "text": [
+          3
+        ],
+        "balance": 6,
+        "currency": 5
+      }
+    },
+    "confidence": 1,
+    "unsure": [],
+    "missing": [],
+    "separator": ",",
+    "header": [
+      "Transaction date",
+      "Posting date",
+      "Merchant",
+      "Details",
+      "Amount",
+      "Currency",
+      "Running balance"
+    ],
+    "headerRow": 0,
+    "columns": [
+      {
+        "index": 0,
+        "header": "Transaction date",
+        "kind": "date",
+        "samples": [
+          "13/02/2026",
+          "14/02/2026",
+          "15/02/2026"
+        ],
+        "dateFormat": "DD/MM/YYYY"
+      },
+      {
+        "index": 1,
+        "header": "Posting date",
+        "kind": "date",
+        "samples": [
+          "14/02/2026",
+          "14/02/2026",
+          "16/02/2026"
+        ],
+        "dateFormat": "DD/MM/YYYY"
+      },
+      {
+        "index": 2,
+        "header": "Merchant",
+        "kind": "text",
+        "samples": [
+          "Fiktiv Coffee",
+          "Fiktiv Books, Ltd",
+          "Fiktiv Employer"
+        ]
+      },
+      {
+        "index": 3,
+        "header": "Details",
+        "kind": "text",
+        "samples": [
+          "Card payment",
+          "Card payment",
+          "Salary"
+        ]
+      },
+      {
+        "index": 4,
+        "header": "Amount",
+        "kind": "amount",
+        "samples": [
+          "-3.50",
+          "-21.99",
+          "2,000.00"
+        ]
+      },
+      {
+        "index": 5,
+        "header": "Currency",
+        "kind": "currency",
+        "samples": [
+          "EUR",
+          "EUR",
+          "EUR"
+        ]
+      },
+      {
+        "index": 6,
+        "header": "Running balance",
+        "kind": "amount",
+        "samples": [
+          "996.50",
+          "974.51",
+          "2,974.51"
+        ]
+      }
+    ],
+    "preview": [
+      {
+        "externalId": "266693060edce47a14644139",
+        "bookingDate": "2026-02-13T00:00:00.000Z",
+        "valueDate": "2026-02-14T00:00:00.000Z",
+        "amount": "-3.50",
+        "balance": "996.50",
+        "currency": "EUR",
+        "description": "Card payment",
+        "counterparty": "Fiktiv Coffee",
+        "raw": {
+          "Transaction date": "13/02/2026",
+          "Posting date": "14/02/2026",
+          "Merchant": "Fiktiv Coffee",
+          "Details": "Card payment",
+          "Amount": "-3.50",
+          "Currency": "EUR",
+          "Running balance": "996.50"
+        }
+      },
+      {
+        "externalId": "8b684f620e52190c8a087df4",
+        "bookingDate": "2026-02-14T00:00:00.000Z",
+        "valueDate": "2026-02-14T00:00:00.000Z",
+        "amount": "-21.99",
+        "balance": "974.51",
+        "currency": "EUR",
+        "description": "Card payment",
+        "counterparty": "Fiktiv Books, Ltd",
+        "raw": {
+          "Transaction date": "14/02/2026",
+          "Posting date": "14/02/2026",
+          "Merchant": "Fiktiv Books, Ltd",
+          "Details": "Card payment",
+          "Amount": "-21.99",
+          "Currency": "EUR",
+          "Running balance": "974.51"
+        }
+      },
+      {
+        "externalId": "c6b90f0f5a038ab6fad6282b",
+        "bookingDate": "2026-02-15T00:00:00.000Z",
+        "valueDate": "2026-02-16T00:00:00.000Z",
+        "amount": "2000.00",
+        "balance": "2974.51",
+        "currency": "EUR",
+        "description": "Salary",
+        "counterparty": "Fiktiv Employer",
+        "raw": {
+          "Transaction date": "15/02/2026",
+          "Posting date": "16/02/2026",
+          "Merchant": "Fiktiv Employer",
+          "Details": "Salary",
+          "Amount": "2,000.00",
+          "Currency": "EUR",
+          "Running balance": "2,974.51"
+        }
+      }
+    ]
+  },
+  "encoding": "utf-8"
+}

@@ -1,0 +1,85 @@
+{
+  "format": "csv",
+  "account": {
+    "name": "ING ••4321",
+    "currency": "EUR",
+    "iban": "DE67500105170000654321"
+  },
+  "transactions": [
+    {
+      "externalId": "4b474f8b4b3be343b56bfe18",
+      "bookingDate": "2026-10-06T00:00:00.000Z",
+      "valueDate": "2026-10-06T00:00:00.000Z",
+      "amount": "-36.40",
+      "currency": "EUR",
+      "description": "Abschlag Strom Oktober",
+      "counterparty": "Fiktiv Stadtwerke",
+      "raw": {
+        "Buchung": "06.10.2026",
+        "Wertstellungsdatum": "06.10.2026",
+        "Auftraggeber/Empfänger": "Fiktiv Stadtwerke",
+        "Buchungstext": "Lastschrift",
+        "Verwendungszweck": "Abschlag Strom Oktober",
+        "Referenz": "FICT-REF-0001",
+        "Betrag": "-36,40",
+        "Währung": "EUR"
+      }
+    },
+    {
+      "externalId": "459a45c2f578a03831716c4c",
+      "bookingDate": "2026-10-05T00:00:00.000Z",
+      "valueDate": "2026-10-05T00:00:00.000Z",
+      "amount": "-24.99",
+      "currency": "EUR",
+      "description": "Einkauf Bücher",
+      "counterparty": "Fiktiv Buchladen",
+      "raw": {
+        "Buchung": "05.10.2026",
+        "Wertstellungsdatum": "05.10.2026",
+        "Auftraggeber/Empfänger": "Fiktiv Buchladen",
+        "Buchungstext": "Lastschrift",
+        "Verwendungszweck": "Einkauf Bücher",
+        "Referenz": "FICT-REF-0002",
+        "Betrag": "-24,99",
+        "Währung": "EUR"
+      }
+    }
+  ],
+  "skipped": 0,
+  "layout": {
+    "version": 1,
+    "name": "ING",
+    "profile": "ing",
+    "separator": ";",
+    "header": [
+      "Buchung",
+      "Wertstellungsdatum",
+      "Auftraggeber/Empfänger",
+      "Buchungstext",
+      "Verwendungszweck",
+      "Referenz",
+      "Betrag",
+      "Währung"
+    ],
+    "dateFormat": "DD.MM.YYYY",
+    "numberFormat": "de",
+    "columns": {
+      "date": 0,
+      "valueDate": 1,
+      "amount": 6,
+      "kind": 3,
+      "currency": 7,
+      "counterparty": [
+        2
+      ],
+      "text": [
+        4
+      ]
+    }
+  },
+  "bank": {
+    "id": "ing",
+    "name": "ING (Umsatzanzeige)"
+  },
+  "encoding": "windows-1252"
+}

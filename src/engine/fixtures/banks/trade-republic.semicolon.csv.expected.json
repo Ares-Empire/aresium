@@ -1,0 +1,136 @@
+{
+  "format": "csv",
+  "account": {
+    "name": "Trade Republic",
+    "currency": "EUR"
+  },
+  "transactions": [
+    {
+      "externalId": "3f2b1c4d-0000-4000-8000-000000000004",
+      "bookingDate": "2026-04-30T00:00:00.000Z",
+      "valueDate": "2026-05-01T00:00:00.000Z",
+      "amount": "0.91",
+      "currency": "EUR",
+      "description": "Zinsen",
+      "counterparty": null,
+      "raw": {
+        "datetime": "2026-04-30T06:00:00Z",
+        "date": "2026-04-30",
+        "account_type": "DEFAULT",
+        "category": "CASH",
+        "type": "INTEREST_PAYMENT",
+        "asset_class": "",
+        "name": "",
+        "symbol": "",
+        "shares": "",
+        "price": "",
+        "amount": "1.230000",
+        "fee": "",
+        "tax": "-0.32",
+        "currency": "EUR",
+        "original_amount": "",
+        "original_currency": "",
+        "fx_rate": "",
+        "description": "Zinsen",
+        "transaction_id": "3f2b1c4d-0000-4000-8000-000000000004",
+        "value_date": "2026-05-01",
+        "counterparty_name": "",
+        "counterparty_iban": "",
+        "payment_reference": ""
+      }
+    },
+    {
+      "externalId": "3f2b1c4d-0000-4000-8000-000000000005",
+      "bookingDate": "2026-04-29T00:00:00.000Z",
+      "valueDate": "2026-04-29T00:00:00.000Z",
+      "amount": "-100.00",
+      "currency": "EUR",
+      "description": "Erika Mustermann DE96100500000000123456",
+      "counterparty": null,
+      "raw": {
+        "datetime": "2026-04-29T12:00:00Z",
+        "date": "2026-04-29",
+        "account_type": "DEFAULT",
+        "category": "CASH",
+        "type": "TRANSFER_INSTANT_OUTBOUND",
+        "asset_class": "",
+        "name": "",
+        "symbol": "",
+        "shares": "",
+        "price": "",
+        "amount": "-100.000000",
+        "fee": "",
+        "tax": "",
+        "currency": "EUR",
+        "original_amount": "",
+        "original_currency": "",
+        "fx_rate": "",
+        "description": "Erika Mustermann DE96100500000000123456",
+        "transaction_id": "3f2b1c4d-0000-4000-8000-000000000005",
+        "value_date": "2026-04-29",
+        "counterparty_name": "",
+        "counterparty_iban": "",
+        "payment_reference": ""
+      }
+    }
+  ],
+  "skipped": 0,
+  "layout": {
+    "version": 1,
+    "name": "Trade Republic",
+    "profile": "trade-republic",
+    "separator": ";",
+    "header": [
+      "datetime",
+      "date",
+      "account_type",
+      "category",
+      "type",
+      "asset_class",
+      "name",
+      "symbol",
+      "shares",
+      "price",
+      "amount",
+      "fee",
+      "tax",
+      "currency",
+      "original_amount",
+      "original_currency",
+      "fx_rate",
+      "description",
+      "transaction_id",
+      "value_date",
+      "counterparty_name",
+      "counterparty_iban",
+      "payment_reference"
+    ],
+    "dateFormat": "YYYY-MM-DD",
+    "numberFormat": "en",
+    "columns": {
+      "date": 1,
+      "valueDate": 19,
+      "amount": 10,
+      "iban": 21,
+      "currency": 13,
+      "reference": 18,
+      "counterparty": [
+        20,
+        6
+      ],
+      "text": [
+        22,
+        17
+      ],
+      "addAmounts": [
+        11,
+        12
+      ]
+    }
+  },
+  "bank": {
+    "id": "trade-republic",
+    "name": "Trade Republic (Transaktionsexport, since 2026)"
+  },
+  "encoding": "utf-8"
+}

@@ -1,0 +1,114 @@
+{
+  "format": "csv",
+  "account": {
+    "name": "N26",
+    "currency": "EUR"
+  },
+  "transactions": [
+    {
+      "externalId": "48a09d2050a825433bc6d330",
+      "bookingDate": "2026-02-06T00:00:00.000Z",
+      "valueDate": "2026-02-06T00:00:00.000Z",
+      "amount": "-36.40",
+      "currency": "EUR",
+      "description": "Abschlag Strom Februar",
+      "counterparty": "Fiktiv Stadtwerke",
+      "raw": {
+        "Booking Date": "2026-02-06",
+        "Value Date": "2026-02-06",
+        "Partner Name": "Fiktiv Stadtwerke",
+        "Partner Iban": "DE34701500000000246810",
+        "Type": "Direct Debit",
+        "Payment Reference": "Abschlag Strom Februar",
+        "Account Name": "Main Account",
+        "Amount (EUR)": "-36.40",
+        "Original Amount": "",
+        "Original Currency": "",
+        "Exchange Rate": ""
+      }
+    },
+    {
+      "externalId": "4629b54dc3db6c91b39dc1ba",
+      "bookingDate": "2026-02-05T00:00:00.000Z",
+      "valueDate": "2026-02-05T00:00:00.000Z",
+      "amount": "-110.46",
+      "currency": "EUR",
+      "description": "Fiktiv Hotel London",
+      "counterparty": "Fiktiv Hotel London",
+      "raw": {
+        "Booking Date": "2026-02-05",
+        "Value Date": "2026-02-05",
+        "Partner Name": "Fiktiv Hotel London",
+        "Partner Iban": "",
+        "Type": "Presentment",
+        "Payment Reference": "",
+        "Account Name": "Main Account",
+        "Amount (EUR)": "-110.46",
+        "Original Amount": "95.00",
+        "Original Currency": "GBP",
+        "Exchange Rate": "0.8600"
+      }
+    },
+    {
+      "externalId": "9ff9e62da94c532eb083622d",
+      "bookingDate": "2026-02-03T00:00:00.000Z",
+      "valueDate": "2026-02-03T00:00:00.000Z",
+      "amount": "1800.00",
+      "currency": "EUR",
+      "description": "Gehalt Februar 2026",
+      "counterparty": "Fiktiv Werke GmbH",
+      "raw": {
+        "Booking Date": "2026-02-03",
+        "Value Date": "2026-02-03",
+        "Partner Name": "Fiktiv Werke GmbH",
+        "Partner Iban": "DE96100500000000123456",
+        "Type": "Credit Transfer",
+        "Payment Reference": "Gehalt Februar 2026",
+        "Account Name": "Main Account",
+        "Amount (EUR)": "1800.00",
+        "Original Amount": "",
+        "Original Currency": "",
+        "Exchange Rate": ""
+      }
+    }
+  ],
+  "skipped": 0,
+  "layout": {
+    "version": 1,
+    "name": "N26",
+    "profile": "n26",
+    "separator": ",",
+    "header": [
+      "Booking Date",
+      "Value Date",
+      "Partner Name",
+      "Partner Iban",
+      "Type",
+      "Payment Reference",
+      "Account Name",
+      "Amount (EUR)",
+      "Original Amount",
+      "Original Currency",
+      "Exchange Rate"
+    ],
+    "dateFormat": "YYYY-MM-DD",
+    "numberFormat": "en",
+    "columns": {
+      "date": 0,
+      "valueDate": 1,
+      "amount": 7,
+      "iban": 3,
+      "counterparty": [
+        2
+      ],
+      "text": [
+        5
+      ]
+    }
+  },
+  "bank": {
+    "id": "n26",
+    "name": "N26 (since 2023)"
+  },
+  "encoding": "utf-8"
+}
