@@ -41,6 +41,7 @@ reconsent. The tradeoff is it's semi-manual (you export periodically).
 | `src/sync/categorize.ts` | Applies `CategoryRule`s to uncategorised transactions. |
 | `src/lib/db.ts` | Shared Prisma client. |
 | `scripts/seed-categories.ts` | Starter categories + German-merchant rules. |
+| `scripts/build-shop-list.ts`, `scripts/shop-list.de.ts` | The engine's built-in shop list for other people's sorting (`src/engine/sorting/shops.de.json`): German rules written by hand plus brands from OpenStreetMap's name-suggestion-index; `npm run shops` rebuilds it. |
 
 ## Key design decisions
 
