@@ -27,7 +27,8 @@
     "typecheck": "tsc --noEmit",
     "sample": "tsx scripts/build-sample.ts",
     "test": "tsx --test src/**/*.test.ts",
-    "engine": "tsx scripts/build-engine.ts"
+    "engine": "tsx scripts/build-engine.ts",
+    "shops": "tsx scripts/build-shop-list.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.2.1",
