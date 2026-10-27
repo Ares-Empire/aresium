@@ -2,15 +2,19 @@
 // - a receipt joined to its bank payment adds nothing (the payment counts as it is);
 // - a card receipt not joined yet counts on its own, marked provisional ("waiting for the bank statement");
 // - a cash receipt counts on its own, in its category on its day, and takes its amount out of the cash withdrawals
-//   on or before its day, the oldest first. What it takes shows as one row per withdrawal, in the withdrawal's own
+//   on or before its day, the latest first and at most CASH_LOOKBACK_DAYS back (Claude's call, 2026-10-28: most cash
+//   never gets a receipt, so "the oldest first" would pile today's receipts onto months long past and change them).
+//   What it takes shows as one row per withdrawal, in the withdrawal's own
 //   category and month: a positive amount, so that category shows only the cash without a receipt and the total
 //   spending stays the same. What no withdrawal covers is spending of its own (cash from elsewhere).
-import { parseDay } from "../dates.js";
+import { dayNumber, parseDay } from "../dates.js";
 import { findShop } from "../sorting/starter-rules.js";
 import type { SourcePayment, SourceReceipt } from "../source.js";
 
 /** The dashboard's money. A receipt in another currency counts only once the app has its euro amount. */
 export const DASHBOARD_CURRENCY = "EUR";
+/** How far back a cash receipt looks for the withdrawal it was paid from: about three months. */
+export const CASH_LOOKBACK_DAYS = 92;
 /** The place shown on a withdrawal's covered row (the app may show its own words for it: the row has `coveredBy`). */
 export const COVERED_PLACE = "Covered by receipts";
 
@@ -51,14 +55,18 @@ export function receiptRows(payments: readonly SourcePayment[], receipts: readon
     else { rows.push(row(r)); cash.push(r); }
   }
 
-  // The pool: each withdrawal's amount, taken by the cash receipts in date order, oldest withdrawal first.
-  const pool = payments.filter(isCashWithdrawal).map((p) => ({ payment: p, left: cents(-p.amount), taken: 0, by: [] as string[] }));
+  // The pool: each withdrawal's amount, taken by the cash receipts in date order; each receipt takes from the latest
+  // withdrawal on or before its day first, then the ones before it, back to CASH_LOOKBACK_DAYS.
+  const number = (date: string) => dayNumber(parseDay(date)!);
+  const pool = payments.filter(isCashWithdrawal).map((p) => ({ payment: p, day: number(p.date), left: cents(-p.amount), taken: 0, by: [] as string[] }));
+  const latestFirst = [...pool].sort((a, b) => b.day - a.day);
   const byDay = (a: SourceReceipt, b: SourceReceipt) => (day(a.date) < day(b.date) ? -1 : day(a.date) > day(b.date) ? 1 : 0);
   for (const r of [...cash].sort(byDay)) {
     let need = cents(r.total);
-    for (const w of pool) {
+    const on = number(r.date);
+    for (const w of latestFirst) {
       if (need === 0) break;
-      if (w.left === 0 || day(w.payment.date) > day(r.date)) continue;
+      if (w.left === 0 || w.day > on || on - w.day > CASH_LOOKBACK_DAYS) continue;
       const take = Math.min(w.left, need);
       w.left -= take; w.taken += take; need -= take;
       w.by.push(r.id);

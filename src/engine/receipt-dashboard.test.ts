@@ -124,13 +124,23 @@ test("a cash receipt bigger than what is left counts the rest as spending of its
   assert.equal(dashboard.total.expense, 120); // 90 withdrawn + 30 of the receipt from elsewhere
 });
 
-test("the oldest withdrawal first, never more than is left; whatever category the withdrawal is in", () => {
+test("the latest withdrawal before the receipt first, never more than is left; whatever category the withdrawal is in", () => {
   const { source } = both([
     withdrawal("2026-02-01", -30, { id: "old", category: "Groceries" }), withdrawal("2026-02-03", -50, { id: "new" }),
     pay("2026-02-03", -60, { id: "shop" }),
   ], [receipt("a", "2026-02-04", 20, "cash"), receipt("b", "2026-02-05", 25, "cash"), receipt("c", "2026-02-06", 40, "cash")]);
+  // a and b come out of the newer withdrawal; c takes its last 5, then 30 from the older one; c's last 5 are its own.
   assert.deepEqual(source.transactions.filter((t) => t.coveredBy).map((t) => [t.id, t.amount, t.categoryName, t.coveredBy]),
-    [["old:covered", 30, "Groceries", ["a", "b"]], ["new:covered", 50, "Cash", ["b", "c"]]]);
+    [["old:covered", 30, "Groceries", ["c"]], ["new:covered", 50, "Cash", ["a", "b", "c"]]]);
+});
+
+test("a receipt comes out of this month's withdrawal, not cash left from months ago; at most about three months back", () => {
+  const { source, dashboard } = both([withdrawal("2026-02-01", -100, { id: "feb" }), withdrawal("2026-10-01", -100, { id: "oct" })],
+    [receipt("cafe", "2026-10-15", 30, "cash"), receipt("late", "2027-02-20", 10, "cash")]);
+  assert.deepEqual(source.transactions.filter((t) => t.coveredBy).map((t) => [t.id, t.amount, t.coveredBy]), [["oct:covered", 30, ["cafe"]]]);
+  assert.equal(spentIn(dashboard, "2026-02", "Cash"), 100, "February does not change when a receipt from October comes in");
+  // "late" is more than CASH_LOOKBACK_DAYS after October's withdrawal: cash from elsewhere, counted on its own.
+  assert.equal(dashboard.total.expense, 210);
 });
 
 test("cash with the withdrawal Not sorted: the covered row lowers Not sorted, and is never Other income", () => {
