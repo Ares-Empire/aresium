@@ -9,7 +9,7 @@ import {
   addAmounts, DATE_FORMATS, headerKey, normalizeIban, parseAmountStrict, parseDate, sameAmount,
   type DateFormat, type NumberFormat,
 } from "./values.js";
-import type { ColumnInfo, ColumnKind, CsvLayout, LayoutGuess } from "./types.js";
+import type { BankTxn, ColumnInfo, ColumnKind, CsvLayout, LayoutGuess } from "./types.js";
 
 type Role = "date" | "valueDate" | "amount" | "debit" | "credit" | "balance" | "counterparty" | "text" | "kind"
   | "iban" | "accountIban" | "currency" | "reference" | "status";
@@ -94,8 +94,9 @@ function bestDateFormat(values: string[]): { format: DateFormat; share: number; 
   return { format: best, share, ambiguous };
 }
 
-// The balance column moves by exactly the amount from row to row, whichever way the rows are sorted.
-function balanceFits(amounts: (string | null)[], balances: (string | null)[]): number {
+// The balance column moves by exactly the amount from row to row, whichever way the rows are sorted. The share of
+// row pairs that fit (0–1).
+export function balanceFits(amounts: (string | null)[], balances: (string | null)[]): number {
   let fits = 0, pairs = 0;
   for (let i = 1; i < amounts.length; i++) {
     const a0 = amounts[i - 1], a1 = amounts[i], b0 = balances[i - 1], b1 = balances[i];
@@ -109,7 +110,7 @@ function balanceFits(amounts: (string | null)[], balances: (string | null)[]): n
 const filledAmount = (v: string | null) => v !== null && !/^-?0\.0+$/.test(v);
 
 // Two amount columns that are never both filled in one row, and each filled somewhere.
-function complementary(a: (string | null)[], b: (string | null)[]): boolean {
+export function complementary(a: (string | null)[], b: (string | null)[]): boolean {
   return !a.some((v, i) => filledAmount(v) && filledAmount(b[i])) && a.some(filledAmount) && b.some(filledAmount);
 }
 
@@ -131,8 +132,20 @@ export function findTableStart(rows: string[][]): { headerRow: number; width: nu
   return sample.length > 0 && sample.every(isData) ? { headerRow: -1, width } : null;
 }
 
+// A column as the guesser saw it, with every value of the rows it looked at (the first 300 with a date).
+export type AnalysedColumn = ColumnInfo & { values: string[]; ambiguous?: boolean };
+
+// What the guesser worked out: its guess, the columns it was made from, the file's rows and every payment the guessed
+// layout reads (empty without a layout). The other readings of an unknown file (readings.ts) start from these.
+export type CsvAnalysis = { guess: LayoutGuess; columns: AnalysedColumn[]; rows: string[][]; payments: BankTxn[] };
+
 // Guesses the layout of a CSV export from its values and header words; see LayoutGuess.
 export function guessCsvLayout(text: string): LayoutGuess {
+  return analyseCsv(text).guess;
+}
+
+// The guess with the columns behind it.
+export function analyseCsv(text: string): CsvAnalysis {
   const separator: Separator = detectSeparator(text);
   const rows = splitCsv(text, separator);
   const table = findTableStart(rows);
@@ -154,7 +167,7 @@ export function guessCsvLayout(text: string): LayoutGuess {
   const numberFormat: NumberFormat = en > de ? "en" : "de";
   const decimalMark = numberFormat === "de" ? DE_DECIMAL : EN_DECIMAL;
 
-  const columns: (ColumnInfo & { values: string[]; dateFormat?: DateFormat; ambiguous?: boolean })[] = [];
+  const columns: AnalysedColumn[] = [];
   for (let j = 0; j < width; j++) {
     const all = column(j), values = all.filter(Boolean);
     let kind: ColumnKind = "text";
@@ -290,7 +303,12 @@ export function guessCsvLayout(text: string): LayoutGuess {
   const dateFormat = dateCol?.dateFormat ?? "DD.MM.YYYY";
   if (dateCol?.ambiguous) unsure.add("dateFormat");
   if (missing.length > 0) {
-    return { layout: null, confidence: 0, unsure: [...unsure], missing, separator, header, headerRow, columns: info, preview: [] };
+    return {
+      guess: { layout: null, confidence: 0, unsure: [...unsure], missing, separator, header, headerRow, columns: info, preview: [] },
+      columns,
+      rows,
+      payments: [],
+    };
   }
 
   const layout: CsvLayout = {
@@ -328,14 +346,19 @@ export function guessCsvLayout(text: string): LayoutGuess {
   if (unsure.has("text")) confidence *= 0.9;
   if (unsure.has("counterparty")) confidence *= 0.9;
   return {
-    layout,
-    confidence: Math.round(confidence * 100) / 100,
-    unsure: [...unsure],
-    missing,
-    separator,
-    header,
-    headerRow,
-    columns: info,
-    preview: read.transactions.slice(0, 5),
+    guess: {
+      layout,
+      confidence: Math.round(confidence * 100) / 100,
+      unsure: [...unsure],
+      missing,
+      separator,
+      header,
+      headerRow,
+      columns: info,
+      preview: read.transactions.slice(0, 5),
+    },
+    columns,
+    rows,
+    payments: read.transactions,
   };
 }

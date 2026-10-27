@@ -53,3 +53,10 @@ export { BANK_PROFILES } from "./readers/profiles.js";
 export type { BankProfile } from "./readers/profiles.js";
 export type { BankFile, BankTxn, CsvLayout, LayoutGuess, ColumnInfo } from "./readers/types.js";
 // ── end of bank files ─────────────────────────────────────────────────────────────────────────────────────
+
+// ── Unknown banks (brief 20): readings to choose from, and a layout people can send us ──────────────────────
+export { readingsOfUnknownFile } from "./readers/readings.js";
+export type { FileReading, ReadingReason } from "./readers/readings.js";
+export { shareableLayout } from "./readers/share.js";
+export type { ShareableLayout, NotShareable } from "./readers/share.js";
+// ── end of unknown banks ──────────────────────────────────────────────────────────────────────────────────
