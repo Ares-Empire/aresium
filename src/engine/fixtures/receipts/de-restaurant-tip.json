@@ -1,0 +1,29 @@
+{
+  "about": "Made up for tests: real chain name, invented address, items, amounts and ids. A restaurant bill with a tip line, paid by Mastercard.",
+  "observations": [
+    {"text":"Bedienung 2","x":0.7299,"y":0.1163,"width":0.209,"height":0.0164},
+    {"text":"42,50","x":0.8462,"y":0.2756,"width":0.095,"height":0.015},
+    {"text":"Tisch 4","x":0.0592,"y":0.1178,"width":0.133,"height":0.0157},
+    {"text":"Hauptstraße 21","x":0.3676,"y":0.0661,"width":0.266,"height":0.0154},
+    {"text":"Vielen Dank für Ihren Besuch","x":0.2356,"y":0.4048,"width":0.532,"height":0.0155},
+    {"text":"4,50","x":0.8652,"y":0.3009,"width":0.076,"height":0.0154},
+    {"text":"31.10.2026 21:15","x":0.0588,"y":0.3794,"width":0.304,"height":0.0161},
+    {"text":"Ristorante Da Luigi","x":0.3191,"y":0.0393,"width":0.361,"height":0.0158},
+    {"text":"Summe","x":0.0606,"y":0.2746,"width":0.095,"height":0.0162},
+    {"text":"12345 Musterstadt","x":0.3368,"y":0.0935,"width":0.323,"height":0.0156},
+    {"text":"2 Pizza Margherita","x":0.0618,"y":0.1697,"width":0.342,"height":0.0152},
+    {"text":"2 Espresso","x":0.0586,"y":0.2484,"width":0.19,"height":0.0163},
+    {"text":"7,00","x":0.8623,"y":0.2223,"width":0.076,"height":0.0162},
+    {"text":"18,00","x":0.8444,"y":0.171,"width":0.095,"height":0.0167},
+    {"text":"2 Apfelschorle","x":0.0594,"y":0.2207,"width":0.266,"height":0.0162},
+    {"text":"47,00","x":0.8469,"y":0.3512,"width":0.095,"height":0.0155},
+    {"text":"12,50","x":0.846,"y":0.1961,"width":0.095,"height":0.0153},
+    {"text":"Mastercard","x":0.06,"y":0.3501,"width":0.19,"height":0.0168},
+    {"text":"Gesamt","x":0.059,"y":0.3269,"width":0.114,"height":0.0157},
+    {"text":"1 Spaghetti Carbonara","x":0.0581,"y":0.1947,"width":0.399,"height":0.016},
+    {"text":"5,00","x":0.8656,"y":0.2473,"width":0.076,"height":0.0152},
+    {"text":"Trinkgeld","x":0.0609,"y":0.2996,"width":0.171,"height":0.0152},
+    {"text":"47,00","x":0.8442,"y":0.3259,"width":0.095,"height":0.0168}
+  ],
+  "codes": []
+}

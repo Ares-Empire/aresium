@@ -1,0 +1,30 @@
+{
+  "about": "Made up for tests: real chain name, invented address, items, amounts and ids. A French supermarket paid by contactless CB.",
+  "observations": [
+    {"text":"5,45","x":0.8629,"y":0.1948,"width":0.076,"height":0.0167},
+    {"text":"MERCI DE VOTRE VISITE","x":0.2997,"y":0.4306,"width":0.399,"height":0.0161},
+    {"text":"4,75","x":0.8636,"y":0.3015,"width":0.076,"height":0.0154},
+    {"text":"0,98","x":0.8657,"y":0.3767,"width":0.076,"height":0.0162},
+    {"text":"BAGUETTE","x":0.0614,"y":0.1683,"width":0.152,"height":0.017},
+    {"text":"YAOURT NATURE X4","x":0.0586,"y":0.2208,"width":0.304,"height":0.0166},
+    {"text":"EAU MINERALE","x":0.0592,"y":0.2749,"width":0.228,"height":0.0154},
+    {"text":"2,40","x":0.8658,"y":0.2737,"width":0.076,"height":0.0168},
+    {"text":"CB SANS CONTACT","x":0.061,"y":0.3522,"width":0.285,"height":0.0161},
+    {"text":"1,85","x":0.864,"y":0.2228,"width":0.076,"height":0.0157},
+    {"text":"FROMAGE COMTE","x":0.0619,"y":0.1957,"width":0.247,"height":0.0163},
+    {"text":"dont TVA 5,5%","x":0.0606,"y":0.3768,"width":0.247,"height":0.0154},
+    {"text":"Le 27/10/2026 à 14:32","x":0.0587,"y":0.4049,"width":0.399,"height":0.0154},
+    {"text":"1,10","x":0.8622,"y":0.1697,"width":0.076,"height":0.0165},
+    {"text":"SIRET 000 000 000 00000","x":0.2803,"y":0.1163,"width":0.437,"height":0.0164},
+    {"text":"POMMES","x":0.0616,"y":0.2491,"width":0.114,"height":0.0165},
+    {"text":"3,20","x":0.8652,"y":0.2491,"width":0.076,"height":0.0163},
+    {"text":"75000 Exempleville","x":0.3303,"y":0.0916,"width":0.342,"height":0.0169},
+    {"text":"Carrefour Market","x":0.3485,"y":0.0392,"width":0.304,"height":0.0151},
+    {"text":"CAFE MOULU","x":0.0593,"y":0.3008,"width":0.19,"height":0.0163},
+    {"text":"18,75 EUR","x":0.767,"y":0.3269,"width":0.171,"height":0.0166},
+    {"text":"TOTAL TTC","x":0.0607,"y":0.3272,"width":0.171,"height":0.0153},
+    {"text":"18,75 EUR","x":0.7672,"y":0.3518,"width":0.171,"height":0.0156},
+    {"text":"12 rue de l'Exemple","x":0.3184,"y":0.0656,"width":0.361,"height":0.0156}
+  ],
+  "codes": []
+}

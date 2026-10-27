@@ -1,0 +1,28 @@
+{
+  "about": "Made up for tests: real chain name, invented address, items, amounts and ids. A bakery paid in cash, with given and change.",
+  "observations": [
+    {"text":"10,00","x":0.8436,"y":0.3002,"width":0.095,"height":0.016},
+    {"text":"Tel. 01234 567890","x":0.3402,"y":0.1192,"width":0.323,"height":0.0151},
+    {"text":"Mohnschnecke","x":0.0596,"y":0.2216,"width":0.228,"height":0.0153},
+    {"text":"enth. MwSt 7%","x":0.061,"y":0.3535,"width":0.247,"height":0.0151},
+    {"text":"Roggenbrot","x":0.0592,"y":0.1978,"width":0.19,"height":0.0155},
+    {"text":"1,80","x":0.8652,"y":0.1704,"width":0.076,"height":0.0161},
+    {"text":"------------------------","x":0.0604,"y":0.2478,"width":0.456,"height":0.0153},
+    {"text":"Vielen Dank!","x":0.3847,"y":0.4039,"width":0.228,"height":0.0158},
+    {"text":"3,95","x":0.8637,"y":0.1973,"width":0.076,"height":0.0158},
+    {"text":"Am Brunnen 7","x":0.3841,"y":0.0677,"width":0.228,"height":0.0153},
+    {"text":"Rückgeld","x":0.0595,"y":0.3246,"width":0.152,"height":0.0164},
+    {"text":"54321 Beispielhausen","x":0.3102,"y":0.0924,"width":0.38,"height":0.0163},
+    {"text":"7,85","x":0.8636,"y":0.2738,"width":0.076,"height":0.0155},
+    {"text":"2,15","x":0.8636,"y":0.3251,"width":0.076,"height":0.0158},
+    {"text":"28.10.26 08:12","x":0.058,"y":0.3764,"width":0.266,"height":0.0165},
+    {"text":"2,10","x":0.8632,"y":0.2209,"width":0.076,"height":0.0155},
+    {"text":"2 x Brezel","x":0.061,"y":0.1695,"width":0.19,"height":0.016},
+    {"text":"Gegeben Bar","x":0.0581,"y":0.3011,"width":0.209,"height":0.0153},
+    {"text":"0,51","x":0.8637,"y":0.3519,"width":0.076,"height":0.0154},
+    {"text":"Bon 0815","x":0.7881,"y":0.3765,"width":0.152,"height":0.0162},
+    {"text":"Summe","x":0.0601,"y":0.2746,"width":0.095,"height":0.0156},
+    {"text":"Bäckerei Sonnenschein","x":0.3008,"y":0.0398,"width":0.399,"height":0.0152}
+  ],
+  "codes": []
+}

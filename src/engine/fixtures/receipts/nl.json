@@ -1,0 +1,30 @@
+{
+  "about": "Made up for tests: real chain name, invented address, items, amounts and ids. A Dutch supermarket paid by PIN, with bottle deposit.",
+  "observations": [
+    {"text":"2,29","x":0.8644,"y":0.171,"width":0.076,"height":0.0152},
+    {"text":"BEDANKT EN TOT ZIENS","x":0.31,"y":0.4034,"width":0.38,"height":0.0158},
+    {"text":"Albert Heijn","x":0.386,"y":0.0398,"width":0.228,"height":0.0165},
+    {"text":"TOTAAL","x":0.0611,"y":0.3009,"width":0.114,"height":0.0165},
+    {"text":"1,19","x":0.8654,"y":0.1447,"width":0.076,"height":0.0167},
+    {"text":"1234 AB Voorbeeldstad","x":0.3018,"y":0.0932,"width":0.399,"height":0.0165},
+    {"text":"BTW 9%","x":0.0582,"y":0.3526,"width":0.114,"height":0.016},
+    {"text":"AH HALFVOLLE MELK","x":0.0583,"y":0.1453,"width":0.323,"height":0.0155},
+    {"text":"0,85","x":0.8632,"y":0.2481,"width":0.076,"height":0.0167},
+    {"text":"BRUIN BROOD","x":0.0605,"y":0.1684,"width":0.209,"height":0.0163},
+    {"text":"Voorbeeldstraat 1","x":0.3387,"y":0.0642,"width":0.323,"height":0.0166},
+    {"text":"0,98","x":0.8628,"y":0.3504,"width":0.076,"height":0.0164},
+    {"text":"11,85","x":0.8431,"y":0.3247,"width":0.095,"height":0.0165},
+    {"text":"KASSA 3","x":0.809,"y":0.377,"width":0.133,"height":0.0165},
+    {"text":"4,99","x":0.8648,"y":0.1964,"width":0.076,"height":0.0155},
+    {"text":"KAAS JONG BELEGEN","x":0.0619,"y":0.1952,"width":0.323,"height":0.0163},
+    {"text":"COLA 1,5L","x":0.0587,"y":0.2467,"width":0.171,"height":0.016},
+    {"text":"27-10-2026 14:32","x":0.0606,"y":0.3791,"width":0.304,"height":0.015},
+    {"text":"11,85","x":0.844,"y":0.3006,"width":0.095,"height":0.0154},
+    {"text":"STATIEGELD","x":0.0605,"y":0.2738,"width":0.19,"height":0.0159},
+    {"text":"0,15","x":0.8637,"y":0.2753,"width":0.076,"height":0.0154},
+    {"text":"PINNEN","x":0.0601,"y":0.3264,"width":0.114,"height":0.0169},
+    {"text":"APPELS","x":0.0613,"y":0.2226,"width":0.114,"height":0.0163},
+    {"text":"2,38","x":0.8622,"y":0.2209,"width":0.076,"height":0.0159}
+  ],
+  "codes": []
+}

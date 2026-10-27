@@ -1,0 +1,28 @@
+{
+  "about": "Made up for tests: real chain name, invented address, items, amounts and ids. A US drugstore in dollars, month-first date with AM/PM, paid in cash.",
+  "observations": [
+    {"text":"21.50","x":0.8442,"y":0.2468,"width":0.095,"height":0.0156},
+    {"text":"11.02","x":0.8441,"y":0.2222,"width":0.095,"height":0.0153},
+    {"text":"SHAMPOO","x":0.0586,"y":0.1691,"width":0.133,"height":0.016},
+    {"text":"1.90","x":0.8637,"y":0.2734,"width":0.076,"height":0.015},
+    {"text":"$50.00","x":0.8258,"y":0.3256,"width":0.114,"height":0.0163},
+    {"text":"TAX 8.84%","x":0.0595,"y":0.2731,"width":0.171,"height":0.0156},
+    {"text":"6.99","x":0.8642,"y":0.1704,"width":0.076,"height":0.0154},
+    {"text":"CASH","x":0.0588,"y":0.325,"width":0.076,"height":0.0167},
+    {"text":"THANK YOU","x":0.4155,"y":0.403,"width":0.171,"height":0.0157},
+    {"text":"SUBTOTAL","x":0.0592,"y":0.2493,"width":0.152,"height":0.0152},
+    {"text":"SAMPLEVILLE, CA 90000","x":0.299,"y":0.1169,"width":0.399,"height":0.0152},
+    {"text":"$23.40","x":0.8261,"y":0.299,"width":0.114,"height":0.0152},
+    {"text":"3.49","x":0.8637,"y":0.1946,"width":0.076,"height":0.0163},
+    {"text":"WALGREENS","x":0.4134,"y":0.0406,"width":0.171,"height":0.0155},
+    {"text":"10/27/2026 2:32 PM","x":0.0615,"y":0.378,"width":0.342,"height":0.0162},
+    {"text":"$26.60","x":0.8269,"y":0.3514,"width":0.114,"height":0.0159},
+    {"text":"CHANGE","x":0.0588,"y":0.3533,"width":0.114,"height":0.0158},
+    {"text":"VITAMINS","x":0.0605,"y":0.221,"width":0.152,"height":0.0151},
+    {"text":"TOTAL","x":0.0605,"y":0.2984,"width":0.095,"height":0.0166},
+    {"text":"TOOTHPASTE","x":0.0611,"y":0.1967,"width":0.19,"height":0.0163},
+    {"text":"#04567","x":0.4446,"y":0.0653,"width":0.114,"height":0.0157},
+    {"text":"100 EXAMPLE ST","x":0.368,"y":0.0917,"width":0.266,"height":0.0163}
+  ],
+  "codes": []
+}

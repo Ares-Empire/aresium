@@ -1,0 +1,31 @@
+{
+  "about": "Made up for tests: real chain name, invented address, items, amounts and ids. A Portuguese supermarket paid in cash, ISO date.",
+  "observations": [
+    {"text":"TROCO","x":0.0595,"y":0.3533,"width":0.095,"height":0.0156},
+    {"text":"1,51","x":0.8629,"y":0.2746,"width":0.076,"height":0.0158},
+    {"text":"1,49","x":0.8634,"y":0.1684,"width":0.076,"height":0.0162},
+    {"text":"ARROZ","x":0.0593,"y":0.2482,"width":0.095,"height":0.0163},
+    {"text":"9,87","x":0.8647,"y":0.2993,"width":0.076,"height":0.016},
+    {"text":"AZEITE","x":0.0599,"y":0.2747,"width":0.114,"height":0.0156},
+    {"text":"PINGO DOCE","x":0.4031,"y":0.0402,"width":0.19,"height":0.0151},
+    {"text":"IVA 6%","x":0.0612,"y":0.3777,"width":0.114,"height":0.0152},
+    {"text":"2026-10-27 14:32","x":0.059,"y":0.4033,"width":0.304,"height":0.0154},
+    {"text":"10,00","x":0.8431,"y":0.325,"width":0.095,"height":0.0164},
+    {"text":"FS 0001/12345","x":0.6932,"y":0.4025,"width":0.247,"height":0.0164},
+    {"text":"TOTAL A PAGAR","x":0.061,"y":0.2986,"width":0.247,"height":0.0164},
+    {"text":"0,13","x":0.8626,"y":0.3527,"width":0.076,"height":0.0154},
+    {"text":"PAO DE FORMA","x":0.0588,"y":0.17,"width":0.228,"height":0.0157},
+    {"text":"NIF 500000000","x":0.3766,"y":0.1182,"width":0.247,"height":0.0158},
+    {"text":"0,79","x":0.863,"y":0.1954,"width":0.076,"height":0.0166},
+    {"text":"1000-001 Lisboa","x":0.3574,"y":0.0917,"width":0.285,"height":0.0152},
+    {"text":"4,99","x":0.8626,"y":0.2213,"width":0.076,"height":0.0154},
+    {"text":"Rua do Exemplo 10","x":0.3375,"y":0.0647,"width":0.323,"height":0.0167},
+    {"text":"DINHEIRO","x":0.0585,"y":0.3251,"width":0.152,"height":0.0161},
+    {"text":"0,56","x":0.8636,"y":0.3791,"width":0.076,"height":0.0157},
+    {"text":"1,09","x":0.8653,"y":0.2496,"width":0.076,"height":0.0153},
+    {"text":"OBRIGADO PELA PREFERENCIA","x":0.2629,"y":0.43,"width":0.475,"height":0.0158},
+    {"text":"BACALHAU","x":0.0593,"y":0.2234,"width":0.152,"height":0.0154},
+    {"text":"LEITE MEIO GORDO","x":0.0605,"y":0.1963,"width":0.304,"height":0.0168}
+  ],
+  "codes": []
+}
