@@ -1,0 +1,24 @@
+{
+  "about": "Made up for tests: real chain name, invented address, items, amounts and ids. A petrol station: fuel by the litre and a snack, paid by Visa.",
+  "observations": [
+    {"text":"Aral Tankstelle","x":0.3575,"y":0.0399,"width":0.285,"height":0.0159},
+    {"text":"1,29 A","x":0.825,"y":0.222,"width":0.114,"height":0.0168},
+    {"text":"30.10.2026 19:47","x":0.0589,"y":0.3264,"width":0.304,"height":0.0166},
+    {"text":"Tel. 01234 98765","x":0.3463,"y":0.1193,"width":0.304,"height":0.0157},
+    {"text":"SUMME EUR","x":0.0606,"y":0.2476,"width":0.171,"height":0.0151},
+    {"text":"12345 Musterstadt","x":0.3402,"y":0.093,"width":0.323,"height":0.015},
+    {"text":"Gute Fahrt!","x":0.3955,"y":0.3507,"width":0.209,"height":0.0158},
+    {"text":"75,29","x":0.8454,"y":0.2475,"width":0.095,"height":0.0153},
+    {"text":"75,29","x":0.8461,"y":0.2739,"width":0.095,"height":0.0166},
+    {"text":"Beleg 5555","x":0.7504,"y":0.3261,"width":0.19,"height":0.0152},
+    {"text":"MwSt 12,02","x":0.7496,"y":0.3008,"width":0.19,"height":0.015},
+    {"text":"Säule 3 Super E10","x":0.0587,"y":0.1713,"width":0.323,"height":0.015},
+    {"text":"MwSt 19% Netto 63,27","x":0.0599,"y":0.3007,"width":0.38,"height":0.0156},
+    {"text":"Visa","x":0.0618,"y":0.2738,"width":0.076,"height":0.0151},
+    {"text":"42,31 l x 1,749 EUR/l","x":0.0617,"y":0.1956,"width":0.399,"height":0.0159},
+    {"text":"Snickers","x":0.0618,"y":0.2229,"width":0.152,"height":0.0158},
+    {"text":"74,00 A","x":0.806,"y":0.1946,"width":0.133,"height":0.0163},
+    {"text":"Musterallee 5","x":0.3762,"y":0.0659,"width":0.247,"height":0.0154}
+  ],
+  "codes": []
+}

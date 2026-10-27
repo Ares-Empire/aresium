@@ -1,0 +1,31 @@
+{
+  "about": "Made up for tests: real chain name, invented address, items, amounts and ids. A Swiss supermarket in francs (decimal point), paid in cash.",
+  "observations": [
+    {"text":"Rückgeld","x":0.0606,"y":0.3798,"width":0.152,"height":0.0152},
+    {"text":"23.40","x":0.8446,"y":0.3253,"width":0.095,"height":0.0161},
+    {"text":"Bar","x":0.0593,"y":0.3523,"width":0.057,"height":0.0169},
+    {"text":"27.10.2026 14:32","x":0.061,"y":0.4026,"width":0.304,"height":0.0161},
+    {"text":"1.70","x":0.8622,"y":0.1709,"width":0.076,"height":0.0168},
+    {"text":"Kasse 5","x":0.8087,"y":0.4035,"width":0.133,"height":0.0159},
+    {"text":"Äpfel","x":0.0608,"y":0.2745,"width":0.095,"height":0.0168},
+    {"text":"Brot","x":0.0587,"y":0.1947,"width":0.076,"height":0.0169},
+    {"text":"Käse","x":0.0615,"y":0.2232,"width":0.076,"height":0.0155},
+    {"text":"Danke für Ihren Einkauf","x":0.2833,"y":0.4293,"width":0.437,"height":0.0168},
+    {"text":"Total CHF","x":0.0609,"y":0.3251,"width":0.171,"height":0.0155},
+    {"text":"8.90","x":0.8644,"y":0.2211,"width":0.076,"height":0.0165},
+    {"text":"3.20","x":0.8637,"y":0.1957,"width":0.076,"height":0.0156},
+    {"text":"Schokolade","x":0.0607,"y":0.247,"width":0.19,"height":0.0158},
+    {"text":"26.60","x":0.8447,"y":0.3765,"width":0.095,"height":0.0169},
+    {"text":"MIGROS","x":0.4439,"y":0.0396,"width":0.114,"height":0.0164},
+    {"text":"Kaffee","x":0.0608,"y":0.3004,"width":0.114,"height":0.0163},
+    {"text":"Milch","x":0.0593,"y":0.1716,"width":0.095,"height":0.0151},
+    {"text":"Beispielstrasse 4","x":0.3376,"y":0.067,"width":0.323,"height":0.0156},
+    {"text":"50.00","x":0.845,"y":0.3518,"width":0.095,"height":0.0167},
+    {"text":"2.10","x":0.8656,"y":0.2491,"width":0.076,"height":0.0151},
+    {"text":"CHE-000.000.000 MWST","x":0.3114,"y":0.1174,"width":0.38,"height":0.0168},
+    {"text":"3.00","x":0.8637,"y":0.3003,"width":0.076,"height":0.0155},
+    {"text":"4.50","x":0.8652,"y":0.2731,"width":0.076,"height":0.0157},
+    {"text":"8000 Beispielstadt","x":0.3309,"y":0.0922,"width":0.342,"height":0.0152}
+  ],
+  "codes": []
+}

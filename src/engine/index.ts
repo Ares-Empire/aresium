@@ -17,7 +17,7 @@ export const version = "0.1.0";
 
 // ---- Dashboard source and own transfers (brief 12) ----
 export { buildDashboardSource } from "./source.js";
-export type { DashboardSourceInput, SourcePayment, SourceCategory } from "./source.js";
+export type { DashboardSourceInput, SourcePayment, SourceCategory, SourceReceipt } from "./source.js";
 export { ownTransfers, OWN_TRANSFERS } from "./sorting/transfers.js";
 export type { TransferPayment, OwnTransfer } from "./sorting/transfers.js";
 // ---- end of brief 12's block ----
@@ -60,3 +60,11 @@ export type { FileReading, ReadingReason } from "./readers/readings.js";
 export { shareableLayout } from "./readers/share.js";
 export type { ShareableLayout, NotShareable } from "./readers/share.js";
 // ── end of unknown banks ──────────────────────────────────────────────────────────────────────────────────
+
+// ── Receipts (brief 30): read a receipt, find its bank payment; buildDashboardSource counts them (`receipts`) ──
+export { readReceipt } from "./receipts/read.js";
+export type { ReceiptInput, ReceiptReading, Observation, Language } from "./receipts/read.js";
+export { matchReceipt } from "./receipts/match.js";
+export type { MatchReceipt, MatchPayment, ReceiptMatch, ReceiptCandidate, CandidateReason } from "./receipts/match.js";
+export type { ReceiptMarks } from "../data/dashboard.js";
+// ── end of receipts ───────────────────────────────────────────────────────────────────────────────────────

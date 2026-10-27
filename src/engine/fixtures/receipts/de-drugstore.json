@@ -1,0 +1,30 @@
+{
+  "about": "Made up for tests: real chain name, invented address, items, amounts and ids. A drugstore paid by EC card.",
+  "observations": [
+    {"text":"Sonnencreme LSF 30","x":0.0588,"y":0.2745,"width":0.342,"height":0.0152},
+    {"text":"1,45 1","x":0.8257,"y":0.1687,"width":0.114,"height":0.0163},
+    {"text":"12,85","x":0.8435,"y":0.3272,"width":0.095,"height":0.0165},
+    {"text":"SUMME EUR","x":0.0585,"y":0.2989,"width":0.171,"height":0.0168},
+    {"text":"5,50 1","x":0.8247,"y":0.2741,"width":0.114,"height":0.0152},
+    {"text":"12345 Musterstadt","x":0.3387,"y":0.0909,"width":0.323,"height":0.0157},
+    {"text":"0,95 1","x":0.8241,"y":0.2472,"width":0.114,"height":0.0164},
+    {"text":"Taschentücher 4x","x":0.0582,"y":0.2219,"width":0.304,"height":0.0151},
+    {"text":"1234/2 0815/99","x":0.6748,"y":0.3777,"width":0.266,"height":0.0158},
+    {"text":"Shampoo","x":0.0584,"y":0.1966,"width":0.133,"height":0.0157},
+    {"text":"dm-drogerie markt","x":0.3368,"y":0.0403,"width":0.323,"height":0.0157},
+    {"text":"Musterweg 3","x":0.3935,"y":0.0651,"width":0.209,"height":0.0151},
+    {"text":"Zahnpasta","x":0.0605,"y":0.1695,"width":0.171,"height":0.0162},
+    {"text":"2,75 1","x":0.8244,"y":0.1968,"width":0.114,"height":0.0158},
+    {"text":"Vielen Dank für Ihren Einkauf","x":0.2253,"y":0.4051,"width":0.551,"height":0.0163},
+    {"text":"Duschgel Sensitiv","x":0.061,"y":0.145,"width":0.323,"height":0.0163},
+    {"text":"MwSt-Satz 1=19% Netto 10,80","x":0.0611,"y":0.3521,"width":0.513,"height":0.0151},
+    {"text":"0,95 1","x":0.8262,"y":0.1437,"width":0.114,"height":0.0153},
+    {"text":"MwSt 2,05","x":0.7676,"y":0.3512,"width":0.171,"height":0.0155},
+    {"text":"1,25 1","x":0.8255,"y":0.221,"width":0.114,"height":0.0168},
+    {"text":"12,85","x":0.8436,"y":0.2987,"width":0.095,"height":0.0165},
+    {"text":"Wattepads","x":0.0595,"y":0.249,"width":0.171,"height":0.0154},
+    {"text":"29.10.2026 17:05","x":0.0619,"y":0.3783,"width":0.304,"height":0.0167},
+    {"text":"EC-Karte","x":0.0616,"y":0.3251,"width":0.152,"height":0.0155}
+  ],
+  "codes": []
+}

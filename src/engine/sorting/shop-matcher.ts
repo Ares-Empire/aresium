@@ -22,16 +22,31 @@ export type ShopListData = {
   plainVowelWords?: readonly string[];
 };
 export type StarterRule = { pattern: string; categoryId: string; source: "rule" | "merchant" | "brand"; direction: Direction };
+/** Which name of the list decided a payment's category. */
+export type ShopFound = {
+  categoryId: string;
+  /** The name as the list spells it, in shopWords form ("rewe", "aldi sued", "baeckerei"). */
+  name: string;
+  source: StarterRule["source"];
+  direction: Direction;
+  /**
+   * Where the name stands among the words of `${counterparty} ${description}` (shopWords, reference fields left
+   * out), as [first, end); null for a whole-merchant match, which is read from who was paid as a whole.
+   */
+  at: readonly [number, number] | null;
+};
 export type ShopMatcher = {
   /** Every name, highest priority first. */
   rules: readonly StarterRule[];
   /** The category the list gives this payment, whatever the person's categories are; null if none. */
   match(payment: SortingPayment): string | null;
+  /** The same decision as `match`, with the name that made it. */
+  find(payment: SortingPayment): ShopFound | null;
 };
 
-type Entry = { words: string[]; categoryId: string; rank: number; direction: Direction };
+type Entry = { words: string[]; categoryId: string; rank: number; direction: Direction; source: StarterRule["source"] };
 type Index = Map<string, Entry[]>;
-type Merchant = { categoryId: string; direction: Direction };
+type Merchant = { categoryId: string; direction: Direction; name: string };
 type Money = "out" | "in" | null;
 
 const moneyOf = (amount: number | undefined): Money =>
@@ -64,23 +79,23 @@ export function compileShopList(list: ShopListData): ShopMatcher {
   const otherWords = new Set(list.plainVowelWords ?? []);
   const noBranches = new Set((list.noBranches ?? []).flatMap((name) => shopSpellings(name, otherWords)));
   // A spelling listed twice keeps its first (higher-priority) place.
-  const add = (index: Index, name: string, categoryId: string, rank: number, direction: Direction) => {
+  const add = (index: Index, name: string, categoryId: string, rank: number, direction: Direction, source: StarterRule["source"]) => {
     for (const spelling of shopSpellings(name, otherWords)) {
       if (seen.has(spelling)) continue;
       seen.add(spelling);
       const words = spelling.split(" ");
       const bucket = index.get(words[0]) ?? [];
-      bucket.push({ words, categoryId, rank, direction });
+      bucket.push({ words, categoryId, rank, direction, source });
       index.set(words[0], bucket);
     }
   };
   for (const [categoryId, names, direction = "both"] of list.rules) for (const name of names) {
-    add(handWritten, name, categoryId, rules.length, direction);
+    add(handWritten, name, categoryId, rules.length, direction, "rule");
     rules.push({ pattern: name, categoryId, source: "rule", direction });
   }
   for (const [categoryId, names, direction = "both"] of list.merchants) for (const name of names) {
     for (const spelling of shopSpellings(name, otherWords)) {
-      if (!merchants.has(spelling)) merchants.set(spelling, { categoryId, direction });
+      if (!merchants.has(spelling)) merchants.set(spelling, { categoryId, direction, name: spelling });
     }
     rules.push({ pattern: name, categoryId, source: "merchant", direction });
   }
@@ -88,7 +103,7 @@ export function compileShopList(list: ShopListData): ShopMatcher {
   const ranked = list.brands.flatMap(([categoryId, names]) => names.map((name) => ({ name, categoryId, size: specificity(name) })))
     .sort((a, b) => b.size[0] - a.size[0] || b.size[1] - a.size[1] || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
   for (const { name, categoryId } of ranked) {
-    add(brands, name, categoryId, rules.length, "both");
+    add(brands, name, categoryId, rules.length, "both", "brand");
     rules.push({ pattern: name, categoryId, source: "brand", direction: "both" });
   }
 
@@ -107,14 +122,16 @@ export function compileShopList(list: ShopListData): ShopMatcher {
     return found;
   }
   /** The winner among `found`; a match inside a longer one of `covering` gives way, also to one for the other direction. */
-  function best(found: readonly Found[], covering: readonly Found[], money: Money): string | null {
+  function best(found: readonly Found[], covering: readonly Found[], money: Money): ShopFound | null {
     let winner: Found | null = null;
     for (const m of found) {
       if (!applies(m.entry.direction, money)) continue;
       const inside = covering.some((o) => o.start <= m.start && o.end >= m.end && o.end - o.start > m.end - m.start);
       if (!inside && (!winner || m.entry.rank < winner.entry.rank)) winner = m;
     }
-    return winner?.entry.categoryId ?? null;
+    if (!winner) return null;
+    const { categoryId, words, source, direction } = winner.entry;
+    return { categoryId, name: words.join(" "), source, direction, at: [winner.start, winner.end] };
   }
 
   /** A merchant name that starts who was paid, followed by a branch number: "PENNY 4211 GARCHING", "NORMA 12". */
@@ -124,21 +141,27 @@ export function compileShopList(list: ShopListData): ShopMatcher {
     return name && !noBranches.has(name) ? merchants.get(name) ?? null : null;
   }
 
+  function decide(payment: SortingPayment): ShopFound | null {
+    const money = moneyOf(payment.amount);
+    const text = `${payment.counterparty ?? ""} ${payment.description ?? payment.bookingText ?? ""}`;
+    const words = shopWords(text.replace(references, " "));
+    const written = find(handWritten, words);
+    const rule = best(written, written, money);
+    if (rule) return rule;
+    // A merchant found for the other direction decides too: Uber's money in is a driver's payout, not a ride.
+    const merchant = merchants.get(shopWords(merchantKey(payment)).join(" ")) ?? branchMerchant(payment);
+    if (merchant) {
+      const { categoryId, direction, name } = merchant;
+      return applies(direction, money) ? { categoryId, name, source: "merchant", direction, at: null } : null;
+    }
+    // A hand-written name for the other direction also hides the brands inside it.
+    const branded = find(brands, words);
+    return best(branded, [...written, ...branded], money);
+  }
+
   return {
     rules,
-    match(payment) {
-      const money = moneyOf(payment.amount);
-      const text = `${payment.counterparty ?? ""} ${payment.description ?? payment.bookingText ?? ""}`;
-      const words = shopWords(text.replace(references, " "));
-      const written = find(handWritten, words);
-      const rule = best(written, written, money);
-      if (rule) return rule;
-      // A merchant found for the other direction decides too: Uber's money in is a driver's payout, not a ride.
-      const merchant = merchants.get(shopWords(merchantKey(payment)).join(" ")) ?? branchMerchant(payment);
-      if (merchant) return applies(merchant.direction, money) ? merchant.categoryId : null;
-      // A hand-written name for the other direction also hides the brands inside it.
-      const branded = find(brands, words);
-      return best(branded, [...written, ...branded], money);
-    },
+    match: (payment) => decide(payment)?.categoryId ?? null,
+    find: decide,
   };
 }

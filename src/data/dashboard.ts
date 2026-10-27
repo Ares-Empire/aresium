@@ -6,7 +6,19 @@ export interface Month {
 export interface Category {
   name: string; icon: string; color: string; kind: "spend" | "income" | "transfer";
 }
-export interface SourceTxn {
+// Receipts (brief 30): every field here is optional, so older readers of the JSON keep working.
+export interface ReceiptMarks {
+  /** The receipt this row is: a cash receipt, or a card receipt not joined to its bank payment yet. */
+  receiptId?: string;
+  /** A card receipt waiting for its bank payment ("waiting for the bank statement"). */
+  provisional?: boolean;
+  /**
+   * Cash taken out of this withdrawal by these receipts: a positive amount in the withdrawal's category and month that
+   * lowers its spending; never income, also when the withdrawal has no category.
+   */
+  coveredBy?: string[];
+}
+export interface SourceTxn extends ReceiptMarks {
   id: string; date: string; amount: number; categoryName: string; tags: string[]; place: string; city: string;
 }
 export interface DashboardSource {
@@ -14,7 +26,7 @@ export interface DashboardSource {
   balanceByDay: Record<string, number>; openingBalance: number;
   databaseCategoryNames: string[]; // recategorise targets; excludes dashboard-only categories
 }
-export interface Txn {
+export interface Txn extends ReceiptMarks {
   id: string; date: string; day: number; month: MonthKey; amount: number;
   categoryName: string; tags: string[]; place: string; city: string;
   categoriesIn: string[]; incomeBuckets: string[];
@@ -86,17 +98,23 @@ export function buildDashboard(source: DashboardSource): Dashboard {
     const mo = index === undefined ? undefined : byMonth[month];
     const validDay = !!mo && day >= 1 && day <= mo.dayExpense.length;
     const tags = t.tags || [];
+    // Cash covered by receipts lowers its withdrawal's spending; it is never income.
+    const covered = t.coveredBy !== undefined;
     // Unsorted money in is listed under "Other" income only: not under "Not sorted", not in its spending.
-    const unsortedIn = t.amount > 0 && isUnsorted(t.categoryName);
+    const unsortedIn = t.amount > 0 && isUnsorted(t.categoryName) && !covered;
     const categoriesIn = [...new Set([t.categoryName, ...tags])].filter((name) => !(unsortedIn && isUnsorted(name)));
     const isTransfer = catByName.get(t.categoryName)?.kind === "transfer";
     const primaryBucket = isUnsorted(t.categoryName) ? "Other"
       : incomeBucketKeep.has(t.categoryName) ? t.categoryName : "Refunds";
-    const buckets = t.amount > 0 && !isTransfer ? [...new Set([primaryBucket, ...tags.filter((n) => incomeBucketKeep.has(n))])] : [];
-    transactions.push({
+    const buckets = t.amount > 0 && !isTransfer && !covered ? [...new Set([primaryBucket, ...tags.filter((n) => incomeBucketKeep.has(n))])] : [];
+    const txn: Txn = {
       id: t.id, date: t.date, day, month, amount: t.amount, categoryName: t.categoryName,
       tags: [...tags], place: t.place, city: t.city, categoriesIn, incomeBuckets: buckets,
-    });
+    };
+    if (t.receiptId !== undefined) txn.receiptId = t.receiptId;
+    if (t.provisional) txn.provisional = true;
+    if (covered) txn.coveredBy = [...t.coveredBy!];
+    transactions.push(txn);
     if (catByName.get(t.categoryName)?.kind === "spend" && !unsortedIn) {
       total.expense += -t.amount;
       if (mo) { mo.expense += -t.amount; if (validDay) mo.dayExpense[day - 1] += -t.amount; }
@@ -111,7 +129,7 @@ export function buildDashboard(source: DashboardSource): Dashboard {
         if (validDay) series.days[month][day - 1] += -t.amount;
       }
     }
-    if (t.amount > 0 && !isTransfer) {
+    if (t.amount > 0 && !isTransfer && !covered) {
       total.income += t.amount;
       if (mo) { mo.income += t.amount; if (validDay) mo.dayIncome[day - 1] += t.amount; }
       for (const bucket of buckets) {

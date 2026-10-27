@@ -4,6 +4,7 @@
 import type { Category, DashboardSource, Month, SourceTxn } from "../data/dashboard.js";
 import { foldPaypalConversions, isPaypalBankFunding } from "./paypal.js";
 import { daysInMonth, parseDay } from "./dates.js";
+import { receiptRows, withReceiptRows, type ReceiptRow } from "./receipts/count.js";
 
 /** One stored payment, as plain JSON. */
 export type SourcePayment = {
@@ -32,11 +33,29 @@ export type SourcePayment = {
 /** A category on the person's list, with its look. */
 export type SourceCategory = { name: string; icon: string; color: string; excludeFromTotals: boolean };
 
+/** A stored receipt (brief 30), as plain JSON. */
+export type SourceReceipt = {
+  id: string;
+  /** The purchase day, `YYYY-MM-DD`. */
+  date: string;
+  /** The amount paid, in `currency`; a cash receipt in another currency arrives with its euro amount from the app. */
+  total: number;
+  currency: string;
+  method: "card" | "cash";
+  /** The category's name (one of `categories`), or null while it has none. */
+  category: string | null;
+  shop: string | null;
+  /** The bank payment it is joined to; null while it has none. */
+  paymentId: string | null;
+};
+
 export type DashboardSourceInput = {
   transactions: readonly SourcePayment[];
   categories: readonly SourceCategory[];
   /** Today as `YYYY-MM-DD` (UTC): the current month is partial and counts up to this day. */
   today: string;
+  /** The phone's receipts (./receipts/count.ts says how they count). Without them nothing changes. */
+  receipts?: readonly SourceReceipt[];
 };
 
 /** The entry for payments without a category. The server's own look for the name follows it (CAT_META). */
@@ -67,7 +86,10 @@ export function unmatchedPaypalConversions(transactions: readonly SourcePayment[
 export function buildDashboardSource(input: DashboardSourceInput): DashboardSource {
   const today = parseDay(input.today);
   if (!today) throw new Error("today is not an ISO date (YYYY-MM-DD)");
-  const payments = counted(checked(input.transactions)).rows;
+  const stored = counted(checked(input.transactions)).rows;
+  const payments: ReceiptRow[] = input.receipts?.length
+    ? withReceiptRows(stored, receiptRows(stored, input.receipts, new Set(input.transactions.map((p) => p.id))))
+    : stored;
 
   // A payment counts under its category; with none (or a name not on the list) it is "Uncategorised".
   const known = new Set(input.categories.map((c) => c.name));
@@ -97,6 +119,10 @@ export function buildDashboardSource(input: DashboardSourceInput): DashboardSour
     tags: [...(p.tags ?? [])], // extra ("Add") categories: shown there, never re-summed into totals
     place: p.counterparty || p.description,
     city: p.city ?? "",
+    // Receipts only (brief 30); payments never carry these, so the server's JSON stays as it was.
+    ...(p.receiptId !== undefined ? { receiptId: p.receiptId } : {}),
+    ...(p.provisional ? { provisional: true } : {}),
+    ...(p.coveredBy ? { coveredBy: [...p.coveredBy] } : {}),
   }));
 
   // --- month list spanning the data range; the current month is partial ---
