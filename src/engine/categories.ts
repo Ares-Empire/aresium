@@ -28,9 +28,10 @@ const groups: [string, CategoryKind, [string, string, string][]][] = [
     ["shopping", "Shopping", "Shopping"], ["gifts", "Gifts", "Geschenke"],
   ]],
   ["Study & work", "spend", [["education", "Education", "Bildung"], ["work", "Work", "Arbeit"]]],
+  // "cash" holds the withdrawals: "Cash withdrawals" / "Abhebungen" since brief 32 (D9), so "Bargeld" is the Cash page.
   ["Money", "spend", [
     ["insurance", "Insurance", "Versicherungen"], ["taxes", "Taxes", "Steuern"], ["fees", "Fees", "Gebühren"],
-    ["memberships", "Memberships", "Mitgliedschaften"], ["donations", "Donations", "Spenden"], ["cash", "Cash", "Bargeld"],
+    ["memberships", "Memberships", "Mitgliedschaften"], ["donations", "Donations", "Spenden"], ["cash", "Cash withdrawals", "Abhebungen"],
     ["friends", "Friends", "Freunde"],
   ]],
   ["Money", "transfer", [["savings-investing", "Savings & investing", "Sparen & Anlegen"]]],

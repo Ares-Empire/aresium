@@ -12,7 +12,7 @@ test("default categories have stable ids, exact bilingual names, groups, and cou
     "Free time": "going-out|Going out|Ausgehen;entertainment|Entertainment|Unterhaltung;hobbies|Hobbies|Hobbys;subscriptions|Subscriptions|Abos",
     Shopping: "clothes|Clothes|Kleidung;electronics|Electronics|Elektronik;shopping|Shopping|Shopping;gifts|Gifts|Geschenke",
     "Study & work": "education|Education|Bildung;work|Work|Arbeit",
-    Money: "insurance|Insurance|Versicherungen;taxes|Taxes|Steuern;fees|Fees|Gebühren;memberships|Memberships|Mitgliedschaften;donations|Donations|Spenden;cash|Cash|Bargeld;friends|Friends|Freunde;savings-investing|Savings & investing|Sparen & Anlegen",
+    Money: "insurance|Insurance|Versicherungen;taxes|Taxes|Steuern;fees|Fees|Gebühren;memberships|Memberships|Mitgliedschaften;donations|Donations|Spenden;cash|Cash withdrawals|Abhebungen;friends|Friends|Freunde;savings-investing|Savings & investing|Sparen & Anlegen",
     Income: "salary|Salary & side jobs|Gehalt & Nebenjob;bafoeg-scholarships|BAföG & scholarships|BAföG & Stipendium;parents-family|Parents & family|Eltern & Familie;kindergeld|Kindergeld|Kindergeld;selling-things|Selling things|Verkäufe;interest-dividends|Interest & dividends|Zinsen & Dividenden;other-income|Other income|Sonstige Einnahmen",
     Other: "other|Other|Sonstiges",
   };

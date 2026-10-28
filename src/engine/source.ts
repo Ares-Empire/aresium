@@ -4,7 +4,7 @@
 import type { Category, DashboardSource, Month, SourceTxn } from "../data/dashboard.js";
 import { foldPaypalConversions, isPaypalBankFunding } from "./paypal.js";
 import { daysInMonth, parseDay } from "./dates.js";
-import { receiptRows, withReceiptRows, type ReceiptRow } from "./receipts/count.js";
+import { cashView, countReceipts, withReceiptRows, type ReceiptRow } from "./receipts/count.js";
 
 /** One stored payment, as plain JSON. */
 export type SourcePayment = {
@@ -33,7 +33,7 @@ export type SourcePayment = {
 /** A category on the person's list, with its look. */
 export type SourceCategory = { name: string; icon: string; color: string; excludeFromTotals: boolean };
 
-/** A stored receipt (brief 30), as plain JSON. */
+/** A stored receipt (brief 30) or cash entry typed in by hand (brief 32), as plain JSON. */
 export type SourceReceipt = {
   id: string;
   /** The purchase day, `YYYY-MM-DD`. */
@@ -47,6 +47,18 @@ export type SourceReceipt = {
   shop: string | null;
   /** The bank payment it is joined to; null while it has none. */
   paymentId: string | null;
+  /**
+   * "out" (the default): money spent. "in": cash received (a gift, money from selling something), only with
+   * `method: "cash"`; it counts as money in and is a source of cash, like a withdrawal.
+   */
+  direction?: "out" | "in" | null;
+  /** "receipt" (the default): read from a receipt. "manual": typed in by hand. Only for the app's labels. */
+  kind?: "receipt" | "manual" | null;
+  /**
+   * Cash out only: the source it was paid from, a withdrawal's payment id or a cash-received entry's id; null or left
+   * out: automatic. An id that names no source is ignored (./receipts/count.ts).
+   */
+  paidFrom?: string | null;
 };
 
 export type DashboardSourceInput = {
@@ -54,7 +66,10 @@ export type DashboardSourceInput = {
   categories: readonly SourceCategory[];
   /** Today as `YYYY-MM-DD` (UTC): the current month is partial and counts up to this day. */
   today: string;
-  /** The phone's receipts (./receipts/count.ts says how they count). Without them nothing changes. */
+  /**
+   * The phone's receipts and cash entries (./receipts/count.ts says how they count). Without them nothing changes;
+   * with them (also none) the source gets the Cash page (`cash`) and its withdrawals are marked `cashWithdrawal`.
+   */
   receipts?: readonly SourceReceipt[];
 };
 
@@ -87,13 +102,14 @@ export function buildDashboardSource(input: DashboardSourceInput): DashboardSour
   const today = parseDay(input.today);
   if (!today) throw new Error("today is not an ISO date (YYYY-MM-DD)");
   const stored = counted(checked(input.transactions)).rows;
-  const payments: ReceiptRow[] = input.receipts?.length
-    ? withReceiptRows(stored, receiptRows(stored, input.receipts, new Set(input.transactions.map((p) => p.id))))
-    : stored;
+  // Receipts and cash entries (the phone's; the server never sends them, so its source stays as it was).
+  const fromReceipts = input.receipts ? countReceipts(stored, input.receipts, new Set(input.transactions.map((p) => p.id))) : null;
+  const payments: ReceiptRow[] = fromReceipts?.rows.length ? withReceiptRows(stored, fromReceipts.rows) : stored;
 
   // A payment counts under its category; with none (or a name not on the list) it is "Uncategorised".
   const known = new Set(input.categories.map((c) => c.name));
-  const categoryOf = (p: SourcePayment) => (p.category != null && known.has(p.category) ? p.category : null);
+  const nameOf = (category: string | null | undefined) => (category != null && known.has(category) ? category : null);
+  const categoryOf = (p: SourcePayment) => nameOf(p.category);
 
   // --- per-category net, to classify income vs spend (transfer = excludeFromTotals) ---
   const net = new Map<string, number>();
@@ -119,10 +135,11 @@ export function buildDashboardSource(input: DashboardSourceInput): DashboardSour
     tags: [...(p.tags ?? [])], // extra ("Add") categories: shown there, never re-summed into totals
     place: p.counterparty || p.description,
     city: p.city ?? "",
-    // Receipts only (brief 30); payments never carry these, so the server's JSON stays as it was.
+    // Receipts only (briefs 30, 32): marks only when receipts are given, so the server's JSON stays as it was.
     ...(p.receiptId !== undefined ? { receiptId: p.receiptId } : {}),
     ...(p.provisional ? { provisional: true } : {}),
     ...(p.coveredBy ? { coveredBy: [...p.coveredBy] } : {}),
+    ...(fromReceipts?.withdrawals.has(p) ? { cashWithdrawal: true } : {}),
   }));
 
   // --- month list spanning the data range; the current month is partial ---
@@ -166,5 +183,7 @@ export function buildDashboardSource(input: DashboardSourceInput): DashboardSour
   return {
     categories, months, transactions, balanceByDay, openingBalance,
     databaseCategoryNames: input.categories.map((c) => c.name),
+    // The Cash page (brief 32): a view, counted nowhere.
+    ...(fromReceipts ? { cash: cashView(fromReceipts, (category) => nameOf(category) ?? UNCATEGORISED.name) } : {}),
   };
 }

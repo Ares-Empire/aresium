@@ -67,4 +67,6 @@ export type { ReceiptInput, ReceiptReading, Observation, Language } from "./rece
 export { matchReceipt } from "./receipts/match.js";
 export type { MatchReceipt, MatchPayment, ReceiptMatch, ReceiptCandidate, CandidateReason } from "./receipts/match.js";
 export type { ReceiptMarks } from "../data/dashboard.js";
+// Cash beyond the bank (brief 32): `SourceReceipt` takes `direction`, `kind` and `paidFrom`; the dashboard's `cash`.
+export type { CashView, CashMonth, CashMovement } from "../data/dashboard.js";
 // ── end of receipts ───────────────────────────────────────────────────────────────────────────────────────

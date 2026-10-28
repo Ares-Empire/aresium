@@ -17,6 +17,44 @@ export interface ReceiptMarks {
    * lowers its spending; never income, also when the withdrawal has no category.
    */
   coveredBy?: string[];
+  /** A cash withdrawal, a source of the Cash page (brief 32). Only in the phone's dashboard (when receipts are given). */
+  cashWithdrawal?: boolean;
+}
+// The Cash page (brief 32, D9): every cash movement from the wallet's side. A view: nothing in it counts in the totals
+// (each movement counts where it counts: the receipt in its category, the gift in its income category, the
+// withdrawal's rest in the withdrawal's category). Only in the phone's dashboard (when receipts are given).
+export interface CashView {
+  /** Per month ("YYYY-MM") with any cash movement; a month without one is left out. */
+  months: Record<MonthKey, CashMonth>;
+  /** Every cash movement, by date, the newest last (on one day the money in first). */
+  movements: CashMovement[];
+}
+export interface CashMonth {
+  /** Cash taken from the bank: the month's withdrawals. */
+  withdrawn: number;
+  /** Cash received (gifts, money from selling something). */
+  received: number;
+  /** Cash spent: receipts and entries by hand. A gift spent on something is here, the gift itself in `received`. */
+  spent: number;
+  /** What the month's withdrawals still hold after everything that took from them (what their category shows). */
+  unaccounted: number;
+}
+export interface CashMovement {
+  /** A withdrawal's payment id, or the receipt's or entry's id. */
+  id: string;
+  date: string;
+  /** From the wallet's side: + cash in (withdrawn, received), − cash out (receipts, entries). */
+  amount: number;
+  kind: "withdrawal" | "received" | "receipt" | "manual";
+  place: string;
+  /** Its category as the dashboard names it ("Uncategorised" when it has none). */
+  category: string;
+  /** Cash out: the sources it took from, in the order it took ([] = all of it from elsewhere). Cash in: null. */
+  paidFrom: string[] | null;
+  /** Cash in: the receipts and entries that took from it ([] = none yet). Cash out: null. */
+  coveredBy: string[] | null;
+  /** Cash in: what it still holds after everything that took from it. Cash out: null. */
+  left: number | null;
 }
 export interface SourceTxn extends ReceiptMarks {
   id: string; date: string; amount: number; categoryName: string; tags: string[]; place: string; city: string;
@@ -25,6 +63,7 @@ export interface DashboardSource {
   categories: Category[]; months: Month[]; transactions: SourceTxn[];
   balanceByDay: Record<string, number>; openingBalance: number;
   databaseCategoryNames: string[]; // recategorise targets; excludes dashboard-only categories
+  cash?: CashView; // the Cash page (brief 32); the server's source never has it
 }
 export interface Txn extends ReceiptMarks {
   id: string; date: string; day: number; month: MonthKey; amount: number;
@@ -45,6 +84,7 @@ export interface Dashboard {
   overview: { expense: number[]; income: number[]; balance: number[] };
   total: Totals; byMonth: Record<MonthKey, MonthData>; spend: Record<string, Series>; income: Record<string, Series>;
   pick: { spend: string[]; income: string[] };
+  cash?: CashView; // the Cash page (brief 32), passed on from the source; never counted
 }
 
 const money = (n: number) => Math.round(n * 100) / 100;
@@ -114,6 +154,7 @@ export function buildDashboard(source: DashboardSource): Dashboard {
     if (t.receiptId !== undefined) txn.receiptId = t.receiptId;
     if (t.provisional) txn.provisional = true;
     if (covered) txn.coveredBy = [...t.coveredBy!];
+    if (t.cashWithdrawal) txn.cashWithdrawal = true;
     transactions.push(txn);
     if (catByName.get(t.categoryName)?.kind === "spend" && !unsortedIn) {
       total.expense += -t.amount;
@@ -195,5 +236,6 @@ export function buildDashboard(source: DashboardSource): Dashboard {
       expense: months.map((m) => byMonth[m.key].expense), income: months.map((m) => byMonth[m.key].income),
       balance: months.map((m) => byMonth[m.key].endBalance),
     },
+    ...(source.cash ? { cash: source.cash } : {}),
   };
 }
