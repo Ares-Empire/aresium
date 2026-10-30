@@ -63,7 +63,7 @@ test("every starter pattern has its intended category when enabled", () => {
 });
 test("starter rules are gated by selected categories and match words, not fragments", () => {
   assert.equal(starterCategory({ counterparty: "REWE Markt" }, []), null);
-  for (const text of ["Notdm", "Admiral", "OBIwan", "DBX", "Shellfish", "Zarathustra", "PayPal Europe", "Amazon", "eBay", "Vinted", "OpenAI", "Anthropic"])
+  for (const text of ["Notdm", "Admiral", "OBIwan", "DBX", "Shellfish", "Zarathustra", "PayPal Europe", "Amazon", "eBay", "OpenAI", "Anthropic"])
     assert.equal(starterCategory({ counterparty: text }, all), null, text);
   assert.equal(starterCategory({ counterparty: "Uber Eats" }, all), "eating-out");
   assert.equal(starterCategory({ counterparty: "Uber Eats" }, [{ id: "taxi-sharing" }]), null);
@@ -85,4 +85,82 @@ test("learned keys do not read Object prototype values", () => {
   assert.deepEqual(sortPayments([{ counterparty: "constructor" }], { categories: all, learned: {} }), [{ categoryId: null, source: null }]);
   const learned = learn({}, { counterparty: "__proto__" }, "groceries");
   assert.equal(sortPayments([{ counterparty: "__proto__" }], { categories: all, learned })[0].categoryId, "groceries");
+});
+
+// Made-up card lines in the bank's printed format; neither the amounts nor the dates identify the merchant.
+const cardLine = (merchant: string, amount = "9,47", date = "08.10.2026") =>
+  `${merchant}          DEU Musterstadt            EUR   ${amount} Umsatz vom ${date} MC Hauptkarte`;
+
+test("card keys keep only the cleaned merchant, for multiword names, punctuation and thousands", () => {
+  for (const [shop, expected] of [
+    ["Penny Musterstadt", "penny musterstadt"], ["Norma Musterstadt", "norma musterstadt"],
+    ["Rossmann Fil. 123", "rossmann"], ["Mueller Drogerie-Markt", "mueller drogerie-markt"],
+    ["Studio 54 Musterstadt", "studio 54 musterstadt"],
+  ]) {
+    for (const amount of ["9,47", "23,07", "1.234,50"]) {
+      const line = cardLine(shop, amount);
+      assert.equal(merchantKey({ description: line }), expected, line);
+      assert.equal(merchantKey({ counterparty: " ", bookingText: line }), expected, line);
+      assert.equal(merchantKey({ counterparty: line }), expected, line);
+    }
+  }
+  const first = { description: cardLine("Penny Musterstadt") };
+  const next = { description: cardLine("Penny Musterstadt", "23,07", "19.10.2026") };
+  const paypal = { counterparty: "PayPal Europe", description: "PP.1234.PP . Ihr Einkauf bei Penny Musterstadt" };
+  assert.equal(merchantKey(first), merchantKey(next));
+  assert.equal(merchantKey(first), merchantKey(paypal));
+  assert.equal(merchantKey({ description: "Penny Musterstadt DEU Musterstadt EUR 9,47 Umsatz vom 08.10.2026 Visa Debit" }), "penny musterstadt");
+  assert.equal(merchantKey({ description: "Beispielladen          AUT Beispielort            CHF 1.234,50 Umsatz vom 08.10.2026 Visa" }), "beispielladen");
+});
+
+test("card recognition needs both the country/town and the currency/amount/date tail", () => {
+  for (const line of [
+    "Beispielladen EUR 9,47 Umsatz vom 08.10.2026 MC Hauptkarte",
+    "Beispielladen DE Musterstadt EUR 9,47 Umsatz vom 08.10.2026 MC Hauptkarte",
+    "Beispielladen DEU Musterstadt 9,47 Umsatz vom 08.10.2026 MC Hauptkarte",
+    "Beispielladen DEU Musterstadt EUR 9,47 Umsatz vom MC Hauptkarte",
+    "Beispielladen DEU Musterstadt EUR 9,47 Rechnung vom 08.10.2026 MC Hauptkarte",
+  ]) assert.notEqual(merchantKey({ description: line }), "beispielladen", line);
+  assert.equal(merchantKey({ counterparty: "Anderer Händler", description: cardLine("Penny Musterstadt") }), "anderer händler");
+});
+
+test("learning one card payment sorts the next payment and the PayPal spelling of the same shop", () => {
+  const learned = learn({}, { description: cardLine("Penny Musterstadt") }, "custom");
+  assert.deepEqual(learned, { "penny musterstadt": "custom" });
+  const results = sortPayments([
+    { description: cardLine("Penny Musterstadt", "1.234,50", "21.10.2026"), amount: -1234.5 },
+    { counterparty: "PayPal Europe", description: "Ihr Einkauf bei Penny Musterstadt", amount: -7 },
+  ], { categories: [...all, { id: "custom" }], learned });
+  assert.deepEqual(results, Array(2).fill({ categoryId: "custom", source: "learned" }));
+});
+
+test("sortPayments shares towns proven by any card line in this batch, without changing merchant keys", () => {
+  const purchases = ["Penny", "Norma", "Netto"].map((shop) =>
+    ({ source: "paypal" as const, counterparty: `${shop} Musterstadt`, amount: -4.5 }));
+  const evidence = { source: "bank" as const, description: cardLine("Beispielladen"), amount: -9.47 };
+  assert.deepEqual(sortPayments(purchases, { categories: all }), Array(3).fill({ categoryId: null, source: null }));
+  // Proof comes last, from an unrelated shop; order and which shop provided it do not matter.
+  assert.deepEqual(sortPayments([...purchases, evidence], { categories: all }).slice(0, 3),
+    Array(3).fill({ categoryId: "groceries", source: "starter" }));
+  assert.equal(sortPayments([evidence, ...purchases], { categories: all })[1].categoryId, "groceries");
+  for (const field of ["counterparty", "description", "bookingText"]) {
+    assert.equal(sortPayments([purchases[0], { [field]: cardLine("Beispielladen") }], { categories: all })[0].categoryId, "groceries", field);
+  }
+  assert.equal(merchantKey(purchases[0]), "penny musterstadt");
+  const learned = learn({}, purchases[0], "custom");
+  assert.equal(sortPayments([purchases[0], evidence], { categories: [...all, { id: "custom" }], learned })[0].source, "learned");
+  assert.equal(sortPayments([purchases[0], evidence], { categories: [] })[0].categoryId, null);
+  assert.equal(sortPayments(purchases, { categories: all })[0].categoryId, null); // no towns leak across calls
+});
+
+test("town context adds only one proven suffix, and never turns Penny's longer names into Groceries", () => {
+  const evidence = { description: cardLine("Beispielladen") };
+  const names = ["Penny Anderstadt", "Penny Beispiel Musterstadt", "Penny Musterstadt Extra", "Pennyreisen Musterstadt",
+    "Pennyblack", "Penny Lane 3"];
+  const results = sortPayments([...names.map((counterparty) => ({ counterparty, amount: -5 })), evidence], { categories: all });
+  assert.ok(results.slice(0, names.length).every((p) => p.categoryId !== "groceries"));
+  const special = sortPayments([{ counterparty: "Penny Reisen", amount: -5 }, { counterparty: "Penny Mobil", amount: -5 }, evidence], { categories: all });
+  assert.deepEqual(special.slice(0, 2).map((p) => p.categoryId), ["travel", "internet-phone"]);
+  const unproven = { description: cardLine("Beispielladen").replace("Umsatz vom", "Rechnung vom") };
+  assert.equal(sortPayments([{ counterparty: "Penny Musterstadt" }, unproven], { categories: all })[0].categoryId, null);
 });

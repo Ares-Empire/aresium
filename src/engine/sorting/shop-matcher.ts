@@ -1,4 +1,4 @@
-import { BOOKING_TYPE, merchantKey, payeeText, type SortingPayment } from "./merchant.js";
+import { BOOKING_TYPE, cardMerchant, merchantKey, payeeText, type SortingPayment } from "./merchant.js";
 import { shopSpellings, shopWords } from "./shop-words.js";
 
 /**
@@ -12,7 +12,7 @@ export type Direction = "out" | "in" | "both";
 export type ShopListData = {
   /** Hand-written word rules, in priority order. Without a direction, a block counts both ways. */
   rules: readonly (readonly [string, readonly string[], Direction?])[];
-  /** Hand-written names that count only as the whole merchant name, or followed by a branch number. */
+  /** Hand-written names that count as the whole merchant name, or before a branch number or a proven town. */
   merchants: readonly (readonly [string, readonly string[], Direction?])[];
   /** Merchants that have no numbered branches: a number after their name is something else ("CAMBIO 123 MADRID"). */
   noBranches?: readonly string[];
@@ -39,9 +39,9 @@ export type ShopMatcher = {
   /** Every name, highest priority first. */
   rules: readonly StarterRule[];
   /** The category the list gives this payment, whatever the person's categories are; null if none. */
-  match(payment: SortingPayment): string | null;
+  match(payment: SortingPayment, towns?: readonly string[]): string | null;
   /** The same decision as `match`, with the name that made it. */
-  find(payment: SortingPayment): ShopFound | null;
+  find(payment: SortingPayment, towns?: readonly string[]): ShopFound | null;
 };
 
 type Entry = { words: string[]; categoryId: string; rank: number; direction: Direction; source: StarterRule["source"] };
@@ -136,20 +136,36 @@ export function compileShopList(list: ShopListData): ShopMatcher {
 
   /** A merchant name that starts who was paid, followed by a branch number: "PENNY 4211 GARCHING", "NORMA 12". */
   function branchMerchant(payment: SortingPayment): Merchant | null {
-    const head = payeeText(payment).replace(BOOKING_TYPE, "").match(branchNumber)?.[1];
+    const payee = payeeText(payment);
+    const head = (cardMerchant(payee)?.merchant ?? payee).replace(BOOKING_TYPE, "").match(branchNumber)?.[1];
     const name = head === undefined ? "" : shopWords(head).join(" ");
     return name && !noBranches.has(name) ? merchants.get(name) ?? null : null;
   }
 
-  function decide(payment: SortingPayment): ShopFound | null {
+  /** Only one extra word, proven by this card line or other card lines in the person's payments. */
+  function townMerchant(payment: SortingPayment, towns: readonly string[]): Merchant | null {
+    const card = cardMerchant(payeeText(payment)) ?? cardMerchant(payment.description ?? payment.bookingText ?? "");
+    const name = shopWords(merchantKey(payment));
+    if (name.length < 2) return null;
+    const town = card ? shopWords(card.town) : [];
+    const proven = (town.length === 1 && name.at(-1) === town[0]) || towns.some((text) => {
+      const words = shopWords(text);
+      return words.length === 1 && name.at(-1) === words[0];
+    });
+    if (!proven) return null;
+    return merchants.get(name.slice(0, -1).join(" ")) ?? null;
+  }
+
+  function decide(payment: SortingPayment, towns: readonly string[] = []): ShopFound | null {
     const money = moneyOf(payment.amount);
-    const text = `${payment.counterparty ?? ""} ${payment.description ?? payment.bookingText ?? ""}`;
+    const details = payment.description ?? payment.bookingText ?? "";
+    const text = `${cardMerchant(payment.counterparty ?? "")?.merchant ?? payment.counterparty ?? ""} ${cardMerchant(details)?.merchant ?? details}`;
     const words = shopWords(text.replace(references, " "));
     const written = find(handWritten, words);
     const rule = best(written, written, money);
     if (rule) return rule;
     // A merchant found for the other direction decides too: Uber's money in is a driver's payout, not a ride.
-    const merchant = merchants.get(shopWords(merchantKey(payment)).join(" ")) ?? branchMerchant(payment);
+    const merchant = merchants.get(shopWords(merchantKey(payment)).join(" ")) ?? branchMerchant(payment) ?? townMerchant(payment, towns);
     if (merchant) {
       const { categoryId, direction, name } = merchant;
       return applies(direction, money) ? { categoryId, name, source: "merchant", direction, at: null } : null;
@@ -161,7 +177,7 @@ export function compileShopList(list: ShopListData): ShopMatcher {
 
   return {
     rules,
-    match: (payment) => decide(payment)?.categoryId ?? null,
+    match: (payment, towns) => decide(payment, towns)?.categoryId ?? null,
     find: decide,
   };
 }

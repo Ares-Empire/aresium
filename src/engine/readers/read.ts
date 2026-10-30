@@ -1,7 +1,7 @@
 // One entry for any bank file: decode the bytes, find the format, read it.
 // Order: CAMT (XML), MT940, PayPal CSV, a layout the person confirmed before, a known bank layout, and last an
 // unknown CSV, whose guessed layout comes back for the person to confirm (nothing is imported until then).
-import { parsePaypalCsv } from "../../import/paypal-csv.js";
+import { parsePaypalCsv } from "./paypal.js";
 import { parseVrBankCsv } from "../../import/vrbank-csv.js";
 import type { ParsedFile } from "../../import/types.js";
 import { readCamt } from "./camt.js";

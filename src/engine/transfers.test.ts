@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { BUILT_IN_CATEGORIES, DEFAULT_CATEGORIES, learn, ownTransfers, OWN_TRANSFERS, sortPayments, type TransferPayment } from "./index.js";
+import { BUILT_IN_CATEGORIES, DEFAULT_CATEGORIES, buildDashboard, learn, ownTransfers, OWN_TRANSFERS, sortPayments, type TransferPayment } from "./index.js";
 import { isPaypalBankLine, isPaypalFundingRow, saysOwnTransfer } from "./sorting/transfers.js";
+import { buildDashboardSource } from "./source.js";
 
 // Made-up payments as the readers produce them: VR Bank lines, PayPal export rows. Fictional shops and amounts; the
 // accounts are plain keys, the IBANs textbook examples.
@@ -56,6 +57,107 @@ test("shops and people that only mention PayPal, and PayPal's own rows, are not 
     bank("2026-02-04", -10, null, ""),
   ]) assert.equal(isPaypalBankLine(line), false, `${line.counterparty} / ${line.description}`);
   assert.deepEqual(sources([bank("2026-02-04", -10, "Paypalooza GmbH"), paypalPurchase]), [null, null]);
+});
+
+// ---- PayPal's currency conversions (brief 34) -----------------------------------------------------------------
+
+const conversionRows = (english = false, refund = false) => {
+  const purchase = {
+    source: "paypal" as const, account: "paypal", date: "2026-10-08", externalId: "PURCHASE", currency: "USD",
+    amount: refund ? 28.5 : -28.5, counterparty: "Beispielshop", description: "Beispielshop",
+    raw: english ? { Type: "Express Checkout Payment" } : { Typ: "PayPal Express-Zahlung" },
+  };
+  const raw = english
+    ? { Type: "General Currency Conversion", "Reference Txn ID": "PURCHASE" }
+    : { Typ: "Allgemeine Währungsumrechnung", "Zugehöriger Transaktionscode": "PURCHASE" };
+  return [purchase,
+    { ...purchase, externalId: "CONVERSION-USD", counterparty: "", description: "", amount: -purchase.amount, raw },
+    { ...purchase, externalId: "CONVERSION-EUR", counterparty: "", description: "", currency: "EUR", amount: refund ? 25.7 : -25.7, raw },
+  ];
+};
+
+test("both PayPal conversion rows are own transfers only when their foreign purchase and euro leg are present", () => {
+  for (const english of [false, true]) for (const refund of [false, true]) {
+    const rows = conversionRows(english, refund);
+    assert.deepEqual(ownTransfers(rows), [null, { rule: "paypal-conversion" }, { rule: "paypal-conversion" }]);
+    assert.deepEqual(sortPayments(rows, { categories: [] }), [
+      { categoryId: null, source: null },
+      { categoryId: "own-transfers", source: "structural" },
+      { categoryId: "own-transfers", source: "structural" },
+    ]);
+    assert.deepEqual(ownTransfers(rows.slice(0, 2)), [null, null]); // missing euro leg
+    assert.deepEqual(sortPayments(rows.slice(0, 2), { categories: all }), Array(2).fill({ categoryId: null, source: null }));
+    assert.deepEqual(ownTransfers(rows.slice(1)), [null, null]); // missing purchase
+    assert.deepEqual(ownTransfers([{ ...rows[0], externalId: "OTHER" }, ...rows.slice(1)]), [null, null, null]);
+    assert.deepEqual(ownTransfers([{ ...rows[0], currency: "EUR" }, ...rows.slice(1)]), [null, null, null]);
+    assert.deepEqual(ownTransfers([{ ...rows[0], externalId: undefined }, ...rows.slice(1)]), [null, null, null]);
+    assert.deepEqual(ownTransfers([rows[0], rows[1], { ...rows[2], raw: {} }]), [null, null, null]);
+    assert.deepEqual(ownTransfers([rows[0], rows[2]]), [null, { rule: "paypal-conversion" }]); // same as dashboard
+  }
+});
+
+test("conversion classification leaves the dashboard unchanged, including the euro cost and refund", () => {
+  for (const english of [false, true]) for (const refund of [false, true]) {
+    const rows = conversionRows(english, refund);
+    const categories = [
+      { name: "Clothes", icon: "Shirt", color: "#123456", excludeFromTotals: false },
+      { name: "Own transfers", icon: "ArrowLeftRight", color: "#123456", excludeFromTotals: true },
+    ];
+    const before = rows.map((p, i) => ({ ...p, id: p.externalId, category: i === 0 ? "Clothes" : null }));
+    const sorted = sortPayments(rows, { categories: all });
+    const after = before.map((p, i) => ({ ...p, category: sorted[i].source === "structural" ? "Own transfers" : p.category }));
+    const build = (transactions: typeof before) => buildDashboardSource({ transactions, categories, today: "2026-10-30" });
+    assert.deepEqual(build(after), build(before));
+    assert.deepEqual(build(after).transactions.map((p) => [p.id, p.amount]), [["PURCHASE", refund ? 25.7 : -25.7]]);
+  }
+});
+
+test("conversion rows keep their structural rule before learning and account pairing", () => {
+  const rows = conversionRows().map((p, i) => i === 0 ? p : { ...p, counterparty: "Eigenes Konto" });
+  const learned = learn({}, rows[1], "clothes");
+  assert.equal(sortPayments(rows, { categories: all, learned })[1].source, "structural");
+  const otherAccount = { ...rows[2], source: "bank" as const, account: "giro", externalId: "BANK", raw: {}, amount: 25.7 };
+  assert.deepEqual(ownTransfers([...rows, otherAccount]), [null, { rule: "paypal-conversion" }, { rule: "paypal-conversion" }, null]);
+  const funding = { ...rows[0], description: "Bankgutschrift auf PayPal-Konto" };
+  assert.deepEqual(ownTransfers([funding, ...rows.slice(1)]), [{ rule: "paypal" }, null, null]);
+});
+
+test("PayPal's withdrawals to the bank are structural transfers regardless of status, sign or learning", () => {
+  for (const description of ["Von Nutzer eingeleitete Abbuchung", "User Initiated Withdrawal", "General Withdrawal - Bank Account", "Manual Withdrawal"]) {
+    for (const status of ["Abgeschlossen", "Entfernt", "Ausstehend", "Completed", "Removed", "Pending"]) for (const amount of [-37, 37]) {
+      const payment = { ...paypal("2026-10-08", amount, "", description), raw: { Status: status } };
+      const learned = learn({}, payment, "clothes");
+      assert.deepEqual(ownTransfers([payment]), [{ rule: "paypal" }]);
+      assert.deepEqual(sortPayments([payment], { categories: [], learned }), [{ categoryId: OWN_TRANSFERS, source: "structural" }]);
+      assert.deepEqual(sortPayments([payment], { categories: all, learned }), [{ categoryId: OWN_TRANSFERS, source: "structural" }]);
+      assert.deepEqual(ownTransfers([{ ...payment, source: "bank" }]), [null]);
+    }
+  }
+  const out = { ...paypal("2026-10-08", -37, "Eigenes Konto", "Unrelated"), raw: { Type: "User Initiated Withdrawal" } };
+  const into = bank("2026-10-08", 37, "Eigenes Konto", "Umbuchung");
+  assert.deepEqual(ownTransfers([out, into]), [{ rule: "paypal" }, null]); // account pairing must not overwrite it
+});
+
+test("withdrawals sorted as own transfers count as neither spending nor income in the dashboard", () => {
+  const payments = [
+    ...["Completed", "Removed", "Pending"].flatMap((Status) => [-37, 37].map((amount) =>
+      ({ ...paypal("2026-10-08", amount, "", "User Initiated Withdrawal"), raw: { Status } }))),
+    bank("2026-10-08", 37, "PayPal Europe", "PayPal withdrawal"),
+    bank("2026-10-09", -9, "Penny"),
+  ];
+  const sorted = sortPayments(payments, { categories: all });
+  const categories = all.map((c) => ({ name: c.id, icon: "Tag", color: "#123456", excludeFromTotals: c.kind === "transfer" }));
+  const source = buildDashboardSource({ transactions: payments.map((p, i) => ({
+    ...p, id: `withdrawal-test-${i}`, externalId: `withdrawal-test-${i}`, amount: p.amount!, date: p.date!, currency: p.currency!,
+    description: p.description!, category: sorted[i].categoryId,
+  })), categories, today: "2026-10-30" });
+  assert.equal(source.categories.find((c) => c.name === OWN_TRANSFERS)?.kind, "transfer");
+  const dashboard = buildDashboard(source);
+  assert.equal(dashboard.total.expense, 9);
+  assert.equal(dashboard.total.income, 0);
+  assert.deepEqual(dashboard.overview.expense, [9]);
+  assert.deepEqual(dashboard.overview.income, [0]);
+  assert.ok(dashboard.transactions.slice(0, -1).every((p) => p.incomeBuckets.length === 0));
 });
 
 // ---- 2. Between accounts --------------------------------------------------------------------------------------

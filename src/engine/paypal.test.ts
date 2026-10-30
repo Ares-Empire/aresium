@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { foldPaypalConversions, isPaypalBankFunding } from "./paypal.js";
+import { foldPaypalConversions, isPaypalBankFunding, isPaypalBankWithdrawal } from "./paypal.js";
 import { readBankText } from "./readers/read.js";
 import type { BankTxn } from "./readers/types.js";
 import { buildDashboardSource, type SourcePayment } from "./source.js";
@@ -73,6 +73,24 @@ test("English exports' funding rows are left out too: bank and card deposits, by
     { description: "Fiktiv Online Shop", raw: { Type: "Payment Refund" } },
     { description: "Thanks for the general card deposit tip", raw: { Subject: "About the bank deposit to PP account" } },
   ]) assert.equal(isPaypalBankFunding(t), false, JSON.stringify(t));
+});
+
+test("bank withdrawals match PayPal's full German and English type names, never fees or other withdrawals", () => {
+  for (const type of ["Von Nutzer eingeleitete Abbuchung", "User Initiated Withdrawal", "User-Initiated Withdrawal",
+    "Manual Withdrawal", "General Withdrawal - Bank Account", "General withdrawal — bank account"]) {
+    assert.equal(isPaypalBankWithdrawal({ description: `  ${type.toUpperCase()}  ` }), true, type);
+    for (const key of ["Typ", "Type", "Beschreibung"]) {
+      assert.equal(isPaypalBankWithdrawal({ description: "PayPal", raw: { [key]: type, Status: "Removed" } }), true, `${key}: ${type}`);
+    }
+    assert.equal(isPaypalBankFunding({ description: type }), false, type);
+  }
+  for (const type of ["Fee for foreign ACH withdrawal", "General non-payment-related fee", "Fee for WorldLink check withdrawal",
+    "PayPal debit card withdrawal to ATM", "General credit card withdrawal", "General withdrawal to non-bank institution",
+    "Withdrawal to Hyperwallet", "Auto-sweep", "Rückbuchung von ACH-Gutschrift", "Manual Withdrawal Fee",
+    "Regarding User Initiated Withdrawal", "User Initiated Withdrawal Example Shop"]) {
+    assert.equal(isPaypalBankWithdrawal({ description: type, raw: { Type: type } }), false, type);
+  }
+  assert.equal(isPaypalBankWithdrawal({ description: "Unrelated", raw: { Subject: "User Initiated Withdrawal" } }), false);
 });
 
 // The readers' PayPal rows as the dashboard's input (no categories: only which rows count matters here).

@@ -2,7 +2,7 @@
 // these thin wrappers expose bookingDate/valueDate as UTC ISO strings instead.
 import { parseVrBankCsv as vrBank } from "../import/vrbank-csv.js";
 import { parseCamt as camt } from "../import/camt.js";
-import { parsePaypalCsv as paypal } from "../import/paypal-csv.js";
+import { parsePaypalCsv as paypal } from "./readers/paypal.js";
 import type { NormalizedTxn, ParsedFile } from "../import/types.js";
 
 export { buildDashboard } from "../data/dashboard.js";

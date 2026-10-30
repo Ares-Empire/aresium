@@ -45,12 +45,27 @@ export function isPaypalBankFunding(t: { description: string; raw?: unknown }): 
   return [t.description, ...values].some((value) => ENGLISH_FUNDING.has(plain(value)));
 }
 
+// PayPal's T0400 (General withdrawal — bank account) and T0403 (Manual withdrawal, user-initiated):
+// https://developer.paypal.com/docs/transaction-search/transaction-event-codes/ (checked 2026-10-30).
+// Activity exports also call the latter "User Initiated Withdrawal". T0401 auto-sweep and T0402 Hyperwallet
+// are not user-initiated bank withdrawals; neither are ATM/card withdrawals or withdrawal fees.
+const BANK_WITHDRAWALS = new Set([
+  "von nutzer eingeleitete abbuchung", "user initiated withdrawal", "manual withdrawal", "general withdrawal bank account",
+]);
+
+/** Money moving from PayPal to the person's bank, regardless of the export's status or amount sign. */
+export function isPaypalBankWithdrawal(t: { description: string; raw?: unknown }): boolean {
+  return [t.description, field(t.raw, ["Typ", "Type", "Beschreibung"])].some((value) =>
+    BANK_WITHDRAWALS.has(plain(value).replace(/[–—]/gu, "-").replace(/\s*-\s*/gu, " ")));
+}
+
 const CONVERSION_TYPES = new Set(["Allgemeine Währungsumrechnung", "General Currency Conversion"]);
 const TYPE_KEYS = ["Typ", "Type"];
 const RELATED_KEYS = ["Zugehöriger Transaktionscode", "Reference Txn ID"];
 const EUR = "EUR";
 
 type Row = { externalId: string | null; currency: string; amount: unknown; raw?: unknown };
+type ConversionRow = { externalId?: string | null; currency?: string | null; amount?: unknown; raw?: unknown };
 
 function field(raw: unknown, keys: string[]): string | undefined {
   if (!raw || typeof raw !== "object") return undefined;
@@ -61,9 +76,9 @@ function field(raw: unknown, keys: string[]): string | undefined {
   return undefined;
 }
 
-const isConversion = (row: Row) => CONVERSION_TYPES.has(field(row.raw, TYPE_KEYS) ?? "");
+const isConversion = (row: ConversionRow) => CONVERSION_TYPES.has(field(row.raw, TYPE_KEYS) ?? "");
 
-export function foldPaypalConversions<T extends Row>(rows: T[]): { rows: T[]; unmatched: string[] } {
+function conversionPlan<T extends ConversionRow>(rows: readonly T[]) {
   const eurLegByPurchase = new Map<string, T>();
   const conversionsByPurchase = new Map<string, T[]>();
   for (const row of rows) {
@@ -84,6 +99,16 @@ export function foldPaypalConversions<T extends Row>(rows: T[]): { rows: T[]; un
     replaced.set(row, { ...row, amount: eurLeg.amount, currency: EUR });
     for (const conversion of conversionsByPurchase.get(row.externalId) ?? []) dropped.add(conversion);
   }
+  return { dropped, replaced, unmatched };
+}
+
+/** The conversion rows the dashboard leaves out, also used by sorting's own-transfer rule. */
+export function paypalConversionRows<T extends ConversionRow>(rows: readonly T[]): ReadonlySet<T> {
+  return conversionPlan(rows).dropped;
+}
+
+export function foldPaypalConversions<T extends Row>(rows: T[]): { rows: T[]; unmatched: string[] } {
+  const { dropped, replaced, unmatched } = conversionPlan(rows);
   return {
     rows: rows.filter((row) => !dropped.has(row)).map((row) => replaced.get(row) ?? row),
     unmatched,

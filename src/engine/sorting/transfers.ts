@@ -1,5 +1,5 @@
 // Own transfers: money that only moves between the person's own accounts. They go to the built-in category
-// "own-transfers", so nothing is counted twice. Two structural rules, which sortPayments applies before learned and
+// "own-transfers", so nothing is counted twice. Structural rules, which sortPayments applies before learned and
 // starter rules, because they look at the person's payments together rather than at one payment's text:
 //
 // 1. PayPal. A person who imports both their bank's and their PayPal export sees each PayPal purchase twice: in the
@@ -8,6 +8,7 @@
 //    Without them the bank line is the only record of the purchase and is left to the other rules. PayPal's own
 //    funding rows ("Bankgutschrift auf PayPal-Konto", "Bank Deposit to PP Account", "General Card Deposit": the
 //    same money arriving in PayPal, see ../paypal.ts) are own transfers too; the dashboard leaves them out.
+//    Its currency-conversion rows are own transfers exactly when the dashboard folds them into the purchase.
 // 2. Between accounts. Two payments of the same absolute amount (and currency), with opposite signs, on different
 //    accounts, at most 3 days apart, are the two sides of one transfer, but only with proof that the money stayed
 //    with the person: one side's `counterpartyIban` is the other side's account IBAN (either way round), or both
@@ -17,7 +18,7 @@
 //    (precision first). Each payment pairs at most once; the closest dates pair first, and among equally close
 //    pairs the earlier payments in the list.
 import { dayNumber, parseDay } from "../dates.js";
-import { isPaypalBankFunding } from "../paypal.js";
+import { isPaypalBankFunding, isPaypalBankWithdrawal, paypalConversionRows } from "../paypal.js";
 import type { SortingPayment } from "./merchant.js";
 
 export const OWN_TRANSFERS = "own-transfers";
@@ -36,6 +37,8 @@ export type TransferPayment = SortingPayment & {
   /** Negative = money out. */
   amount?: number;
   currency?: string | null;
+  /** PayPal's transaction code, used to link its purchase and currency-conversion rows. */
+  externalId?: string | null;
   /** Booking date: `YYYY-MM-DD`, or an ISO timestamp (its first ten characters are the day). */
   date?: string;
   /** The export's original row: PayPal's funding rows are also recognised by its type column. */
@@ -43,10 +46,10 @@ export type TransferPayment = SortingPayment & {
 };
 
 /**
- * Why a payment is an own transfer: PayPal's bank line or funding row, or one side of a pair between accounts
+ * Why a payment is an own transfer: PayPal's bank line, funding or conversion row, or one side of a pair between accounts
  * (`pairedWith` = the other side's index).
  */
-export type OwnTransfer = { rule: "paypal" } | { rule: "accounts"; pairedWith: number };
+export type OwnTransfer = { rule: "paypal" } | { rule: "paypal-conversion" } | { rule: "accounts"; pairedWith: number };
 
 // How banks name PayPal on the bank side: "PayPal Europe S.a.r.l. et Cie S.C.A", "PayPal (Europe) S.a.r.l. et Cie,
 // S.C.A.", "PAYPAL *SHOPNAME" on card statements, or just "PayPal". A shop whose name only starts with the same
@@ -66,6 +69,11 @@ export function isPaypalBankLine(payment: TransferPayment): boolean {
 /** A row of PayPal's own export that funds PayPal from the person's bank account or card. */
 export function isPaypalFundingRow(payment: TransferPayment): boolean {
   return payment.source === "paypal" && isPaypalBankFunding({ description: payment.description ?? "", raw: payment.raw });
+}
+
+/** PayPal's own withdrawal to the person's bank, including pending or removed withdrawals. */
+export function isPaypalWithdrawalRow(payment: TransferPayment): boolean {
+  return payment.source === "paypal" && isPaypalBankWithdrawal({ description: payment.description ?? "", raw: payment.raw });
 }
 
 // Words a bank or the person writes on a move between their own accounts, as whole words (so "Übertragung" or
@@ -101,13 +109,17 @@ export function ownTransfers(payments: readonly TransferPayment[]): (OwnTransfer
   const result: (OwnTransfer | null)[] = payments.map(() => null);
 
   const hasPaypalExport = payments.some((p) => p.source === "paypal");
+  // The dashboard removes funding before folding conversions; use precisely the same input here.
+  const conversions = paypalConversionRows(payments.filter((p) => !isPaypalBankFunding({ description: p.description ?? "", raw: p.raw })));
   payments.forEach((p, i) => {
-    if (isPaypalFundingRow(p) || (hasPaypalExport && isPaypalBankLine(p))) result[i] = { rule: "paypal" };
+    if (isPaypalFundingRow(p) || isPaypalWithdrawalRow(p) || (hasPaypalExport && isPaypalBankLine(p))) result[i] = { rule: "paypal" };
+    if (conversions.has(p)) result[i] = { rule: "paypal-conversion" };
   });
 
   // Pairs: group by amount in cents, then match money out with money in on another account.
   const groups = new Map<number, { out: Side[]; in: Side[] }>();
   payments.forEach((p, index) => {
+    if (result[index]?.rule === "paypal-conversion" || isPaypalWithdrawalRow(p)) return;
     const date = parseDay(p.date);
     const amount = p.amount;
     if (!p.account || !date || typeof amount !== "number" || !Number.isFinite(amount)) return;

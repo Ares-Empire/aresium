@@ -6,6 +6,7 @@ import { bundleEngine } from "../../scripts/build-engine.js";
 import { bankFixtures, fixtureAnswer } from "../../scripts/bank-fixtures.js";
 import { parseCamt } from "../import/camt.js";
 import { parseVrBankCsv } from "../import/vrbank-csv.js";
+import { parsePaypalCsv as serverPaypal } from "../import/paypal-csv.js";
 import { detectSeparator, splitCsv } from "./readers/csv.js";
 import { decodeBankFileWithEncoding } from "./readers/decode.js";
 import { canonicalAmount, normalizeIban, parseAmountStrict, parseDate } from "./readers/values.js";
@@ -168,6 +169,41 @@ test("PayPal keeps its transaction codes as ids", async () => {
   const file = engine.readBankFile(await fixture("../paypal.csv"));
   assert.equal(file.format, "paypal");
   assert.deepEqual(ids(file), ["FICTIONAL-PAY-1", "FICTIONAL-FUND", "FICTIONAL-REFUND"]);
+});
+
+test("phone PayPal readers leave unnamed entries without a counterparty and preserve their type and ids", () => {
+  const types = ["Allgemeine Gebühr (unabhängig von Zahlung)", "Allgemeiner Bonus", "PayPal-Käuferschutzbonus, Beispiel",
+    "Rückbuchung von ACH-Gutschrift", "Von Nutzer eingeleitete Abbuchung", "Allgemeine Währungsumrechnung"];
+  const quote = (value: string) => `"${value.replace(/"/g, '""')}"`;
+  for (const [dateColumn, typeColumn, amountColumn, idColumn, emailColumn, currencyColumn] of [
+    ["Datum", "Typ", "Netto", "Transaktionscode", "Absender E-Mail-Adresse", "Währung"],
+    ["Date", "Type", "Net", "Transaction ID", "From Email Address", "Currency"],
+    ["Datum", "Beschreibung", "Netto", "Transaktionscode", "Absender E-Mail-Adresse", "Währung"],
+  ]) {
+    const rows = types.map((type, i) => ["2026-10-08", i === 1 ? " " : "", type, "-3.50", `OWN-${i}`, "owner@example.invalid", "EUR"]);
+    rows.push(["2026-10-08", "Beispielshop", "Allgemeine Zahlung", "-4.50", "SHOP", "shop@example.invalid", "EUR"]);
+    const text = [[dateColumn, "Name", typeColumn, amountColumn, idColumn, emailColumn, currencyColumn], ...rows]
+      .map((row) => row.map(quote).join(",")).join("\n");
+    const serverRows = serverPaypal(text).transactions;
+    for (const file of [engine.readBankText(text), bundled.readBankText(text), engine.parsePaypalCsv(text), bundled.parsePaypalCsv(text)]) {
+      assert.deepEqual(json(file.transactions.map((p) => p.externalId)), serverRows.map((p) => p.externalId));
+      assert.deepEqual(json(file.transactions.at(-1)), json(serverRows.at(-1)));
+      file.transactions.slice(0, types.length).forEach((payment, i) => {
+        assert.equal(payment.counterparty, null);
+        assert.equal(payment.description, types[i]);
+        assert.equal(payment.amount, serverRows[i].amount);
+        assert.deepEqual(json(payment.raw), json(serverRows[i].raw));
+        assert.equal(engine.merchantKey({ ...payment, amount: Number(payment.amount) }), engine.merchantKey({ description: types[i] }));
+        assert.equal(serverRows[i].counterparty, "owner@example.invalid"); // server import path stays unchanged
+      });
+      assert.equal(file.transactions.at(-1)?.counterparty, "Beispielshop");
+    }
+    const payments = engine.readBankText(text).transactions.map((p) => ({ ...p, amount: Number(p.amount) }));
+    assert.equal(new Set(payments.slice(0, types.length).map(engine.merchantKey)).size, types.length);
+    const learned = engine.learn({}, payments[0], "fees");
+    assert.deepEqual(engine.sortPayments(payments.slice(0, 4), { categories: engine.DEFAULT_CATEGORIES, learned }).map((p) => p.source),
+      ["learned", null, null, null]);
+  }
 });
 
 // ── CAMT and MT940 ─────────────────────────────────────────────────────────────────────────────────────────

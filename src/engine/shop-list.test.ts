@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { buildShopList, NSI, type ShopList } from "../../scripts/build-shop-list.js";
+import { buildShopList, NSI, refreshShopRules, type ShopList } from "../../scripts/build-shop-list.js";
 import { DENY, MARKETPLACES, MERCHANTS, NO_BRANCHES, PLAIN_VOWEL_WORDS, RULES, SHORT_BRANDS } from "../../scripts/shop-list.de.js";
 import { BUILT_IN_CATEGORIES, DEFAULT_CATEGORIES, sortPayments, STARTER_RULES, starterCategory } from "./index.js";
 import { compileShopList } from "./sorting/shop-matcher.js";
 import { compactLength, shopSpellings, shopWords } from "./sorting/shop-words.js";
+import { findShop } from "./sorting/starter-rules.js";
 import shopFile from "./sorting/shops.de.json" with { type: "json" };
 
 // Every text below is made up in the formats German banks print (no real payments).
@@ -36,6 +37,19 @@ test("the shop list file is the generator's output: pinned NSI version, licence,
   }
   const merchants = new Set(MERCHANTS.flatMap(([, names]) => names));
   for (const name of NO_BRANCHES) assert.ok(merchants.has(name), name);
+});
+
+test("offline regeneration refreshes hand-written rules and preserves the pinned brands and metadata", () => {
+  const stale = { ...list, rules: [], merchants: [], noBranches: [], plainVowelWords: [] };
+  const original = JSON.stringify(stale);
+  const refreshed = refreshShopRules(stale);
+  assert.deepEqual(refreshed, list);
+  assert.equal(JSON.stringify(stale), original);
+  assert.equal(refreshed.brands, list.brands);
+  assert.equal(refreshed.nsi, list.nsi);
+  assert.throws(() => refreshShopRules(null), /pinned NSI version/);
+  assert.throws(() => refreshShopRules({ ...stale, nsi: { ...stale.nsi, version: "old" } }), /pinned NSI version/);
+  assert.throws(() => refreshShopRules({ ...stale, nsi: { ...stale.nsi, sha256: "wrong" } }), /pinned NSI version/);
 });
 
 test("no pattern is three letters or shorter unless it is on the short-brand list", () => {
@@ -149,7 +163,7 @@ test("texts that must not match: people, words, prices, marketplaces and payment
     ["Real Estate Beispiel GmbH", ""], ["Hit Radio Beispiel", ""], ["Star Beispiel", ""], ["Jet Beispiel", ""],
     ["MUELLER 1234", "Kartenzahlung"], ["Spar- und Darlehnskasse Beispiel", ""], ["Volksbank Raiffeisenbank Beispiel", ""],
     ["PayPal Europe S.a.r.l. et Cie, S.C.A.", "PP.1234.PP"], ["AMZN Mktp DE", ""], ["Amazon EU S.a r.l.", ""],
-    ["eBay GmbH", ""], ["Klarna Bank AB", ""], ["SumUp", ""], ["Zettle by PayPal", ""], ["Vinted UAB", ""],
+    ["eBay GmbH", ""], ["Klarna Bank AB", ""], ["SumUp", ""], ["Zettle by PayPal", ""],
     ["Google Pay", ""], ["Visa", "Kartenzahlung"], ["Lush Beispiel", ""], ["Kaiser Beispiel", ""], ["Depot Beispiel", ""],
     ["Westfalen Beispiel", ""], ["Sky Beispiel", ""], ["Admiral", ""], ["Notdm", ""], ["Shellfish", ""], ["OpenAI", ""],
     // words that are also brands, or brands without their second word
@@ -285,7 +299,7 @@ const directions: [string, string, string | null, string | null][] = [
   ["momox fashion", "", "clothes", null],
   ["Studierendenwerk Beispielstadt", "Abrechnung 10/2026", "eating-out", null],
   // Marketplaces never count, either way.
-  ["Etsy Ireland UC", "", null, null], ["Vinted UAB", "Auszahlung", null, null], ["eBay GmbH", "", null, null],
+  ["Etsy Ireland UC", "", null, null], ["eBay GmbH", "", null, null],
 ];
 test("spending words count only on money out, income words only on money in, transfer words both ways", () => {
   for (const [counterparty, description, out, into] of directions) {
@@ -383,6 +397,62 @@ test("branch numbers in the matcher: only whole-merchant names, only first, 2 to
   assert.equal(at("Penny Lane 3"), "brand"); // a word between: the brand "lane", not the merchant
   assert.equal(at("CAMBIO 123 MADRID"), null);
   assert.equal(at("Cambio"), "car");
+});
+
+test("a hand-list merchant matches before its own card-line town or a known city", () => {
+  const card = (shop: string, town = "Musterstadt") =>
+    `${shop}          DEU ${town}            EUR   9,47 Umsatz vom 08.10.2026 MC Hauptkarte`;
+  for (const shop of ["Penny", "Norma", "Netto"]) {
+    assert.equal(sortMoney(-9.47, "", card(`${shop} Musterstadt`)), "groceries", shop);
+    assert.equal(sortMoney(-9.47, `${shop} Musterstadt`, card(`${shop} Musterstadt`)), "groceries", shop);
+    assert.equal(sortText(`${shop} Berlin`), "groceries", shop);
+    assert.equal(sortText("", `${shop} München`), "groceries", shop);
+    assert.equal(sortText(`${shop} Musterstadt`), null, shop); // no proof of the unknown town
+    assert.equal(sortText("", card(`${shop} Musterstadt`, "Anderstadt")), null, shop);
+  }
+  assert.equal(sortText("", card("Penny")), "groceries");
+  assert.equal(sortText("", card("Penny 42 Musterstadt")), "groceries");
+  assert.equal(sortText("", card("Rossmann Fil. 123")), "drugstore");
+  assert.equal(sortText("", card("Mueller Drogerie-Markt")), "drugstore");
+  assert.equal(sortText("Fremder Beispiel", card("Penny Musterstadt")), null);
+  assert.equal(sortText("", card("Penny Beispiel Musterstadt")), null); // exactly one extra word
+  assert.equal(sortText("", card("Penny Beispielstadt", "Berlin")), null);
+});
+
+test("town matching never turns Penny's longer names into the supermarket", () => {
+  const m = compileShopList({ rules: [], merchants: [["groceries", ["penny"]]], brands: [] });
+  for (const name of ["Penny Reisen", "Penny Mobil", "Pennyblack"]) {
+    assert.equal(m.match({ counterparty: name }), null, name);
+    assert.equal(m.match({ description: `${name}          DEU Musterstadt            EUR 9,47 Umsatz vom 08.10.2026 MC Hauptkarte` }), null, name);
+  }
+  assert.equal(sortMoney(-9.47, "Penny Reisen"), "travel");
+  assert.equal(sortMoney(-9.47, "Penny Mobil"), "internet-phone");
+  assert.notEqual(sortMoney(-9.47, "Pennyblack"), "groceries");
+});
+
+test("starterCategory and findShop accept optional town context and keep their standalone behaviour", () => {
+  const payment = { counterparty: "Penny Musterstadt", amount: -5 };
+  assert.equal(starterCategory(payment, all), null);
+  assert.equal(findShop(payment), null);
+  assert.equal(starterCategory(payment, all, ["MUSTERSTADT"]), "groceries");
+  assert.equal(findShop(payment, ["Musterstadt"])?.name, "penny");
+  assert.equal(findShop(payment, ["Anderstadt"]), null);
+  assert.equal(starterCategory(payment, [], ["Musterstadt"]), null);
+  const matcher = compileShopList({ rules: [], merchants: [["shop", ["die beispielkette"]], ["service", ["flink"], "out"]], brands: [] });
+  assert.equal(matcher.match({ counterparty: "Die Beispielkette Musterstadt" }, ["Musterstadt"]), "shop");
+  assert.equal(matcher.match({ counterparty: "Die Beispielkette Musterstadt Extra" }, ["Musterstadt"]), null);
+  assert.equal(matcher.match({ counterparty: "Flink Musterstadt", amount: 5 }, ["Musterstadt"]), null);
+  assert.equal(matcher.match({ counterparty: "Flink Musterstadt", amount: -5 }, ["Musterstadt"]), "service");
+});
+
+test("Vinted and Kleiderkreisel purchases are clothes, while sales stay unsorted", () => {
+  for (const name of ["MGP Vinted - Kleiderkreisel", "Vinted, UAB", "Vinted", "Kleiderkreisel"]) {
+    assert.equal(sortMoney(-24.5, name), "clothes", name);
+    assert.equal(sortMoney(24.5, name), null, name);
+    assert.deepEqual(sortPayments([{ source: "paypal", counterparty: name, amount: 24.5 }], { categories: all }),
+      [{ categoryId: null, source: null }]);
+    assert.equal(starterCategory({ counterparty: name, amount: -24.5 }, []), null);
+  }
 });
 
 test("every name keeps its category when only that category is chosen, and nothing else is returned", () => {

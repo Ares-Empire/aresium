@@ -203,7 +203,7 @@ export const PLAIN_VOWEL_WORDS: readonly string[] = ["kuchen", "fahre", "going"]
 /** Marketplaces and payment services: their payments can be anything, so no NSI name containing them is used. */
 export const MARKETPLACES: readonly string[] = [
   "amazon", "amzn", "ebay", "paypal", "klarna", "sumup", "zettle", "izettle", "stripe", "adyen", "mollie", "payone",
-  "unzer", "nexi", "concardis", "wirecard", "sofort", "giropay", "paydirekt", "vinted", "kleinanzeigen", "etsy",
+  "unzer", "nexi", "concardis", "wirecard", "sofort", "giropay", "paydirekt", "kleinanzeigen", "etsy",
   "temu", "aliexpress", "wish", "otto", "check24", "verivox", "idealo", "galaxus",
 ];
 /**
@@ -530,6 +530,8 @@ export const RULES: readonly Block[] = [
     "mango store", "only store", "globetrotter ausrüstung", "levi strauss", "levi's store"], "both"],
   // momox fashion buys clothes from people.
   ["clothes", ["momox fashion"], "out"],
+  // Vinted (formerly Kleiderkreisel) is mainly clothes; money in is a sale, not a clothes refund.
+  ["clothes", ["vinted", "kleiderkreisel"], "out"],
   ["clothes", ["schuhe", "schuhhaus", "schuhcenter", "modehaus", "boutique", "fashion", "jeans", "dessous", "lingerie",
     "trachten"], "out"],
   ["shopping", ["tedi", "woolworth", "kik fil", "flying tiger", "nanu-nana", "nanu nana", "euroshop", "tiger store",

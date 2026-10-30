@@ -13,12 +13,24 @@ export function payeeText(payment: SortingPayment): string {
   return (payment.counterparty?.trim() || payment.description || payment.bookingText || "").toLowerCase().normalize("NFC");
 }
 
+/** Card statements with a country/town and an amount/date tail, independent of the bank or card name. */
+export function cardMerchant(text: string): { merchant: string; town: string } | null {
+  const head = text.toLowerCase().normalize("NFC").trim().match(
+    /^(.+?)\s+[a-z]{3}\s+(?:\d{1,3}(?:\.\d{3})+|\d+),\d{2}\s+umsatz vom\s+\d{2}\.\d{2}\.\d{4}(?:\s+.*)?$/u,
+  )?.[1];
+  if (!head) return null;
+  // Printed columns keep multiword towns unambiguous; collapsed spaces still allow a single town word.
+  const parts = head.match(/^(.+?)\s{2,}[a-z]{3}\s+(.+)$/u) ?? head.match(/^(.+)\s+[a-z]{3}\s+(\S+)$/u);
+  return parts ? { merchant: parts[1].trim(), town: parts[2].trim() } : null;
+}
+
 /** The kind of booking some banks print before the merchant ("Kartenzahlung PENNY …", "SEPA-Lastschrift …"). */
 export const BOOKING_TYPE = /^(?:(?:sepa[ -])?(?:basis[ -]?)?lastschrift|kartenzahlung|debitkartenzahlung|kaufumsatz|sepa überweisung)\s*[:/-]?\s*/u;
 
 /** A correction groups merchant identities, not individual bookings. Empty keys are never learned. */
 export function merchantKey(payment: SortingPayment): string {
   let text = payeeText(payment);
+  text = cardMerchant(text)?.merchant ?? text;
   const processor = /^paypal(?:\s|$|\()/u;
   if (processor.test(text)) {
     const details = (payment.description ?? payment.bookingText ?? "").toLowerCase().normalize("NFC");

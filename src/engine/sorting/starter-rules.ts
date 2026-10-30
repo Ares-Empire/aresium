@@ -10,12 +10,13 @@ export type { ShopFound, StarterRule } from "./shop-matcher.js";
 const matcher = compileShopList(shopList as unknown as ShopListData);
 export const STARTER_RULES = matcher.rules;
 
-export function starterCategory(payment: SortingPayment, categories: readonly { id: string }[]): string | null {
+/** Optional towns come from the person's card lines; without them only this payment's own town is known. */
+export function starterCategory(payment: SortingPayment, categories: readonly { id: string }[], towns?: readonly string[]): string | null {
   // Find the best matching rule before checking availability: a disabled specific
   // category must not fall through to a misleading broader rule (Uber Eats → Taxi).
-  const categoryId = matcher.match(payment);
+  const categoryId = matcher.match(payment, towns);
   return categoryId !== null && categories.some((c) => c.id === categoryId) ? categoryId : null;
 }
 
 /** The built-in list's decision for a payment, with the name that made it (receipts compare shops by it). */
-export const findShop = (payment: SortingPayment): ShopFound | null => matcher.find(payment);
+export const findShop = (payment: SortingPayment, towns?: readonly string[]): ShopFound | null => matcher.find(payment, towns);
