@@ -23,10 +23,10 @@ export function compareShopSorting(before: SortingEngine, after: SortingEngine, 
   const oldStarters = before.sortPayments(payments, { categories }), newStarters = after.sortPayments(payments, { categories });
   const foreignCards = payments.map((payment) => {
     const text = payeeText(payment);
-    return /\bkurs\s*:?/u.test(text) && cardMerchant(text) !== null;
+    return /\bkurs\s*:?|auslandsums/u.test(text) && cardMerchant(text) !== null;
   });
   const hasForeignCard = payments.some((payment) => [payment.counterparty, payment.description, payment.bookingText]
-    .some((text) => text && /\bkurs\s*:?/iu.test(text) && cardMerchant(text) !== null));
+    .some((text) => text && /\bkurs\s*:?|auslandsums/iu.test(text) && cardMerchant(text) !== null));
   const counts = { payments: payments.length, unchanged: 0, newlySorted: 0, lostCategories: 0, keyChanges: 0,
     identityLearningChanges: 0, cardKeySortingChanges: 0, cardOrTownStarterChanges: 0,
     unexpectedKeyChanges: 0, unexpectedSortingChanges: 0 };
