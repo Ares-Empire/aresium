@@ -33,6 +33,16 @@ test("bundled sorting and learning run without Node or web APIs", () => {
   assert.deepEqual(json(bundled.sortPayments(payments, { categories })),
     [{ categoryId: "groceries", source: "starter" }, { categoryId: "groceries", source: "starter" }]);
 });
+test("bundled shop identities and cross-shop learning equal the direct engine without host APIs", () => {
+  const keys = ["MGP Vinted - Kleiderkreisel", "vinted uab", "dm-drogerie markt", "dm drogerie", "apple services",
+    "apple.com bill", "muenchener rueckver", "muenchener rueckversic", "Max Mustermann", "Max Otto Mustermann", ""];
+  assert.deepEqual(json(bundled.shopIdentities(keys)), engine.shopIdentities(keys));
+  const payments = [{ counterparty: "Vinted, UAB", amount: -12 }, { counterparty: "Apple Services", amount: -8 }];
+  const options = { categories: [{ id: "custom" }], learned: { "mgp vinted - kleiderkreisel": "custom", "apple store": "custom" } };
+  assert.deepEqual(json(bundled.sortPayments(payments, options)), engine.sortPayments(payments, options));
+  assert.ok(bundled.sortPayments(payments, options).every((result) => result.source === "learned"));
+  assert.equal(bundled.merchantKey({ description: "FIKTIVSHOP          USA MUSTERSTADT            USD 7,43 Kurs: 1,086700 1,00% Auslandsums. 0,07Umsatz vom 09.10.2026 MC Hauptkarte" }), "fiktivshop");
+});
 test("bundled sample dashboard equals the direct server calculation", () => {
   const source = buildSampleSource();
   assert.deepEqual(json(bundled.buildDashboard(source)), json(buildDashboard(source)));

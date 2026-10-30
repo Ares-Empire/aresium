@@ -31,7 +31,8 @@ test("M2 learns only from corrections, overrides wrong starters and counts first
   assert.equal(m2.fixes, 2); assert.equal(m2.firstMonth, 1); assert.equal(m2.first100, 2);
   assert.deepEqual(m2.predictions, ["custom:Groceries", "custom:Tech", "custom:Groceries", null]);
   assert.equal(replay(rows, s, false).fixes, 3);
-  const hundred = Array.from({ length: 101 }, (_, i) => ({ ...row("Tech", `Unique shop ${"ab".repeat(i + 1)}`), reference: `n${i}` }));
+  // Distinct names under both merchant keys and shop identities: no accidental long-name prefixes.
+  const hundred = Array.from({ length: 101 }, (_, i) => ({ ...row("Tech", `Unique shop${i}x`), reference: `n${i}` }));
   assert.equal(replay(hundred, s).first100, 100); assert.equal(replay(hundred, s).fixes, 101);
 });
 test("M3 sends each month's unresolved payments together before learning, without future answer leakage", async () => {

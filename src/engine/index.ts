@@ -9,6 +9,7 @@ export { buildDashboard } from "../data/dashboard.js";
 export { DEFAULT_CATEGORIES, BUILT_IN_CATEGORIES, CATEGORY_LOOK, CUSTOM_CATEGORY_LOOK, categoryLook } from "./categories.js";
 export type { Category, CategoryKind, CategoryLook } from "./categories.js";
 export { merchantKey } from "./sorting/merchant.js";
+export { shopIdentities } from "./sorting/shop-identity.js";
 export type { SortingPayment } from "./sorting/merchant.js";
 export { STARTER_RULES, starterCategory } from "./sorting/starter-rules.js";
 export { sortPayments, learn } from "./sorting/sort.js";
