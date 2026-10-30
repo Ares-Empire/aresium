@@ -1,5 +1,6 @@
 import { cardMerchant, merchantKey, type SortingPayment } from "./merchant.js";
 import { shopWords } from "./shop-words.js";
+import { shopIdentities } from "./shop-identity.js";
 import { starterCategory } from "./starter-rules.js";
 import { OWN_TRANSFERS, ownTransfers, type TransferPayment } from "./transfers.js";
 export type Learned = Readonly<Record<string, string>>;
@@ -18,10 +19,24 @@ export function sortPayments(payments: readonly TransferPayment[], options: {
     if (words.length === 1) provenTowns.add(words[0]);
   }
   const towns = [...provenTowns];
+  const keys = payments.map(merchantKey);
+  const learned = options.learned ?? {};
+  const learnedKeys = Object.keys(learned).sort();
+  const distinct = [...new Set([...keys, ...learnedKeys])];
+  const shops = shopIdentities(distinct);
+  const identities = new Map(distinct.map((key, index) => [key, shops[index]]));
+  const rememberedShops = new Map<string, string>();
+  for (const key of learnedKeys) {
+    const identity = identities.get(key)!;
+    // No correction timestamps are available: the lexical first valid key breaks conflicts deterministically.
+    if (identity && allowed.has(learned[key]) && !rememberedShops.has(identity)) rememberedShops.set(identity, learned[key]);
+  }
   return payments.map((payment, index) => {
     if (transfers[index]) return { categoryId: OWN_TRANSFERS, source: "structural" };
-    const key = merchantKey(payment);
-    const remembered = key && options.learned && Object.hasOwn(options.learned, key) ? options.learned[key] : null;
+    const key = keys[index];
+    // An exact rule, even for a removed category, blocks fallback to somebody else's choice at this shop.
+    const remembered = !key ? null : Object.hasOwn(learned, key) ? learned[key]
+      : rememberedShops.get(identities.get(key)!);
     if (remembered && allowed.has(remembered)) return { categoryId: remembered, source: "learned" };
     const categoryId = starterCategory(payment, options.categories, towns);
     return { categoryId, source: categoryId ? "starter" : null };

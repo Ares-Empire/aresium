@@ -16,7 +16,7 @@ export function payeeText(payment: SortingPayment): string {
 /** Card statements with a country/town and an amount/date tail, independent of the bank or card name. */
 export function cardMerchant(text: string): { merchant: string; town: string } | null {
   const head = text.toLowerCase().normalize("NFC").trim().match(
-    /^(.+?)\s+[a-z]{3}\s+(?:\d{1,3}(?:\.\d{3})+|\d+),\d{2}\s+umsatz vom\s+\d{2}\.\d{2}\.\d{4}(?:\s+.*)?$/u,
+    /^(.+?)\s+[a-z]{3}\s+(?:\d{1,3}(?:\.\d{3})+|\d+),\d{2}\s+(?:(?:kurs\s*:?\s*\d|\d{1,3},\d{2}\s*%\s*auslandsums)[^\r\n]*?)?umsatz vom\s+\d{2}\.\d{2}\.\d{4}(?:\s+.*)?$/u,
   )?.[1];
   if (!head) return null;
   // Printed columns keep multiword towns unambiguous; collapsed spaces still allow a single town word.
