@@ -415,6 +415,49 @@ test("the front page offers the app and the demo, not a login; the login form st
   assert.match(form.body, /<form/);
 });
 
+test("the contact form is open to everyone, in its language, with its own policy, and never asks the account server", async (t) => {
+  const fetch = t.mock.method(globalThis, "fetch", async () => { throw new Error("the contact page must not ask the account server"); });
+  for (const [path, language, title] of [["/contact", "en", "Contact"], ["/kontakt", "de", "Kontakt"]] as const) {
+    for (const headers of [{}, { cookie: "aresium_session=test-contact" }, { "accept-language": language === "en" ? "de" : "en" }]) {
+      const page = await request(path, headers);
+      assert.equal(page.status, 200, path);
+      assert.match(String(page.headers["content-type"]), /text\/html/);
+      assert.equal(page.headers["content-language"], language, path);
+      assert.equal(page.headers["cache-control"], "no-cache");
+      assert.match(String(page.headers["content-security-policy"]), /^default-src 'none';.*connect-src https:\/\/auth\.ares-empire\.de;/);
+      assert.equal(page.headers["set-cookie"], undefined);
+      assert.match(page.body, new RegExp(`<html lang="${language}" data-theme="dark">[\\s\\S]*<h1>${title}</h1>`));
+    }
+  }
+  for (const path of ["/forms/contact.css", "/forms/contact-form.js", "/fonts/fonts.css", "/fonts/SpaceGrotesk-Variable.ttf", "/brand/hermes.png"]) {
+    assert.equal((await request(path)).status, 200, path);
+  }
+  assert.equal(fetch.mock.callCount(), 0);
+});
+
+test("?topic=access opens the contact form on Get the app; the front page and the demo's band link there", async (t) => {
+  const app = await request("/contact?topic=access");
+  assert.match(app.body, /<option value="access" selected [^>]*>Get the app</);
+  const german = await request("/kontakt?topic=access");
+  assert.match(german.body, /<option value="access" selected [^>]*>App bekommen</);
+  const other = await request("/contact?topic=%3Cscript%3E");
+  assert.match(other.body, /<option value="question" selected/);
+  assert.doesNotMatch(other.body, /%3Cscript|<script>/i);
+  t.mock.method(globalThis, "fetch", async () => authResponse(401));
+  const front = await request("/login", { cookie: "aresium_session=test-get-app" });
+  assert.match(front.body, /<a class="button" href="\/contact\?topic=access">Get the iPhone app<\/a>/);
+  const demo = await request("/app/data.js");
+  assert.match(demo.body, /const GET_APP = "\/contact\?topic=access";/);
+});
+
+test("the contact form answers only GET and HEAD; anything else stays behind the login", async (t) => {
+  t.mock.method(globalThis, "fetch", async () => authResponse(401));
+  const posted = await request("/contact", { cookie: "aresium_session=test-contact-post" }, [Buffer.from("message=x")]);
+  assert.equal(posted.status, 303);
+  assert.equal(posted.headers.location, "/login");
+  assert.equal((await request("/contact/", { cookie: "aresium_session=test-contact-slash" })).status, 303);
+});
+
 const phoneUser = { id: "test-phone-user", approved: true, services: ["aresium"] };
 
 test("GET /api/mode answers server for APP_SERVER_MODE_USERS and phone for other accounts with the service", async (t) => {

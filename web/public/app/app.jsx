@@ -149,7 +149,7 @@ function Logo() {
 }
 
 function App() {
-  const [theme, setTheme] = useS("dark");
+  const [theme, setTheme] = useS(() => window.AresiumAppearance.load());   // dark until switched (appearance.js)
   const [state, setState] = useS({ screen: "overview" });
   const [dir, setDir] = useS(1); // 1 forward, -1 back
   const [history, setHistory] = useS([]);
@@ -159,11 +159,14 @@ function App() {
   const [upload, setUpload] = useS(null); // { busy } | { msg, ok } toast, or null
   const fileRef = React.useRef(null);
   const [hidden, setHidden] = useS({}); // legend toggles: series keys hidden from the graph
-  const prevTheme = React.useRef("dark");
+  const prevTheme = React.useRef(theme);
   const busy = React.useRef(false);
   const colors = THEME_COLORS[theme];
 
-  useE(() => { document.documentElement.setAttribute("data-theme", theme); }, [theme]);
+  useE(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    window.AresiumAppearance.save(theme);   // light or dark is remembered, also for the contact page; red is not
+  }, [theme]);
 
   // Wordmark intro transition (window.AresiumIntro): the ARESIUM word flies in to a hero,
   // vibrates, and settles into the bottom band while the background morphs — and the mirror

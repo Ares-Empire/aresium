@@ -1,0 +1,226 @@
+/* Aresium's contact form (src/web/contact-page.ts): the iPhone apps' Contact & support (empire-ios Shared/Support,
+   Shared/Design/FormPieces.swift) on Aresium's wall. The colours are the website's (web/public/index.html,
+   html[data-theme="dark"] and "light"); it opens in Aresium's own look: dark until switched on aresium.de, then the
+   last choice (web/public/app/appearance.js sets data-theme before this file applies).
+   One change, as on the iPhone (Ink.muted): the light muted ink is darker than the website's #88919f, for small text. */
+
+:root {
+  color-scheme: dark;
+  --sans: "Space Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, monospace;
+  --bg: #050507;
+  --card: rgba(15, 16, 21, 0.55);
+  --card-2: rgba(26, 28, 35, 0.62);
+  --line-soft: rgba(255, 255, 255, 0.08);
+  --ink: #f6f7fb;
+  --ink-2: #b3b9c6;
+  --ink-3: #6b7280;
+  --shadow: 0 30px 70px -26px rgba(0, 0, 0, 0.92);
+  --edge: rgba(255, 255, 255, 0.10);
+  --glass-edge: linear-gradient(135deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.04) 30%, rgba(255, 70, 92, 0.07) 68%, rgba(255, 255, 255, 0.03));
+  --spec: radial-gradient(130% 90% at 0% 0%, rgba(255, 255, 255, 0.07), transparent 46%);
+  --glow1: radial-gradient(72% 52% at 50% -12%, rgba(216, 26, 52, 0.36), transparent 60%);
+  --glow2: radial-gradient(58% 50% at 90% 120%, rgba(150, 14, 38, 0.24), transparent 56%);
+  /* the focused box and the sent mark: the secondary ink, as the iPhone form without an accent */
+  --focus: rgba(179, 185, 198, 0.55);
+  --soft-fill: rgba(179, 185, 198, 0.10);
+  --soft-edge: rgba(179, 185, 198, 0.45);
+  /* the main button: ivory on the dark wall (FormButtonStyle.ivory), its words near-black (AppAccent.onColor) */
+  --button: #eeeee8;
+  --button-ink: #141617;
+  --problem: #d9b4a6;        /* FormProblem.ink */
+  --issue: #ff5d6c;          /* StatusTone.issueColor: the counter over the limit */
+  --band-top: #f6f7fb;
+}
+
+html[data-theme="light"] {
+  color-scheme: light;
+  --bg: #ecedf2;
+  --card: rgba(255, 255, 255, 0.74);
+  --card-2: rgba(247, 248, 251, 0.82);
+  --line-soft: rgba(15, 20, 40, 0.10);
+  --ink: #0a0c12;
+  --ink-2: #525a69;
+  --ink-3: #6e7685;
+  --shadow: 0 24px 50px -24px rgba(15, 22, 40, 0.26);
+  --edge: rgba(255, 255, 255, 0.85);
+  --glass-edge: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.4) 35%, rgba(216, 26, 52, 0.10) 74%, rgba(255, 255, 255, 0.3));
+  --spec: radial-gradient(130% 90% at 0% 0%, rgba(255, 255, 255, 0.6), transparent 46%);
+  --glow1: radial-gradient(72% 52% at 50% -12%, rgba(216, 26, 52, 0.13), transparent 60%);
+  --glow2: radial-gradient(58% 50% at 90% 120%, rgba(216, 26, 52, 0.07), transparent 56%);
+  --focus: rgba(82, 90, 105, 0.55);
+  --soft-fill: rgba(82, 90, 105, 0.10);
+  --soft-edge: rgba(82, 90, 105, 0.45);
+  --button: #16181c;
+  --button-ink: #ffffff;
+  --problem: #a2503c;
+  --issue: #d11f35;
+  --band-top: #0a0c12;
+}
+
+[hidden] { display: none !important; }   /* also for the topic icons (SVG) */
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column;
+  font-family: var(--sans); color: var(--ink); background: var(--bg);
+  -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+  position: relative; overflow-x: hidden;
+}
+body::before, body::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+body::before { background: var(--glow1); }
+body::after { background: var(--glow2); }
+
+.page {
+  position: relative; z-index: 1; flex: 1; width: min(100%, 560px); margin: 0 auto;
+  padding: max(16px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) 8px max(18px, env(safe-area-inset-left));
+}
+a:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+
+/* ── top: the mark and the name, the other language ──────────────────────── */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 4px 0 34px; }
+.home {
+  display: inline-flex; align-items: center; gap: 10px; border-radius: 10px;
+  color: var(--ink); text-decoration: none; font-size: 17px; font-weight: 700; letter-spacing: -0.01em;
+}
+.home img { width: 34px; height: 34px; object-fit: contain; }
+.lang {
+  display: inline-flex; align-items: center; height: 38px; padding: 0 14px; border-radius: 12px;
+  border: 1px solid var(--line-soft); background: var(--card); color: var(--ink-2);
+  -webkit-backdrop-filter: blur(14px) saturate(140%); backdrop-filter: blur(14px) saturate(140%);
+  font-size: 13.5px; font-weight: 600; text-decoration: none; transition: color .2s, border-color .2s, background .2s;
+}
+.lang:hover { color: var(--ink); border-color: var(--ink-3); background: var(--card-2); }
+
+h1 { margin: 0; font-size: 30px; font-weight: 700; letter-spacing: -0.035em; line-height: 1.15; }
+.lead { margin: 10px 0 0; font-size: 15px; line-height: 1.55; color: var(--ink-2); max-width: 46ch; }
+
+/* ── the form ─────────────────────────────────────────────────────────────── */
+.contact { margin-top: 30px; }
+.heading {
+  display: block; margin: 26px 0 10px; padding: 0 4px;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3);
+}
+.contact > .heading:first-child { margin-top: 0; }
+.heading .optional { font-weight: 500; letter-spacing: 0.02em; text-transform: none; }
+
+/* glass: the blurred card with a bright edge that fades (GlassCard) */
+.glass {
+  position: relative; border: 1px solid transparent; border-radius: 16px;
+  background: var(--spec) padding-box, linear-gradient(var(--card), var(--card)) padding-box, var(--glass-edge) border-box;
+  -webkit-backdrop-filter: blur(22px) saturate(140%); backdrop-filter: blur(22px) saturate(140%);
+  box-shadow: var(--shadow), inset 0 1px 0 var(--edge);
+  transition: box-shadow .15s ease-out, opacity .2s;
+}
+.glass:focus-within { box-shadow: var(--shadow), inset 0 1px 0 var(--edge), 0 0 0 2px var(--focus); }
+.glass select:focus-visible { outline: none; }   /* the card shows the focus */
+.contact[aria-busy="true"] .glass { opacity: 0.55; }
+
+.contact select, .contact textarea, .contact input {
+  display: block; width: 100%; margin: 0; border: 0; border-radius: 16px; background: transparent;
+  color: var(--ink); font: inherit; font-size: 16px;   /* 16px, or Safari on the iPhone zooms into the field */
+  outline: none;
+}
+.contact textarea::placeholder, .contact input::placeholder { color: var(--ink-3); opacity: 1; }
+
+/* the topic: one row, the system menu opens on it (the iPhone form's Menu) */
+.topic-icon {
+  position: absolute; left: 16px; top: 50%; transform: translateY(-50%); display: flex;
+  color: var(--ink-2); pointer-events: none;
+}
+.topic-icon .icon { width: 20px; height: 20px; }
+.topic select {
+  -webkit-appearance: none; appearance: none; min-height: 52px; padding: 0 44px 0 52px;
+  font-weight: 600; letter-spacing: -0.01em; cursor: pointer; text-overflow: ellipsis;
+}
+.topic select option { color: var(--ink); background: var(--bg); font-weight: 500; }
+.chevrons {
+  position: absolute; right: 16px; top: 50%; width: 15px; height: 15px; transform: translateY(-50%);
+  color: var(--ink-3); pointer-events: none;
+}
+
+/* eight lines to start with, growing with the text where the browser can (as the iPhone form's box) */
+.box textarea { min-height: 212px; max-height: 70vh; padding: 16px; line-height: 1.5; resize: none; field-sizing: content; }
+.counter { margin: 8px 4px 0; text-align: right; font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
+.counter.over { color: var(--issue); }
+
+/* the address to answer to and the name, one card with a line between (the iPhone form's reply box) */
+.reply { margin: 0; padding: 0; border: 0; min-width: 0; }
+.reply legend { float: left; width: 100%; }
+.reply legend + * { clear: both; }
+.reply input { min-height: 52px; padding: 0 16px; }
+.reply hr { margin: 0 0 0 16px; border: 0; border-top: 1px solid var(--line-soft); }
+
+.note { margin: 14px 4px 0; font-size: 12.5px; line-height: 1.55; color: var(--ink-3); }
+.note + .note { margin-top: 6px; }
+.note a { color: var(--ink-2); text-decoration: underline; text-decoration-color: var(--soft-edge); text-underline-offset: 2px; }
+.note a:hover { color: var(--ink); }
+
+/* the honeypot: off screen, out of the tab order, hidden from screen readers; only bots fill it */
+.trap { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* why it did not go through, in the soft problem colour (FormProblem) */
+.problems { margin-top: 22px; }
+.problem {
+  display: flex; align-items: flex-start; gap: 8px; margin: 0 4px 12px;
+  font-size: 13.5px; line-height: 1.45; color: var(--problem); overflow-wrap: anywhere;
+}
+.problem .icon { flex: none; width: 16px; height: 16px; margin-top: 1px; }
+.problem a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+
+/* the main button (FormButtonStyle without an accent); the sent page's "Back" looks the same */
+.contact button, .sent .back {
+  display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 50px;
+  margin: 0; padding: 0 16px; border: 0; border-radius: 12px; background: var(--button); color: var(--button-ink);
+  font: inherit; font-size: 16px; font-weight: 600; text-decoration: none; cursor: pointer;
+  transition: opacity .15s ease-out;
+}
+.contact button:hover, .sent .back:hover { opacity: 0.9; }
+.contact button:active, .sent .back:active { opacity: 0.75; }
+.contact button:disabled { cursor: progress; opacity: 0.75; }
+.spinner {
+  display: none; width: 16px; height: 16px; border-radius: 50%;
+  border: 2px solid currentColor; border-right-color: transparent; animation: spin .8s linear infinite;
+}
+.busy .spinner { display: inline-block; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .spinner { animation-duration: 2.4s; }
+  .glass, .lang, .contact button, .sent .back { transition: none; }
+}
+
+/* ── sent: the calm "it's arrived" (CalmDone) ────────────────────────────── */
+.sent { display: flex; flex-direction: column; align-items: center; padding: 56px 10px 0; text-align: center; outline: none; }
+.sent-mark {
+  display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%;
+  color: var(--ink-2); background: var(--soft-fill); border: 1px solid var(--soft-edge);
+}
+.sent-mark .icon { width: 26px; height: 26px; stroke-width: 2.4; }
+.sent h2 { margin: 22px 0 0; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+.sent p { margin: 10px 0 0; max-width: 34ch; font-size: 14.5px; line-height: 1.6; color: var(--ink-2); overflow-wrap: anywhere; }
+.sent .back { margin-top: 40px; }
+
+/* ── the privacy policy and imprint, quiet ───────────────────────────────── */
+.legal { margin: 36px 0 0; text-align: center; font-size: 12px; color: var(--ink-3); }
+.legal a { color: var(--ink-3); text-decoration: none; }
+.legal a:hover { color: var(--ink); }
+
+/* ── the app's name across the full width at the end (the iPhone apps' WordmarkBand) ─ */
+.band {
+  position: relative; z-index: 0; display: flex; justify-content: space-between; margin-top: 18px; padding: 0 4px;
+  overflow: hidden; font-weight: 700; font-size: clamp(48px, 15.4vw, 220px); line-height: 0.76;
+  letter-spacing: -0.015em; opacity: 0.9; user-select: none; -webkit-user-select: none;
+}
+.band span {
+  background: linear-gradient(180deg, var(--band-top) 0%, rgba(127, 127, 127, 0.18) 116%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+@media (min-width: 720px) {
+  .top { margin-bottom: 48px; }
+  h1 { font-size: 34px; }
+}

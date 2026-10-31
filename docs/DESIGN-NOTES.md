@@ -75,6 +75,14 @@ auth.ares-empire.de; see ares-empire `docs/ACCOUNTS.md`).
 - `src/web/auth.ts` — the session cookie (HttpOnly, Secure, SameSite=Lax, 30 days) holds the token.
 - `src/web/login-page.ts` — `/login` (start screen: *Log in* button + sign-up link) and
   `/login/email` (email + password). Sign-up and password reset live on the hub.
+- `src/web/contact-page.ts` — `/contact` (English) and `/kontakt` (German), open to everyone: Aresium's contact form,
+  also where visitors ask for the iPhone app (`?topic=access`, linked from the front page and the demo as `GET_APP`
+  in `src/web/links.ts`). Its look mirrors the iPhone app's Contact & support. It is dark until the website is switched
+  to light (`web/public/app/appearance.js` remembers the choice), and its words address no one (no you/du).
+  The browser posts straight to the account server's `contact` collection (ares-empire `docs/ACCOUNTS.md` → Website
+  contact form); `web/public/forms/contact-form.js` sends it and knows no app or language (data attributes on the
+  page), `web/public/forms/contact.css` is the look. The page sends its own Content-Security-Policy (`CONTACT_CSP`):
+  this server, plus `connect-src https://auth.ares-empire.de`.
 - `src/web/server.ts` — `POST /login`, `/logout`, `POST /sso` (the hub hands over the token,
   so coming from the hub needs no second login), and the gate: pages need the cookie; `/api/*`
   also accepts `Authorization: Bearer <token>` (iPhone app).

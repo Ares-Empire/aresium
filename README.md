@@ -55,5 +55,6 @@ Plan: [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 The current dashboard is served by `npm run web` (`src/web/server.ts`, static files in `web/public`).
 API text for the iPhone app supports English and German via `Accept-Language`; the website stays
-English. See [the API contract](docs/API-DATA.md#language), the wording in `src/lib/texts.ts`, and
+English, except the contact form (`/contact` English, `/kontakt` German, open to everyone: `src/web/contact-page.ts`;
+"Get the app" is `/contact?topic=access`). See [the API contract](docs/API-DATA.md#language), the wording in `src/lib/texts.ts`, and
 [deployment steps](deploy/README.md). Run `npm ci`, `npm test` and `npm run typecheck` before deploying.

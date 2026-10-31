@@ -15,6 +15,7 @@ import { importContent } from "../import/core.js";
 import { categorizeAll } from "../sync/categorize.js";
 import { sessionCookie, clearCookie, sessionToken } from "./auth.js";
 import { welcomePage, loginPage, loginUnavailablePage } from "./login-page.js";
+import { CONTACT_CSP, CONTACT_PAGES, contactPage, topicFrom } from "./contact-page.js";
 import { bearerToken, empireBearerAccess, empireLogin, empireMode, empireTokenAccess } from "./empire-auth.js";
 import { requestLanguage, text } from "../lib/texts.js";
 import { importErrorText } from "../import/errors.js";
@@ -43,7 +44,8 @@ const MIME: Record<string, string> = {
 // answers the page's own requests in the browser, so nothing reaches the API and nothing is saved. The page's files
 // (scripts, styles, fonts, pictures) are public for it: they hold no data. "/" stays behind the login, so made-up
 // numbers never stand where your own would.
-const PUBLIC_DIRS = ["/app/", "/vendor/", "/fonts/", "/brand/"];
+// The contact form's script and styles (/forms/) are public for the same reason.
+const PUBLIC_DIRS = ["/app/", "/vendor/", "/fonts/", "/brand/", "/forms/"];
 export const isPublicFile = (path: string) => PUBLIC_DIRS.some((dir) => path.startsWith(dir)) || path === "/favicon.svg";
 
 export async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
@@ -100,6 +102,17 @@ export async function handleRequest(req: IncomingMessage, res: ServerResponse): 
     }
 
     if (req.method === "GET" || req.method === "HEAD") {
+      // The contact form, /contact (English) and /kontakt (German), for everyone (contact-page.ts). It sends from the
+      // browser to the account server, which its Content-Security-Policy allows; nothing reaches this server.
+      const contactLanguage = CONTACT_PAGES.get(url.pathname);
+      if (contactLanguage) {
+        res.writeHead(200, {
+          "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-cache", "Content-Language": contactLanguage,
+          "Content-Security-Policy": CONTACT_CSP,
+        });
+        res.end(contactPage(contactLanguage, topicFrom(url.searchParams.get("topic"))));
+        return;
+      }
       if (url.pathname === "/demo/") return redirect("/demo");      // the page's relative paths need no slash
       if (url.pathname === "/demo") return serveFile(res, "/index.html");
       if (isPublicFile(url.pathname)) return serveFile(res, url.pathname);

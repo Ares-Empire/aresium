@@ -8,7 +8,9 @@
   // refused with a "log in" message), so nothing reaches the server and nothing is saved. src/web/server.ts serves it.
   const DEMO = location.pathname === "/demo";
   const DEMO_REFUSAL = "This is the demo with sample data: importing and changes are switched off.";
-  const GET_APP = "https://www.ares-empire.de/contact";   // as GET_APP in src/web/login-page.ts
+  // Where the band's "Get the app" goes: Aresium's own contact form with "Get the app" chosen, as GET_APP in
+  // src/web/links.ts (the front page's button).
+  const GET_APP = "/contact?topic=access";
 
   function adaptDashboard(data) {
     if (!data || data.version !== 2) throw new Error("Expected dashboard version 2");
@@ -115,7 +117,7 @@
     const band = document.createElement("div");
     band.className = "demo-band";
     band.innerHTML = '<span class="demo-dot"></span><span><b>Sample data</b> · a made-up account to look around</span>' +
-      '<a href="' + GET_APP + '" target="_blank" rel="noopener">Get the app</a>';
+      '<a href="' + GET_APP + '">Get the app</a>';
     document.body.appendChild(band);
 
     // Import: the file picker does not open in the demo (nothing would be sent anyway); a note says why instead.

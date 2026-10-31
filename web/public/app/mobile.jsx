@@ -120,7 +120,7 @@
   }
 
   function MobileApp() {
-    const [theme, setTheme] = useState("dark");
+    const [theme, setTheme] = useState(() => window.AresiumAppearance.load());   // dark until switched (appearance.js)
     const [nav, setNav] = useState({ screen: "start" });
     const [hist, setHist] = useState([]);
     const [side, setSide] = useState("expenses");      // start-screen swipe page
@@ -131,11 +131,14 @@
     const [importVer, setImportVer] = useState(0);     // bump after an upload to morph/re-reveal
     const [upload, setUpload] = useState(null);        // { busy } | { msg, ok } | null
     const fileRef = useRef(null);
-    const prevTheme = useRef("dark");
+    const prevTheme = useRef(theme);
     const busy = useRef(false);
     const colors = THEME_COLORS[theme];
 
-    useEffect(() => { document.documentElement.setAttribute("data-theme", theme); }, [theme]);
+    useEffect(() => {
+      document.documentElement.setAttribute("data-theme", theme);
+      window.AresiumAppearance.save(theme);   // light or dark is remembered, also for the contact page; red is not
+    }, [theme]);
 
     // Wordmark intro transition (window.AresiumIntro): ARESIUM flies in → hero → vibrates →
     // settles into the band while the background morphs; mirror when leaving red.
