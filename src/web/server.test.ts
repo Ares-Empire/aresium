@@ -6,6 +6,7 @@ import { Duplex } from "node:stream";
 import { test } from "node:test";
 
 process.env.EMPIRE_ALLOWED_USERS = "test-server-user";
+process.env.APP_SERVER_MODE_USERS = "test-server-user";
 const { handleRequest } = await import("./server.js");
 const approved = { id: "test-server-user", approved: true, services: ["aresium"] };
 const authResponse = (status: number, record: unknown = approved) => new Response(JSON.stringify({ record }), { status });
@@ -416,7 +417,7 @@ test("the front page offers the app and the demo, not a login; the login form st
 
 const phoneUser = { id: "test-phone-user", approved: true, services: ["aresium"] };
 
-test("GET /api/mode answers server for the owner list and phone for other accounts with the service", async (t) => {
+test("GET /api/mode answers server for APP_SERVER_MODE_USERS and phone for other accounts with the service", async (t) => {
   const logged = ["log", "info", "warn", "error"].map((name) => t.mock.method(console, name as "log", () => {}));
   t.mock.method(globalThis, "fetch", async (_url: unknown, init?: RequestInit) => {
     const token = (init?.headers as Record<string, string>).Authorization;

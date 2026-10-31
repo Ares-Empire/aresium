@@ -11,8 +11,11 @@
 //   EMPIRE_ALLOWED_USERS  comma-separated PocketBase user ids. Aresium holds one person's data
 //                         until it becomes multi-user, so only these accounts get in.
 //                         Empty → nobody gets in. The one exception is GET /api/mode (empireMode):
-//                         it answers every approved account with the service, "server" for these
-//                         accounts and "phone" for the others (their data stays on their iPhone).
+//                         it answers every approved account with the service.
+//   APP_SERVER_MODE_USERS optional, comma-separated ids from EMPIRE_ALLOWED_USERS whose iPhone app shows
+//                         the server's data (GET /api/mode → "server"). Every other account, the owner's
+//                         too, gets "phone": its data stays on its iPhone. Empty by default, since Patrik
+//                         moved his data to the phone (2026-10-31); the website is not affected.
 //   EMPIRE_AUTH_URL       optional, default http://127.0.0.1:8090 (same server, no TLS hop).
 import { createHash } from "node:crypto";
 import { text } from "../lib/texts.js";
@@ -21,6 +24,9 @@ const SERVICE = "aresium";
 const AUTH_URL = (process.env.EMPIRE_AUTH_URL || "http://127.0.0.1:8090").replace(/\/+$/, "");
 const ALLOWED = new Set(
   (process.env.EMPIRE_ALLOWED_USERS ?? "").split(",").map((s) => s.trim()).filter(Boolean),
+);
+const SERVER_MODE = new Set(
+  (process.env.APP_SERVER_MODE_USERS ?? "").split(",").map((s) => s.trim()).filter(Boolean),
 );
 const CACHE_MS = 60_000;
 const CACHE_MAX = 1000;
@@ -61,7 +67,9 @@ async function pbPost(path: string, body: unknown, headers: Record<string, strin
   });
 }
 
-type TokenCheck = "owner" | "member" | "no-access" | "unauthenticated" | "unavailable";
+type TokenCheck =
+  | { kind: "owner" | "member"; id: string }
+  | { kind: "no-access" | "unauthenticated" | "unavailable" };
 
 // Ask the Empire whose token this is. "member": approved with the service, not on the owner list. Caches and logs
 // nothing; empireTokenAccess caches its own answer.
@@ -72,14 +80,15 @@ async function checkToken(token: string, clientIp?: string): Promise<TokenCheck>
     });
     if (r.ok) {
       const { record } = (await r.json()) as { record?: EmpireRecord };
-      if (!record || typeof record.id !== "string") return "unavailable";
-      return hasAccess(record) ? "owner" : hasService(record) ? "member" : "no-access";
+      if (!record || typeof record.id !== "string") return { kind: "unavailable" };
+      if (hasAccess(record)) return { kind: "owner", id: record.id };
+      return hasService(record) ? { kind: "member", id: record.id } : { kind: "no-access" };
     }
-    if (r.status === 400 || r.status === 401) return "unauthenticated"; // PocketBase rejects an invalid/expired refresh token with 400
-    if (r.status === 403) return "no-access"; // PocketBase's approved/verified account rule
-    return "unavailable"; // 429, 5xx or an unexpected response: no usable check
+    if (r.status === 400 || r.status === 401) return { kind: "unauthenticated" }; // PocketBase rejects an invalid/expired refresh token with 400
+    if (r.status === 403) return { kind: "no-access" }; // PocketBase's approved/verified account rule
+    return { kind: "unavailable" }; // 429, 5xx or an unexpected response: no usable check
   } catch {
-    return "unavailable"; // unreachable, timed out or an unreadable response
+    return { kind: "unavailable" }; // unreachable, timed out or an unreadable response
   }
 }
 
@@ -90,8 +99,8 @@ export async function empireTokenAccess(token: string | undefined, clientIp?: st
   if (hit && hit.until > Date.now()) return hit.access;
 
   const check = await checkToken(token, clientIp);
-  if (check === "unavailable") return unavailable; // don't cache
-  const access = check === "owner" ? allowed : check === "unauthenticated" ? unauthenticated : forbidden;
+  if (check.kind === "unavailable") return unavailable; // don't cache
+  const access = check.kind === "owner" ? allowed : check.kind === "unauthenticated" ? unauthenticated : forbidden;
   remember(token, access);
   return access;
 }
@@ -110,14 +119,15 @@ export async function empireBearerAccess(authorization: string | undefined, clie
 export type EmpireMode = { outcome: "allowed"; mode: "server" | "phone" } | Exclude<EmpireAccess, { outcome: "allowed" }>;
 
 /**
- * GET /api/mode: "server" for an account on the owner list, "phone" for any other approved account with the aresium
- * service; 401 for a missing or rejected token, 403 without the service, 503 when the Empire cannot be asked. Asks the
+ * GET /api/mode: "server" for an owner-list account in APP_SERVER_MODE_USERS, "phone" for any other approved account
+ * with the aresium service (the owner's too); 401 for a missing or rejected token, 403 without the service, 503 when the Empire cannot be asked. Asks the
  * Empire every time and keeps nothing: no cache entry, no log line.
  */
 export async function empireMode(token: string | undefined, clientIp?: string): Promise<EmpireMode> {
   if (!token) return unauthenticated;
-  switch (await checkToken(token, clientIp)) {
-    case "owner": return { outcome: "allowed", mode: "server" };
+  const check = await checkToken(token, clientIp);
+  switch (check.kind) {
+    case "owner": return { outcome: "allowed", mode: SERVER_MODE.has(check.id) ? "server" : "phone" };
     case "member": return { outcome: "allowed", mode: "phone" };
     case "no-access": return forbidden;
     case "unauthenticated": return unauthenticated;

@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 // Synthetic account/token values only; fetch is replaced in every test.
-process.env.EMPIRE_ALLOWED_USERS = "test-allowed-user";
+process.env.EMPIRE_ALLOWED_USERS = "test-allowed-user,test-owner-on-phone";
+process.env.APP_SERVER_MODE_USERS = "test-allowed-user";
 const { empireTokenAccess, empireBearerAccess, empireMode, bearerToken } = await import("./empire-auth.js");
 const record = { id: "test-allowed-user", approved: true, services: ["aresium"] };
 const response = (status: number, body: unknown = {}) => new Response(JSON.stringify(body), { status });
@@ -86,10 +87,12 @@ test("unreachable, timeout, rate-limit and server failures are 503 and never cac
   }
 });
 
-test("the mode is server for the owner list and phone for any other approved account with the service", async (t) => {
+test("the mode is server for owners in APP_SERVER_MODE_USERS and phone for any other approved account with the service", async (t) => {
   const member = { ...record, id: "test-phone-user" };
   for (const [body, expected] of [
     [{ record }, { outcome: "allowed", mode: "server" }],
+    // On the owner list but not in APP_SERVER_MODE_USERS: the app keeps the data on the iPhone, as everyone's.
+    [{ record: { ...record, id: "test-owner-on-phone" } }, { outcome: "allowed", mode: "phone" }],
     [{ record: member }, { outcome: "allowed", mode: "phone" }],
     [{ record: { ...member, services: ["aresium", "arestemis"] } }, { outcome: "allowed", mode: "phone" }],
   ] as const) {
