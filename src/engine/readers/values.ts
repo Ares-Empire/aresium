@@ -31,6 +31,15 @@ export function parseDate(value: string, format: DateFormat): string | null {
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
+// Every row votes, including rows beyond the preview. Prefer the bank's documented format on a tie;
+// rewritten slash dates default to the usual US spreadsheet form, but both orders must be confirmed.
+export function columnDateFormats(values: string[], preferred: readonly DateFormat[] = []): DateFormat[] {
+  const order = [...new Set([...preferred, "MM/DD/YYYY" as const, ...DATE_FORMATS])];
+  const counts = order.map((format) => values.filter((value) => parseDate(value, format) !== null).length);
+  const most = Math.max(...counts);
+  return most === 0 ? [] : order.filter((_, i) => counts[i] === most);
+}
+
 // A plain decimal string: optional "-", digits, "." and at least two decimals ("12.30", "-1234.56", "0.1234").
 // Equal amounts always give the same string, which the payment ids rely on.
 export function canonicalAmount(negative: boolean, whole: string, fraction: string): string {

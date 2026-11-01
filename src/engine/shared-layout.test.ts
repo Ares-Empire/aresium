@@ -62,6 +62,12 @@ test("every known bank's layout can be shared, the copy has no name and reads th
     assert.ok(!("name" in shared.layout) && !("profile" in shared.layout), name);
     assert.ok(inboxAccepts(shared.layout), `${name}: the inbox would refuse it`);
     assert.deepEqual(json(shared.layout), shared.layout, `${name}: plain JSON`);
+    if (name === "comdirect.sections.csv") {
+      // Its frozen answer omits an account. Sharing the columns must not bypass the safer refusal.
+      assert.throws(() => readCsv(text, shared.layout), { code: "unknown" });
+      assert.throws(() => readCsv(text, layout), { code: "unknown" });
+      continue;
+    }
     assert.deepEqual(readCsv(text, shared.layout).transactions, readCsv(text, layout).transactions, name);
   }
 });

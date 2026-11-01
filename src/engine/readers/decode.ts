@@ -1,9 +1,10 @@
 // Turns the bytes of a bank export into text. JavaScriptCore has no TextDecoder, so this is plain TypeScript.
 // UTF-8 (with or without BOM) is taken when the bytes are valid UTF-8; otherwise the file is read as
 // Windows-1252, which many German bank CSVs use (it equals ISO-8859-1 for every printable character and adds
-// € and the typographic quotes at 0x80–0x9F). UTF-16 is read when the file starts with its byte order mark.
+// € and the typographic quotes at 0x80–0x9F). Latin-15 is chosen for its euro byte where no Windows punctuation
+// contradicts it. UTF-16 is read when the file starts with its byte order mark.
 
-export type TextEncoding = "utf-8" | "windows-1252" | "utf-16le" | "utf-16be";
+export type TextEncoding = "utf-8" | "windows-1252" | "iso-8859-15" | "utf-16le" | "utf-16be";
 
 // Windows-1252 0x80–0x9F. The five bytes it leaves undefined map to the C1 control of the same value,
 // as browsers do.
@@ -51,6 +52,24 @@ function windows1252(bytes: ArrayLike<number>): string {
   return fromCodePoints(points);
 }
 
+// Latin-15 replaced Latin-1's generic currency sign with the euro at A4. In a bank export that byte is
+// evidence for Latin-15, unless the C1 range supplies Windows-1252 punctuation (including its euro at 80).
+// Without those distinguishing bytes the encodings cannot be told apart; keep the established fallback.
+const LATIN_15: Record<number, number> = {
+  0xa4: 0x20ac, 0xa6: 0x160, 0xa8: 0x161, 0xb4: 0x17d, 0xb8: 0x17e, 0xbc: 0x152, 0xbd: 0x153, 0xbe: 0x178,
+};
+function latin15(bytes: ArrayLike<number>): string | null {
+  let euro = false;
+  for (let i = 0; i < bytes.length; i++) {
+    if (bytes[i] >= 0x80 && bytes[i] <= 0x9f) return null;
+    if (bytes[i] === 0xa4) euro = true;
+  }
+  if (!euro) return null;
+  const points: number[] = new Array(bytes.length);
+  for (let i = 0; i < bytes.length; i++) points[i] = LATIN_15[bytes[i]] ?? bytes[i];
+  return fromCodePoints(points);
+}
+
 function utf16(bytes: ArrayLike<number>, littleEndian: boolean): string {
   const units: number[] = [];
   for (let i = 2; i + 1 < bytes.length; i += 2) {
@@ -67,6 +86,8 @@ export function decodeBankFileWithEncoding(bytes: ArrayLike<number>): { text: st
   const bom = bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf;
   const text = utf8(bytes, bom ? 3 : 0);
   if (text !== null) return { text, encoding: "utf-8" };
+  const latin = latin15(bytes);
+  if (latin !== null) return { text: latin, encoding: "iso-8859-15" };
   return { text: windows1252(bytes), encoding: "windows-1252" };
 }
 
