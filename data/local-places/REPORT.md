@@ -148,3 +148,8 @@ do not establish that overriding existing word rules would be safe.
 If adopted, use the gzip asset and measure the actual host before enabling it. Add **“© OpenStreetMap
 contributors, ODbL”**, OpenStreetMap copyright/ODbL links, and access to the distributed derived database to the
 app's Fonts & licences page. The database itself carries the notice and source; see the README's licence section.
+
+## Packed follow-up (brief 97)
+
+The measurements above are the historical JSON experiment. The packed format, current-checkout parity, memory
+and loading measurements, and remaining host checks are in [PACKED-REPORT.md](PACKED-REPORT.md).

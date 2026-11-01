@@ -1,5 +1,5 @@
-// This boundary is JSON-only. The server parsers still return Date objects;
-// these thin wrappers expose bookingDate/valueDate as UTC ISO strings instead.
+// Payment inputs and results are JSON-friendly; setLocalPlaces also accepts a native byte buffer.
+// The server parsers return Date objects; these wrappers expose bookingDate/valueDate as UTC ISO strings.
 import { parseVrBankCsv as vrBank } from "../import/vrbank-csv.js";
 import { parseCamt as camt } from "../import/camt.js";
 import { parsePaypalCsv as paypal } from "./readers/paypal.js";
@@ -14,8 +14,8 @@ export type { SortingPayment } from "./sorting/merchant.js";
 export { STARTER_RULES, starterCategory } from "./sorting/starter-rules.js";
 export { sortPayments, learn } from "./sorting/sort.js";
 export type { Learned, SortResult } from "./sorting/sort.js";
-export { findLocalPlace } from "./sorting/local-places.js";
-export type { LocalPlacesData, LocalPlaceMatch } from "./sorting/local-places.js";
+export { findLocalPlace, indexLocalPlaces, setLocalPlaces } from "./sorting/local-places.js";
+export type { LocalPlacesData, LocalPlacesInput, LocalPlacesIndex, LocalPlaceMatch } from "./sorting/local-places.js";
 export const version = "0.1.0";
 
 // ---- Dashboard source and own transfers (brief 12) ----

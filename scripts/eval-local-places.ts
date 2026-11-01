@@ -11,12 +11,13 @@ import { CACHE, DATA } from "./build-local-places.js";
 import type { PlaceFact } from "./local-places-build.js";
 import { DEFAULT_CATEGORIES } from "../src/engine/categories.js";
 import { sortPayments } from "../src/engine/sorting/sort.js";
-import { findLocalPlace, type LocalPlacesData } from "../src/engine/sorting/local-places.js";
+import { findLocalPlace, indexLocalPlaces, type LocalPlacesData } from "../src/engine/sorting/local-places.js";
 import { count, loadLabels, predict, type Sorter } from "../eval/sorting/score.js";
 import { heldback, loadCases, type Label, type EvalCase } from "../eval/sorting/model.js";
 import { render } from "../eval/sorting/render.js";
 
 // The round-1 baseline stays fixed after Claude commits this experiment and HEAD moves.
+const JSON_COMPARISON_COMMIT = "641c773951284ef392d975ed2ab114ee43036719";
 const BASELINE_COMMIT = "400754e5e0ad17557042a0c39725f909a0fb12dd";
 const hash = (value: string) => createHash("sha256").update(value).digest("hex");
 const bytes = (text: string) => ({ raw: Buffer.byteLength(text), gzip: gzipSync(text, { level: 9 }).length, brotli: brotliCompressSync(text).length });
@@ -31,11 +32,19 @@ export async function measure(): Promise<void> {
   const compressedData = await readFile(new URL("de.json.gz", DATA));
   if (gunzipSync(compressedData).toString("utf8") !== fullText) throw new Error("Compressed data does not match JSON");
   const leftOut = JSON.parse(await readFile(new URL("left-out.json", DATA), "utf8")) as LocalPlacesData;
+  const fullPacked = indexLocalPlaces(gunzipSync(await readFile(new URL("de.places.bin.gz", DATA))));
+  const leftPacked = indexLocalPlaces(gunzipSync(await readFile(new URL("left-out.places.bin.gz", DATA))));
+  const parity = (json: Map<string, string | null>, packed: Map<string, string | null>) => {
+    const changed = [...json].filter(([id, value]) => packed.get(id) !== value).length;
+    if (changed) throw new Error(`Packed predictions differ: ${changed} (details withheld)`);
+    return changed;
+  };
   const baseline: Sorter = sortPayments;
   const optional: Sorter = (payments, options) => sortPayments(payments, { ...options, localPlaces: leftOut });
   const cases = await loadCases();
   const { labels, judged } = await loadLabels(cases);
   const before = predict(cases, baseline), after = predict(cases, optional);
+  const leftOutChanges = parity(after, predict(cases, (payments, options) => sortPayments(payments, { ...options, localPlaces: leftPacked })));
   const score = (rows: EvalCase[], predictions: Map<string, string | null>) => count(rows.map((c) => ({ label: labels.get(c.id)!, category: predictions.get(c.id)! })));
   const benchmark: Record<string, unknown> = {};
   for (const [name, rows] of [["worked", cases.filter((c) => !heldback(c.id))], ["heldback", cases.filter((c) => heldback(c.id))]] as const) {
@@ -50,6 +59,7 @@ export async function measure(): Promise<void> {
   }
   // Only non-OSM outcomes are scored with the full database. OSM benchmark outcomes still count ONLY left-out.
   const fullPredictions = predict(cases, (payments, options) => sortPayments(payments, { ...options, localPlaces: full }));
+  const fullChanges = parity(fullPredictions, predict(cases, (payments, options) => sortPayments(payments, { ...options, localPlaces: fullPacked })));
   const elsewhere = Object.fromEntries([false, true].map((held) => [held ? "heldback" : "worked",
     Object.fromEntries(["brand", "madeup", "nonshop", "scenario"].map((kind) => {
       const rows = cases.filter((c) => heldback(c.id) === held && c.kind === kind);
@@ -72,6 +82,9 @@ export async function measure(): Promise<void> {
   const sampleLabels = new Map(rendered.map((c) => [c.id, { id: c.id, accepted: [c.generator.best!, ...c.generator.alsoRight ?? []],
     unsortedRight: false, disputed: false, fingerprint: "", basis: "generator" } satisfies Label]));
   const sampleBefore = predict(rendered), sampleAfter = predict(rendered, (payments, options) => sortPayments(payments, { ...options, localPlaces: full }));
+  const knownChanges = parity(sampleAfter, predict(rendered, (payments, options) => sortPayments(payments, { ...options, localPlaces: fullPacked })));
+  const localMatchChanges = rendered.filter((c) => JSON.stringify(findLocalPlace(c.payment, full)) !== JSON.stringify(findLocalPlace(c.payment, fullPacked))).length;
+  if (localMatchChanges) throw new Error("Packed local matches differ (details withheld)");
   const knownScore = (predictions: Map<string, string | null>) => count(rendered.map((c) => ({ label: sampleLabels.get(c.id)!, category: predictions.get(c.id)! })));
   const known = { seed, sampleSize: sample.length, pool: pool.length, sourceIdHash: hash(sample.map((p) => p.id).join("\n")),
     method: "Unjudged OSM-kind agreement, not independent accuracy; fresh source places outside all eight exclusion circles; direct/explicit processor renderings; original renderer truncations and bank layouts retained.",
@@ -102,6 +115,17 @@ export async function measure(): Promise<void> {
   const oldPredictions = predict(cases, (oldContext.AresiumEngine as { sortPayments: Sorter }).sortPayments);
   const defaultParityChanges = cases.filter((c) => before.get(c.id) !== oldPredictions.get(c.id)).length;
   if (defaultParityChanges) throw new Error("The default engine changed results without a local list");
+  // Confirm the JSON matcher/sorter from this checkout before brief 97, independently of the refactor.
+  const checkoutOverrides = new Map(["src/engine/index.ts", "src/engine/sorting/sort.ts", "src/engine/sorting/local-places.ts"].map((path) =>
+    [fileURLToPath(new URL(`../${path}`, import.meta.url)), execFileSync("git", ["show", `${JSON_COMPARISON_COMMIT}:${path}`], { encoding: "utf8" })]));
+  const checkoutContext = createContext({});
+  new Script(await bundleEngine(checkoutOverrides)).runInContext(checkoutContext);
+  const checkoutSorter = (checkoutContext.AresiumEngine as { sortPayments: Sorter }).sortPayments;
+  const checkoutJsonChanges = {
+    leftOut: parity(after, predict(cases, (payments, options) => checkoutSorter(payments, { ...options, localPlaces: leftOut }))),
+    full: parity(fullPredictions, predict(cases, (payments, options) => checkoutSorter(payments, { ...options, localPlaces: full }))),
+    known: parity(sampleAfter, predict(rendered, (payments, options) => checkoutSorter(payments, { ...options, localPlaces: full }))),
+  };
   const scripts = [new Script(oldBundle), new Script(bundle)];
   const load = new Script("globalThis.localPlaces = JSON.parse(localPlacesJSON)");
   const firstSort = new Script("AresiumEngine.sortPayments(payments, {categories, localPlaces})");
@@ -141,11 +165,12 @@ export async function measure(): Promise<void> {
     simulator: "Not measured through PhoneEngineTests: the app host has no optional-list input; app changes are outside this brief. See simulator.json if the separate standalone simulator harness was run. Node timings alone do not establish the 200 ms simulator budget." };
   const oldSize = bytes(oldBundle), size = bytes(bundle);
   const report = { dataDate: full.dataDate, baselineCommit: BASELINE_COMMIT, judged, defaultParityChanges, build: JSON.parse(await readFile(new URL("build.json", DATA), "utf8")),
+    packedParity: { jsonComparisonCommit: JSON_COMPARISON_COMMIT, leftOutChanges, fullChanges, knownChanges, localMatchChanges, checkoutJsonChanges },
     sizes: { baselineBundle: oldSize, optionalCodeBundle: size,
       codeAdded: { raw: size.raw - oldSize.raw, gzip: size.gzip - oldSize.gzip, brotli: size.brotli - oldSize.brotli },
       fullData: bytes(fullText), leftOutData: bytes(await readFile(new URL("left-out.json", DATA), "utf8")),
       dataBundledByDefault: false }, timing, benchmark, elsewhere, known };
-  await writeFile(new URL("measurements.json", DATA), JSON.stringify(report, null, 2) + "\n");
+  await writeFile(new URL(process.argv.includes("--packed") ? "packed-evaluation.json" : "measurements.json", DATA), JSON.stringify(report, null, 2) + "\n");
   console.log(JSON.stringify(report, null, 2));
 }
 if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) await measure();

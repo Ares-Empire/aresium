@@ -1,0 +1,404 @@
+{
+  "runtime": "v26.4.0",
+  "platform": "darwin/arm64",
+  "cpu": "Apple M5",
+  "hostMemoryBytes": 17179869184,
+  "dataDate": "2026-10-31T21:23:06.000Z",
+  "method": "Three fresh --expose-gc Node processes per format, alternating order. Medians of each process's samples. Baseline includes 500 prepared fictional payments; raw files read from warm filesystem cache. Load separates file read (including UTF-8 for JSON) from JSON.parse or packed validation/indexing. No gzip inflation, native bridge, or engine bundle evaluation in load. Three GCs before each memory snapshot. Lookup and sort: two warmups then ten samples per size. Memory deltas in bytes; external includes arrayBuffers, so do not add both. RSS reflects allocator retention, not live object size. No app/JSC/device memory measurement.",
+  "sizes": {
+    "de": {
+      "raw": 9779212,
+      "gzip": 3281615,
+      "sha256": "d3ad966df425d1e4c4ed29b7eefe8f4bada388c36f1b675ac40ffa66b913d667"
+    },
+    "left-out": {
+      "raw": 9409504,
+      "gzip": 3154308,
+      "sha256": "8b7327b09578fc548605115db5a23ee80d86a633802fb8d54f9eda940946a136"
+    }
+  },
+  "summary": {
+    "json": {
+      "readMs": 4.157167000000001,
+      "indexMs": 37.394000000000005,
+      "loadMs": 41.98504200000001,
+      "loadedDelta": {
+        "heapUsed": 46064512,
+        "arrayBuffers": 0,
+        "external": 38994,
+        "rss": 87605248
+      },
+      "afterLookupsDelta": {
+        "heapUsed": 46845800,
+        "arrayBuffers": 0,
+        "external": 38994,
+        "rss": 162873344
+      },
+      "releasedDelta": {
+        "heapUsed": 715488,
+        "arrayBuffers": 0,
+        "external": 38994,
+        "rss": 160923648
+      },
+      "lookupUsPerPayment": 8.882666000000029,
+      "sortUsPerPayment": {
+        "1250": 15.83789999999999,
+        "5000": 12.904158400000005
+      }
+    },
+    "packed": {
+      "readMs": 0.8872920000000022,
+      "indexMs": 24.378791000000007,
+      "loadMs": 25.371958000000006,
+      "loadedDelta": {
+        "heapUsed": 76200,
+        "arrayBuffers": 9779212,
+        "external": 9818206,
+        "rss": 10125312
+      },
+      "afterLookupsDelta": {
+        "heapUsed": 877240,
+        "arrayBuffers": 9779212,
+        "external": 9818206,
+        "rss": 90292224
+      },
+      "releasedDelta": {
+        "heapUsed": 771560,
+        "arrayBuffers": 0,
+        "external": 38994,
+        "rss": 90292224
+      },
+      "lookupUsPerPayment": 8.50366600000001,
+      "sortUsPerPayment": {
+        "1250": 16.890300000000025,
+        "5000": 13.432899999999995
+      }
+    }
+  },
+  "runs": [
+    {
+      "format": "json",
+      "readMs": 8.871958000000006,
+      "indexMs": 36.916292,
+      "loadMs": 45.788250000000005,
+      "before": {
+        "heapUsed": 15955408,
+        "arrayBuffers": 2772415,
+        "external": 5242241,
+        "rss": 114360320
+      },
+      "loaded": {
+        "heapUsed": 62019464,
+        "arrayBuffers": 2772415,
+        "external": 5281235,
+        "rss": 202194944
+      },
+      "loadedDelta": {
+        "heapUsed": 46064056,
+        "arrayBuffers": 0,
+        "external": 38994,
+        "rss": 87834624
+      },
+      "afterLookups": {
+        "heapUsed": 62799984,
+        "arrayBuffers": 2772415,
+        "external": 5281235,
+        "rss": 278396928
+      },
+      "afterLookupsDelta": {
+        "heapUsed": 46844576,
+        "arrayBuffers": 0,
+        "external": 38994,
+        "rss": 164036608
+      },
+      "released": {
+        "heapUsed": 16669720,
+        "arrayBuffers": 2772415,
+        "external": 5281235,
+        "rss": 276054016
+      },
+      "releasedDelta": {
+        "heapUsed": 714312,
+        "arrayBuffers": 0,
+        "external": 38994,
+        "rss": 161693696
+      },
+      "lookupUsPerPayment": 8.883083999999997,
+      "sortUsPerPayment": {
+        "1250": 15.806500000000005,
+        "5000": 12.904158400000005
+      },
+      "matches": 4380
+    },
+    {
+      "format": "packed",
+      "readMs": 3.547792000000001,
+      "indexMs": 24.378791000000007,
+      "loadMs": 27.926583000000008,
+      "before": {
+        "heapUsed": 15683488,
+        "arrayBuffers": 2243039,
+        "external": 4712961,
+        "rss": 99287040
+      },
+      "loaded": {
+        "heapUsed": 15759424,
+        "arrayBuffers": 12022251,
+        "external": 14531167,
+        "rss": 109494272
+      },
+      "loadedDelta": {
+        "heapUsed": 75936,
+        "arrayBuffers": 9779212,
+        "external": 9818206,
+        "rss": 10207232
+      },
+      "afterLookups": {
+        "heapUsed": 16562064,
+        "arrayBuffers": 12022251,
+        "external": 14531167,
+        "rss": 189579264
+      },
+      "afterLookupsDelta": {
+        "heapUsed": 878576,
+        "arrayBuffers": 9779212,
+        "external": 9818206,
+        "rss": 90292224
+      },
+      "released": {
+        "heapUsed": 16456312,
+        "arrayBuffers": 2243039,
+        "external": 4751955,
+        "rss": 189579264
+      },
+      "releasedDelta": {
+        "heapUsed": 772824,
+        "arrayBuffers": 0,
+        "external": 38994,
+        "rss": 90292224
+      },
+      "lookupUsPerPayment": 8.50366600000001,
+      "sortUsPerPayment": {
+        "1250": 16.890300000000025,
+        "5000": 13.540458399999988
+      },
+      "matches": 4380
+    },
+    {
+      "format": "packed",
+      "readMs": 0.8447079999999971,
+      "indexMs": 24.52725000000001,
+      "loadMs": 25.371958000000006,
+      "before": {
+        "heapUsed": 15681408,
+        "arrayBuffers": 2243039,
+        "external": 4712961,
+        "rss": 99631104
+      },
+      "loaded": {
+        "heapUsed": 15757696,
+        "arrayBuffers": 12022251,
+        "external": 14531167,
+        "rss": 109740032
+      },
+      "loadedDelta": {
+        "heapUsed": 76288,
+        "arrayBuffers": 9779212,
+        "external": 9818206,
+        "rss": 10108928
+      },
+      "afterLookups": {
+        "heapUsed": 16558648,
+        "arrayBuffers": 12022251,
+        "external": 14531167,
+        "rss": 189792256
+      },
+      "afterLookupsDelta": {
+        "heapUsed": 877240,
+        "arrayBuffers": 9779212,
+        "external": 9818206,
+        "rss": 90161152
+      },
+      "released": {
+        "heapUsed": 16452968,
+        "arrayBuffers": 2243039,
+        "external": 4751955,
+        "rss": 189792256
+      },
+      "releasedDelta": {
+        "heapUsed": 771560,
+        "arrayBuffers": 0,
+        "external": 38994,
+        "rss": 90161152
+      },
+      "lookupUsPerPayment": 8.496666000000005,
+      "sortUsPerPayment": {
+        "1250": 16.747600000000013,
+        "5000": 13.173149999999989
+      },
+      "matches": 4380
+    },
+    {
+      "format": "json",
+      "readMs": 4.144417000000004,
+      "indexMs": 37.840625,
+      "loadMs": 41.98504200000001,
+      "before": {
+        "heapUsed": 15688344,
+        "arrayBuffers": 2243039,
+        "external": 4712961,
+        "rss": 98598912
+      },
+      "loaded": {
+        "heapUsed": 61752856,
+        "arrayBuffers": 2243039,
+        "external": 4751955,
+        "rss": 185761792
+      },
+      "loadedDelta": {
+        "heapUsed": 46064512,
+        "arrayBuffers": 0,
+        "external": 38994,
+        "rss": 87162880
+      },
+      "afterLookups": {
+        "heapUsed": 62534216,
+        "arrayBuffers": 2243039,
+        "external": 4751955,
+        "rss": 261472256
+      },
+      "afterLookupsDelta": {
+        "heapUsed": 46845872,
+        "arrayBuffers": 0,
+        "external": 38994,
+        "rss": 162873344
+      },
+      "released": {
+        "heapUsed": 16403904,
+        "arrayBuffers": 2243039,
+        "external": 4751955,
+        "rss": 259522560
+      },
+      "releasedDelta": {
+        "heapUsed": 715560,
+        "arrayBuffers": 0,
+        "external": 38994,
+        "rss": 160923648
+      },
+      "lookupUsPerPayment": 8.685332000000017,
+      "sortUsPerPayment": {
+        "1250": 16.03756639999997,
+        "5000": 12.969974999999977
+      },
+      "matches": 4380
+    },
+    {
+      "format": "json",
+      "readMs": 4.157167000000001,
+      "indexMs": 37.394000000000005,
+      "loadMs": 41.55116700000001,
+      "before": {
+        "heapUsed": 15681056,
+        "arrayBuffers": 2243039,
+        "external": 4712961,
+        "rss": 99303424
+      },
+      "loaded": {
+        "heapUsed": 61745568,
+        "arrayBuffers": 2243039,
+        "external": 4751955,
+        "rss": 186908672
+      },
+      "loadedDelta": {
+        "heapUsed": 46064512,
+        "arrayBuffers": 0,
+        "external": 38994,
+        "rss": 87605248
+      },
+      "afterLookups": {
+        "heapUsed": 62526856,
+        "arrayBuffers": 2243039,
+        "external": 4751955,
+        "rss": 261488640
+      },
+      "afterLookupsDelta": {
+        "heapUsed": 46845800,
+        "arrayBuffers": 0,
+        "external": 38994,
+        "rss": 162185216
+      },
+      "released": {
+        "heapUsed": 16396544,
+        "arrayBuffers": 2243039,
+        "external": 4751955,
+        "rss": 259538944
+      },
+      "releasedDelta": {
+        "heapUsed": 715488,
+        "arrayBuffers": 0,
+        "external": 38994,
+        "rss": 160235520
+      },
+      "lookupUsPerPayment": 8.882666000000029,
+      "sortUsPerPayment": {
+        "1250": 15.83789999999999,
+        "5000": 12.796749999999998
+      },
+      "matches": 4380
+    },
+    {
+      "format": "packed",
+      "readMs": 0.8872920000000022,
+      "indexMs": 24.162707999999995,
+      "loadMs": 25.049999999999997,
+      "before": {
+        "heapUsed": 15687952,
+        "arrayBuffers": 2243039,
+        "external": 4712961,
+        "rss": 97632256
+      },
+      "loaded": {
+        "heapUsed": 15764152,
+        "arrayBuffers": 12022251,
+        "external": 14531167,
+        "rss": 107757568
+      },
+      "loadedDelta": {
+        "heapUsed": 76200,
+        "arrayBuffers": 9779212,
+        "external": 9818206,
+        "rss": 10125312
+      },
+      "afterLookups": {
+        "heapUsed": 16564672,
+        "arrayBuffers": 12022251,
+        "external": 14531167,
+        "rss": 189366272
+      },
+      "afterLookupsDelta": {
+        "heapUsed": 876720,
+        "arrayBuffers": 9779212,
+        "external": 9818206,
+        "rss": 91734016
+      },
+      "released": {
+        "heapUsed": 16458992,
+        "arrayBuffers": 2243039,
+        "external": 4751955,
+        "rss": 189366272
+      },
+      "releasedDelta": {
+        "heapUsed": 771040,
+        "arrayBuffers": 0,
+        "external": 38994,
+        "rss": 91734016
+      },
+      "lookupUsPerPayment": 8.550749999999992,
+      "sortUsPerPayment": {
+        "1250": 17.024433600000023,
+        "5000": 13.432899999999995
+      },
+      "matches": 4380
+    }
+  ]
+}

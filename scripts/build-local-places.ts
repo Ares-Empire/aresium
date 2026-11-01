@@ -6,7 +6,9 @@ import { pipeline } from "node:stream/promises";
 import { Readable } from "node:stream";
 import type { Duplex } from "node:stream";
 import { pathToFileURL } from "node:url";
-import { gzipSync } from "node:zlib";
+import { packLocalPlaces } from "./local-places-pack.js";
+import type { LocalPlacesData } from "../src/engine/sorting/local-places.js";
+import { gzipSync, gunzipSync } from "node:zlib";
 import parsePbf, { type Element } from "osm-pbf-parser";
 import shops from "../src/engine/sorting/shops.de.json" with { type: "json" };
 import { NSI } from "./build-shop-list.js";
@@ -113,8 +115,24 @@ export async function knownNames(): Promise<Set<string>> {
     .concat(Object.values(nsi.nsi).flatMap((section) => section.items.flatMap((item) => [item.displayName, ...item.matchNames ?? [],
       ...["name", "name:de", "brand", "brand:de", "operator", "network"].map((key) => item.tags[key]).filter(Boolean)]))).flatMap((name) => shopSpellings(name)).map(localName));
 }
+async function writePacked(variant: string, data: LocalPlacesData): Promise<void> {
+  const packed = packLocalPlaces(data);
+  const gzip = gzipSync(packed, { level: 9 });
+  await writeFile(new URL(`${variant}.places.bin`, DATA), packed);
+  await writeFile(new URL(`${variant}.places.bin.gz`, DATA), gzip);
+  console.log(`${variant}: ${packed.length} packed bytes, ${gzip.length} gzip bytes`);
+}
 export async function build(args = process.argv.slice(2)): Promise<void> {
-  if (args.some((arg) => !["--fresh"].includes(arg))) throw new Error("Use npm run local-places [-- --fresh]");
+  if (args.some((arg) => !["--fresh", "--pack-only"].includes(arg)) || args.length > 1) throw new Error("Use npm run local-places [-- --fresh | --pack-only]");
+  if (args.includes("--pack-only")) {
+    for (const variant of ["de", "left-out"]) {
+      const bytes = gunzipSync(await readFile(new URL(`${variant}.json.gz`, DATA)));
+      const data = JSON.parse(bytes.toString("utf8")) as LocalPlacesData;
+      await writeFile(new URL(`${variant}.json`, DATA), bytes);
+      await writePacked(variant, data);
+    }
+    return;
+  }
   await mkdir(CACHE, { recursive: true }); await mkdir(DATA, { recursive: true });
   const cache = new URL("places-v1.json", CACHE);
   let extracted: Extract | undefined;
@@ -131,6 +149,7 @@ export async function build(args = process.argv.slice(2)): Promise<void> {
     const text = JSON.stringify(result.data) + "\n";
     await writeFile(new URL(`${variant}.json`, DATA), text);
     await writeFile(new URL(`${variant}.json.gz`, DATA), gzipSync(text, { level: 9 }));
+    await writePacked(variant, result.data);
     reports[variant] = result.stats;
     // Public source facts for fresh known-place sampling remain ignored, never imported into the engine.
     if (!leftOut) await writeFile(new URL("eligible-sample.json", CACHE), JSON.stringify(result.places.filter((p) => !p.excluded)));
