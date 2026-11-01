@@ -1,10 +1,22 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { existsSync, readFileSync } from "node:fs";
 import { test } from "node:test";
 import { runInNewContext } from "node:vm";
 import { CONTACT_CSP, CONTACT_ENDPOINT, CONTACT_PAGES, TOPICS, contactPage, topicFrom } from "./contact-page.js";
 
-const SCRIPT = readFileSync(new URL("../../web/public/forms/contact-form.js", import.meta.url), "utf8");
+const FORMS = new URL("../../web/public/forms/", import.meta.url);
+const SCRIPT = readFileSync(new URL("contact-form.js", FORMS), "utf8");
+const LAYOUT = readFileSync(new URL("contact-form.css", FORMS), "utf8");
+const LOOK = readFileSync(new URL("contact.css", FORMS), "utf8");
+
+// contact-form.js and contact-form.css are copies of ares-empire web/shared/forms/, shared byte for byte with the hub's
+// contact pages (www.ares-empire.de/contact, /arestemis/contact). These are the hashes of its SHA256SUMS: a change is
+// made there, then copied here with the new hashes (ares-empire web/shared/forms/README.md).
+const SHARED_FORM_SHA256: Record<string, string> = {
+  "contact-form.css": "11b940f4e001bf2093d9ef626fd5d95c8b3369c9abc29fd232a478a2ed345cbc",
+  "contact-form.js": "889a149898c69f13458e76509307907a40f5ef941a76d2150571938b1e34c58d",
+};
 const pages = { en: contactPage("en"), de: contactPage("de") };
 const count = (text: string, part: string) => text.split(part).length - 1;
 const visibleText = (html: string) => html.replace(/<(script|style)[\s\S]*?<\/\1>/g, "").replace(/<[^>]+>/g, " ")
@@ -122,13 +134,49 @@ test("the words address no one: no you or your, no du, dein or du-imperatives (P
 
 test("the page opens in Aresium's look: dark, unless switched, set before its styles apply", () => {
   for (const html of [pages.en, pages.de]) {
-    assert.ok(html.indexOf('<script src="/app/appearance.js"></script>') < html.indexOf('href="/forms/contact.css"'));
-    assert.ok(html.indexOf('<script src="/app/appearance.js"></script>') > 0);
+    const order = ['<script src="/app/appearance.js"></script>', 'href="/forms/contact-form.css"', 'href="/forms/contact.css"']
+      .map((part) => html.indexOf(part));
+    assert.ok(order[0] > 0);
+    assert.deepEqual(order, [...order].sort((a, b) => a - b));   // the look, then the shared layout, then Aresium's colours
     assert.doesNotMatch(html, /color-scheme|prefers-color-scheme/);
   }
-  const css = readFileSync(new URL("../../web/public/forms/contact.css", import.meta.url), "utf8");
-  assert.doesNotMatch(css, /prefers-color-scheme/);
-  assert.match(css, /html\[data-theme="light"\] \{/);
+  for (const css of [LAYOUT, LOOK]) assert.doesNotMatch(css, /prefers-color-scheme/);
+  assert.match(LOOK, /html\[data-theme="light"\] \{/);
+});
+
+test("the shared form is ares-empire's, byte for byte (web/shared/forms/SHA256SUMS)", () => {
+  for (const [name, digest] of Object.entries(SHARED_FORM_SHA256)) {
+    assert.equal(createHash("sha256").update(readFileSync(new URL(name, FORMS))).digest("hex"), digest,
+      `${name} changed here: change ares-empire web/shared/forms/${name} instead and copy it (README.md there)`);
+  }
+  // Next to an ares-empire checkout (as on the server), its hashes are these.
+  const sums = new URL(`file://${process.env.ARES_EMPIRE_DIR ?? new URL("../../../ares-empire", import.meta.url).pathname}/web/shared/forms/SHA256SUMS`);
+  if (!existsSync(sums)) return;
+  const theirs = Object.fromEntries(readFileSync(sums, "utf8").trim().split("\n").map((line) => line.split("  ").reverse()));
+  assert.deepEqual(theirs, SHARED_FORM_SHA256, "ares-empire's shared form changed: copy it here with its hashes");
+});
+
+test("Aresium's look sets every property the shared layout uses, in dark and light", () => {
+  const block = (selector: string) => {
+    const found = LOOK.match(new RegExp(selector.replace(/[[\]()".]/g, "\\$&") + "\\s*\\{([^}]*)\\}"));
+    return new Set([...(found?.[1] ?? "").matchAll(/(--[\w-]+)\s*:/g)].map((m) => m[1]));
+  };
+  const own = new Set([...(LAYOUT.match(/:root\s*\{([^}]*)\}/)?.[1] ?? "").matchAll(/(--[\w-]+)\s*:/g)].map((m) => m[1]));
+  const used = new Set([...LAYOUT.matchAll(/var\((--[\w-]+)/g)].map((m) => m[1]).filter((name) => !own.has(name)));
+  const dark = block(":root");
+  const light = block('html[data-theme="light"]');
+  assert.deepEqual([...used].filter((name) => !dark.has(name)), []);
+  assert.deepEqual([...dark].filter((name) => !light.has(name) && name !== "--band-size"), []);   // only the size is the same
+});
+
+test("every class the shared layout styles is on the page", () => {
+  const styled = new Set([...LAYOUT.replace(/\/\*[\s\S]*?\*\//g, "").matchAll(/\.([a-z][\w-]*)/g)].map((m) => m[1]));
+  for (const set of ["over", "busy", "visually-hidden"]) styled.delete(set);   // the script sets these
+  styled.delete("space");   // ARESIUM is one word
+  for (const html of Object.values(pages)) {
+    const onPage = new Set([...html.matchAll(/class="([^"]+)"/g)].flatMap((m) => m[1].split(" ")));
+    assert.deepEqual([...styled].filter((name) => !onPage.has(name)), []);
+  }
 });
 
 // web/public/app/appearance.js in a made-up browser: `stored` is what localStorage holds, `blocked` makes it throw.

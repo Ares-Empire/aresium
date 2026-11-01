@@ -6,8 +6,11 @@
 // The browser posts straight to the account server's open `contact` collection (ares-empire docs/ACCOUNTS.md →
 // Website contact form), so its per-visitor rate limit sees the visitor, not this server. The page is written here with
 // its words in its language; web/public/forms/contact-form.js does the sending and knows no app or language (it reads
-// everything from the page's data attributes), and web/public/forms/contact.css is the look. Nothing comes from other
-// hosts, and the page's Content-Security-Policy (CONTACT_CSP) allows only this server and the account server.
+// everything from the page's data attributes), web/public/forms/contact-form.css is the layout, and
+// web/public/forms/contact.css is Aresium's look. The first two are shared byte for byte with the hub's contact pages
+// (www.ares-empire.de/contact, /arestemis/contact): copies of ares-empire web/shared/forms/, checked against its
+// SHA256SUMS by contact-page.test.ts. Nothing comes from other hosts, and the page's Content-Security-Policy
+// (CONTACT_CSP) allows only this server and the account server.
 import { esc } from "./html.js";
 import { CONTACT_PATHS, LEGAL, OWNER_EMAIL, type PageLanguage } from "./links.js";
 
@@ -173,6 +176,7 @@ export function contactPage(language: PageLanguage, topic: Topic = DEFAULT_TOPIC
 <link rel="apple-touch-icon" href="/brand/hermes.png" />
 <link rel="alternate" hreflang="${other}" href="${CONTACT_PATHS[other]}" />
 <link rel="stylesheet" href="/fonts/fonts.css" />
+<link rel="stylesheet" href="/forms/contact-form.css" />
 <link rel="stylesheet" href="/forms/contact.css" />
 <script src="/forms/contact-form.js" defer></script>
 </head>

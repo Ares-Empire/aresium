@@ -1,4 +1,7 @@
-/* The contact form of an Ares app's website: aresium.de/contact and /kontakt (written by src/web/contact-page.ts).
+/* The contact form of an Ares app's website: aresium.de/contact (aresium src/web/contact-page.ts), and on the hub
+   www.ares-empire.de/contact and /arestemis/contact (ares-empire webauth/contact.py), each also in German.
+   Shared by every such page, byte for byte: the original is ares-empire web/shared/forms/contact-form.js, aresium
+   web/public/forms/ has a copy, and both repos test it against web/shared/forms/SHA256SUMS (README.md there).
    It knows no app and no language; everything comes from the page, so another app's form can use this file as it is:
 
    - form[data-contact-form]: data-endpoint (the account server's open `contact` collection), data-app (its `app`;

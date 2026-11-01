@@ -429,7 +429,7 @@ test("the contact form is open to everyone, in its language, with its own policy
       assert.match(page.body, new RegExp(`<html lang="${language}" data-theme="dark">[\\s\\S]*<h1>${title}</h1>`));
     }
   }
-  for (const path of ["/forms/contact.css", "/forms/contact-form.js", "/fonts/fonts.css", "/fonts/SpaceGrotesk-Variable.ttf", "/brand/hermes.png"]) {
+  for (const path of ["/forms/contact.css", "/forms/contact-form.css", "/forms/contact-form.js", "/fonts/fonts.css", "/fonts/SpaceGrotesk-Variable.ttf", "/brand/hermes.png"]) {
     assert.equal((await request(path)).status, 200, path);
   }
   assert.equal(fetch.mock.callCount(), 0);
