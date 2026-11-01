@@ -137,7 +137,7 @@ npx tsx eval/sorting/own-data.ts /outside/all/repos/Aresium-export.json
 
 Claude runs this with Patrik's export; a coding agent must never request, locate or open that data. The tool refuses
 paths inside this worktree, symlinks into it and multiply linked files. Keep exports outside all repositories.
-It reads the `LedgerExport` schema 1–5 shapes (`text`, `bookingDate`, chosen categories and account IBANs), ignores
+It reads the `LedgerExport` schema 1–6 shapes (`text`, `bookingDate`, chosen categories and account IBANs), ignores
 stored learned rules, and sorts with the chosen list. Schema 4 display names do not affect sorting. It validates
 fields used for evaluation, not receipt/restore metadata. Output contains counts only: manual-category agreement,
 non-manual retained-category agreement (including receipt-assigned categories), sorted/unsorted, a confusion table

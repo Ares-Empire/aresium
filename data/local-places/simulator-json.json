@@ -1,0 +1,37 @@
+{
+  "addedStartupMedianMs" : 57.378053665161133,
+  "addedStartupPaired" : {
+    "maxMs" : 61.635136604309082,
+    "medianMs" : 57.103991508483887,
+    "minMs" : 52.281975746154785,
+    "p95Ms" : 59.131979942321777
+  },
+  "baselineBundleSha256" : "685d3ced253019c6cf35f94c152bea6fcc36d8a5bed0350e65824b7585545a72",
+  "baselineStartup" : {
+    "maxMs" : 26.857972145080566,
+    "medianMs" : 17.266988754272461,
+    "minMs" : 16.111969947814941,
+    "p95Ms" : 24.931907653808594
+  },
+  "dataBridgeAndParse" : {
+    "maxMs" : 62.234044075012207,
+    "medianMs" : 57.209968566894531,
+    "minMs" : 55.061101913452148,
+    "p95Ms" : 61.331987380981445
+  },
+  "dataSha256" : "388b97654b10aca799094153e10a9ac290c1136a3cd195f7def4fc630d9ef592",
+  "gzip" : false,
+  "method" : "Standalone iOS simulator JavaScriptCore, fresh JSContext including creation and evaluateScript, then optional gzip inflation, UTF-8 decoding, Swift string bridge and JSON.parse. File reads excluded. Not PhoneEngineTests or an app launch.",
+  "model" : "iPhone18,3",
+  "optionalBundleSha256" : "a35a64554fb6a6e9f531d8811b21a5d0eb95046fec7972a527eb589ec4f6b471",
+  "optionalStartupWithData" : {
+    "maxMs" : 82.523941993713379,
+    "medianMs" : 74.645042419433594,
+    "minMs" : 72.243928909301758,
+    "p95Ms" : 80.831050872802734
+  },
+  "runtime" : "Version 27.0 (Build 24A434)",
+  "samples" : 20,
+  "storedBytes" : 10503935,
+  "warmups" : 2
+}

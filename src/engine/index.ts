@@ -14,6 +14,8 @@ export type { SortingPayment } from "./sorting/merchant.js";
 export { STARTER_RULES, starterCategory } from "./sorting/starter-rules.js";
 export { sortPayments, learn } from "./sorting/sort.js";
 export type { Learned, SortResult } from "./sorting/sort.js";
+export { findLocalPlace } from "./sorting/local-places.js";
+export type { LocalPlacesData, LocalPlaceMatch } from "./sorting/local-places.js";
 export const version = "0.1.0";
 
 // ---- Dashboard source and own transfers (brief 12) ----

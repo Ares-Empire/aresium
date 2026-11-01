@@ -51,6 +51,10 @@ Full export walkthrough: [`docs/SETUP-IMPORT.md`](docs/SETUP-IMPORT.md).
 Design + Hetzner notes: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 Plan: [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
+The optional [German local places experiment](data/local-places/README.md) derives a separately loaded database
+from OpenStreetMap via Geofabrik: © OpenStreetMap contributors, ODbL. Its README records sources, rebuilds,
+measurements and redistribution notices. It is off by default and is not part of the app bundle.
+
 ## Dashboard API and languages
 
 The current dashboard is served by `npm run web` (`src/web/server.ts`, static files in `web/public`).

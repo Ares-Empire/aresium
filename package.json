@@ -30,7 +30,9 @@
     "engine": "tsx scripts/build-engine.ts",
     "eval:files": "tsx eval/files/score.ts",
     "eval:sorting": "tsx eval/sorting/score.ts",
-    "shops": "tsx scripts/build-shop-list.ts"
+    "shops": "tsx scripts/build-shop-list.ts",
+    "local-places": "tsx scripts/build-local-places.ts",
+    "eval:local-places": "tsx scripts/eval-local-places.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.2.1",
@@ -41,6 +43,7 @@
   "devDependencies": {
     "@types/node": "^22.10.5",
     "esbuild": "^0.28.2",
+    "osm-pbf-parser": "^2.3.0",
     "prisma": "^6.2.1",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"

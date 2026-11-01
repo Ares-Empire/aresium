@@ -1,4 +1,5 @@
 node_modules/
+.cache/local-places/
 .env
 .env.local
 dist/
@@ -37,3 +38,7 @@ eval/sorting/judging/categories.md
 eval/sorting/judging/judge-*.jsonl
 eval/sorting/disputed*.jsonl
 eval/history.csv.lock
+
+# The local places list is kept compressed; the .json files are rebuilt from it or from the cache (brief 86).
+data/local-places/de.json
+data/local-places/left-out.json

@@ -115,8 +115,8 @@ const fakeExport = (schema = 5): LedgerExport => ({ app: "Aresium", schema,
     { id: "p1", account: "a", source: "bank", externalId: "FICT1", bookingDate: "2026-02-03", amount: "-1234.87", currency: "EUR", text: "PRIVATE-NAME shopping", counterparty: "PRIVATE-NAME", category: "groceries", categorySource: "manual", sequence: 1 },
     { id: "p2", account: "a", source: "bank", externalId: "FICT2", bookingDate: "2026-03-03", amount: "-6789.43", currency: "EUR", text: "PRIVATE-SECOND", category: "custom-PRIVATE-NAME", categorySource: "starter", sequence: 2 },
   ] });
-test("own-data reads schema 1–5 and replay learns corrections chronologically", () => {
-  for (let schema = 1; schema <= 5; schema++) {
+test("own-data reads schema 1–6 and replay learns corrections chronologically", () => {
+  for (let schema = 1; schema <= 6; schema++) {
     const data = fakeExport(schema); data.payments.push({ ...data.payments[0], id: "p3", externalId: "FICT3", bookingDate: "2026-04-03", sequence: 3 });
     const result = ownCounts(parseExport(data));
     assert.equal(result.manual.total, 2); assert.equal(result.kept.total, 1); assert.equal(result.replay.fixes, 2);
@@ -125,7 +125,7 @@ test("own-data reads schema 1–5 and replay learns corrections chronologically"
   }
 });
 test("own-data fails closed for invalid exports, paths in repo and symlinks", async () => {
-  assert.throws(() => parseExport({ ...fakeExport(), schema: 6 }));
+  assert.throws(() => parseExport({ ...fakeExport(), schema: 7 }));
   assert.throws(() => parseExport({ ...fakeExport(), payments: [{ ...fakeExport().payments[0], amount: "SECRET" }] }));
   const dir = await mkdtemp(join(tmpdir(), "ares-sorting-"));
   try {
@@ -143,6 +143,16 @@ test("own-data fails closed for invalid exports, paths in repo and symlinks", as
     const bad = spawnSync(process.execPath, ["--import", "tsx", "eval/sorting/own-data.ts", outside], { encoding: "utf8" });
     assert.equal(bad.status, 1); assert.ok(!(bad.stdout + bad.stderr).includes("PRIVATE"));
   } finally { await rm(dir, { recursive: true, force: true }); }
+});
+test("own-data optional local places affect counts and replay without exposing merchant text", () => {
+  const data = fakeExport(6);
+  data.payments[0].counterparty = "Quarzfunken";
+  const list = { version: 1 as const, attribution: "fictional", source: "fictional", dataDate: "2026-01-01", categories: ["groceries"], towns: [],
+    rows: [["quarzfunken", 0, []] as const] };
+  const before = ownCounts(data), after = ownCounts(data, list);
+  assert.equal(after.manual.agreement, before.manual.agreement + 1);
+  assert.equal(after.replay.fixes, before.replay.fixes - 1);
+  assert.ok(!JSON.stringify(after).includes("Quarzfunken"));
 });
 test("record appends sorting metrics with header and preserves existing rows", async () => {
   const dir = await mkdtemp(join(tmpdir(), "ares-history-")), file = pathToFileURL(join(dir, "history.csv"));
