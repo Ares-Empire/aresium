@@ -35,6 +35,31 @@ export function foodBusinessWord(word: string): string | null {
   return foodEndings.find((ending) => word.length >= ending.length + 2 && word.endsWith(ending)) ?? null;
 }
 
+/** Descriptive compounds with a business ending, never arbitrary stemming (Grillparzer, Kaffeefahrt). */
+export function businessWord(word: string): string | null {
+  if (/^grill(?:huette|hutte|haus|stube|imbiss|restaurant)$/u.test(word)) return "grill";
+  if (/^kaffee(?:kontor|contor|haus|stube|bar|roesterei|rosterei)$/u.test(word)) return "cafe";
+  if (/^(?:haar(?:werkstatt|studio|atelier|design)|hair(?:design|studio|styling|style|stylist))$/u.test(word)) return "friseur";
+  if (/^lebensmittel(?:markt|laden|handel|geschaeft)$/u.test(word)) return "lebensmittel";
+  if (word === "baumkuchenhaus") return "konditorei";
+  return foodBusinessWord(word);
+}
+
+/** Cutoffs count only at the end of this field (or the merchant column of a structured card line). */
+export function businessFieldWords(text: string): string[] {
+  const cleaned = withoutShopReferences(text.trimEnd());
+  const words = shopWords(cleaned);
+  // Inspect the original field ending too: removing a reference must not manufacture a cutoff.
+  const tail = words.at(-1);
+  if (cleaned.endsWith(" ") || !tail || !/[\p{L}.…]\s*$/u.test(text)) return words;
+  if (/^lebensmit(?:t(?:e(?:l)?)?)?$/u.test(tail)) words[words.length - 1] = "lebensmittel";
+  if (/^hairst(?:y(?:l(?:e)?)?)?$/u.test(tail)) words[words.length - 1] = "hairstyle";
+  // "Podo" alone could be a name. A practice explicitly naming the field establishes podiatry.
+  if (/^podo(?:l(?:o(?:g(?:i(?:e)?)?)?)?)?$/u.test(tail)
+    && /(?:^| )praxis (?:fuer|fur) podo[a-z]*$/u.test(words.join(" "))) words[words.length - 1] = "podolog";
+  return words;
+}
+
 /**
  * The spellings a shop name can take in a bank text: umlauts as ae/oe/ue, and, as some card terminals print
  * them, as plain vowels (Müller → mueller, muller), unless that plain spelling is another word (`otherWords`:
@@ -42,9 +67,14 @@ export function foodBusinessWord(word: string): string | null {
  */
 export function shopSpellings(name: string, otherWords: ReadonlySet<string> = new Set()): string[] {
   const spellings = [shopWords(name).join(" ")];
+  // Some terminals print the apostrophe as a space (O'Neill → O NEILL).
+  if (/['’‘`´]/u.test(name)) spellings.push(shopWords(name.replace(/['’‘`´]/gu, " ")).join(" "));
   if (/[äöü]/iu.test(name)) {
     const plain = words(name, bareVowels).join(" ");
     if (!otherWords.has(plain)) spellings.push(plain);
+    // Some card encodings replace an umlaut with a blank. Require enough remaining letters and full fragments.
+    const blanks = shopWords(name.replace(/[äöü]/giu, " ")).join(" ");
+    if (!otherWords.has(plain) && blanks.replace(/[^a-z]/gu, "").length >= 5) spellings.push(blanks);
   }
   return [...new Set(spellings)].filter(Boolean);
 }

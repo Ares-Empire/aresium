@@ -6,8 +6,8 @@ import type { Direction } from "../src/engine/sorting/shop-matcher.js";
 
 /**
  * Name-suggestion-index (NSI) brand types → Aresium default category ids, one OSM tag per line.
- * Types not listed are left out: banks and ATMs (any payment), car makes and dealers (BMW, Audi, Mercedes: big
- * employers and ordinary words; the generic "autohaus" rule covers servicing), cash & carry, kiosks and newsagents,
+ * Types not listed are left out: banks and ATMs (any payment), car makes and dealers (reviewed whole-merchant makes
+ * are listed below; never free-text employer/ordinary-word matches), cash & carry, kiosks and newsagents,
  * ticket shops, associations and charities
  * (mostly services), tutoring schools (as often an employer as a shop), vending machines, parcel lockers, post
  * offices, estate agents.
@@ -203,7 +203,8 @@ export const SHORT_BRANDS: readonly string[] = [
   "sbk", "lvm", "vhv", "wgv", "hdi", "atm", "obi", "mvz", "gym", "pub", "h&m", "c&a", "nkd", "vhs", "dgb", "wwf",
   "pho", // Vietnamese noodle soup; matches only the whole word, never telephone/photo names.
   // whole merchant names
-  "hit", "jet", "sky",
+  "hit", "jet", "sky", "swb", "ewv", "eam", "ewr", "evo", "avu", "bmw", "byd", "kia", "bp", "q1", "oil!",
+  "spd", "cdu", "csu", "fdp", "afd", "gew", "ngg", "gdp", "evg",
   // NSI brands
   "a&o", "k+k", "bft", "eni", "jbl", "mcm", "ovs", "oyo", "riu", "ruv", "tui", "ugg", "vgh", "wmf",
 ];
@@ -322,6 +323,9 @@ export const NSI_CONFLICTS: Readonly<Record<string, string | null>> = {
   "goertz": "clothes",
   "zg raiffeisen": "household",
   "adidas": "clothes",
+  // NSI fast_food includes this bakery chain; cinnamon rolls belong with coffee/snacks.
+  // Source: https://www.cinnabon.com/ (bakery menu).
+  "cinnabon": "coffee-snacks",
 };
 
 /**
@@ -339,7 +343,7 @@ type Block = readonly [string, readonly string[], Direction];
 /**
  * Hand-written word rules, in priority order. They win over NSI brands. Among them, a match that covers a shorter
  * one wins ("uber eats" over "uber", "lidl connect" over "lidl", "mvv energie" over "mvv"); otherwise the earlier
- * block wins. Each name matches as whole words in any spelling (Müller, MUELLER, Muller). No people, parties,
+ * block wins. Each name matches as whole words in any spelling (Müller, MUELLER, Muller). No people,
  * marketplaces or payment services; nothing that is mostly an employer.
  */
 export const RULES: readonly Block[] = [
@@ -388,7 +392,7 @@ export const RULES: readonly Block[] = [
     "bumble", "parship", "elitepartner", "linkedin premium", "xing premium", "playstation plus", "xbox game pass",
     "game pass", "nintendo switch online", "ea play", "zeit online", "zeit abo", "spiegel+", "spiegel plus",
     "süddeutsche zeitung", "faz.net", "handelsblatt", "bild+", "bildplus", "the economist"], "both"],
-  ["eating-out", ["mcdonald", "mcdonalds", "mcdonald's", "burger king", "kfc", "subway", "vapiano", "nordsee filiale",
+  ["eating-out", ["mcdonald", "mcdonalds", "mcdonald's", "mc donald's", "mc donalds", "burger king", "kfc", "subway", "vapiano", "nordsee filiale",
     "l'osteria", "losteria", "l osteria", "too good to go", "toogoodtogo", "hans im glück", "dean & david",
     "five guys", "burgerista", "block house", "cafe del sol", "hard rock cafe", "cafe & bar celona", "celona"], "both"],
   // Delivery platforms pay their riders.
@@ -396,7 +400,8 @@ export const RULES: readonly Block[] = [
   ["eating-out", ["restaurant", "pizza", "pizzeria", "döner", "doener", "kebab", "imbiss", "bistro", "mensa", "kebap",
     "ristorante", "trattoria", "osteria", "taverna", "gasthaus", "gasthof", "wirtshaus", "steakhouse", "sushi",
     "kantine", "cafeteria", "grill", "grillhaus", "grillrestaurant", "schnellrestaurant", "burrito", "burritos",
-    "veggie", "vegan", "ramen", "pho", "poke", "bowl", "bowls", "noodle", "noodles", "falafel", "brasserie",
+    "veggie", "vegan", "ramen", "pho", "poke", "bowl", "bowls", "noodle", "noodles", "falafel",
+    "chicken", "mezedes", "kimchi", "simit", "spanferkel", "ratskeller", "brasserie",
     "burger", "onigiri", "street food", "thai food", "hot dog", "ocakbaşı", "ocakbasi", "banh mi"], "out"],
   ["taxi-sharing", ["share now", "sharenow", "miles mobility", "cambio carsharing", "cambio mobilitätsservice",
     "nextbike", "call a bike", "blacklane", "moia", "clevershuttle", "sixt share", "we share", "weshare", "flinkster",
@@ -440,6 +445,14 @@ export const RULES: readonly Block[] = [
     "verkehrsgemeinschaft", "nahverkehr", "stadtbus", "straßenbahn", "s-bahn", "u-bahn", "regionalbus", "fernbus",
     "fahrkarte", "fahrkarten", "fahrschein", "fahrausweis", "monatskarte", "semesterticket", "deutschland-ticket",
     "d-ticket", "dticket", "bahncard"], "out"],
+  // ASFINAG official imprint: https://bmp.asfinag.at/impressum/ (full legal name on card statements).
+  ["car-fuel", ["autobahnen und schnellstraßen finanzierungs aktiengesellschaft",
+    "autobahnen und schnellstraßen finanzierungs ag"], "both"],
+  // Distinctive charging-only operators from the pinned NSI operators/amenity/charging_station list.
+  // Never import that entire path as fuel: it also names supermarkets, employers and municipal utilities.
+  ["car-fuel", ["wirelane", "allego", "evbox", "leap24", "citywatt", "comfortcharge", "qwello", "reev",
+    "e-flux", "ladeverbund+", "autostrom plus"], "both"],
+  ["car-fuel", ["motors", "automobile", "autozentrum", "audi zentrum"], "out"],
   ["car-fuel", ["aral", "shell", "esso", "totalenergies", "jet tankstelle", "avia", "atu", "a.t.u", "easypark",
     "star tankstelle", "total tankstelle", "total station", "total service station", "jet station",
     "westfalen tankstelle", "raiffeisen tankstelle", "hem tankstelle", "q1 tankstelle", "kaufland tankstelle",
@@ -478,7 +491,17 @@ export const RULES: readonly Block[] = [
     "drewag", "sachsenenergie", "entega", "badenova", "gasag", "enso energie", "e wie einfach", "lichtblick",
     "naturstrom", "polarstern energie", "tibber", "ostrom", "octopus energy", "grünwelt", "extraenergie", "stromio",
     "maxenergy", "innogy", "energie südbayern", "mvv energie", "techem", "ista deutschland", "minol", "brunata"], "both"],
-  ["utilities", ["stadtwerke", "rundfunkbeitrag", "nebenkosten", "energieversorgung", "stromversorgung", "strom",
+  // Regional suppliers reviewed from the pinned NSI operators/amenity/charging_station names and aliases.
+  // These names identify the utility; charging-only operators are kept in car-fuel above.
+  // Source: https://github.com/osmlab/name-suggestion-index/blob/main/data/operators/amenity/charging_station.json
+  ["utilities", ["123energie", "allgäuer überlandwerk", "avacon", "bayernwerk", "bigge energie", "bs energy", "e-regio",
+    "e-werk mittelbaden", "eberwerk", "eins energie in sachsen", "emscher lippe energie", "energie calw",
+    "energie saarlorlux", "energie und wasser potsdam", "energiedienst", "energis", "enviam",
+    "envia mitteldeutsche energie", "fairenergie", "herzo werke", "inselwerke", "kreiswerke main-kinzig",
+    "lechwerke", "lokalwerke", "lsw energie", "maingau", "mark-e", "naturenergie", "pfalzwerke",
+    "regionalwerk bodensee", "rewag", "rhönenergie fulda", "stadtwerk am see", "stawag", "süwag",
+    "teag thüringer energie", "thüringer energie", "wemag", "westenergie", "zeag energie"], "both"],
+  ["utilities", ["stadtwerke", "gemeindewerke", "regionalwerk", "kreiswerke", "rundfunkbeitrag", "nebenkosten", "energieversorgung", "stromversorgung", "strom",
     "stromabschlag", "fernwärme", "wasserversorgung", "abwasser", "müllabfuhr", "abfallgebühr", "abfallgebühren",
     "müllgebühr", "müllgebühren", "betriebskosten", "heizkosten", "nebenkostenabrechnung", "nebenkostennachzahlung"],
   "out"],
@@ -515,7 +538,7 @@ export const RULES: readonly Block[] = [
   ["pets", ["tierarzt", "tierklinik", "tierarztpraxis", "kleintierpraxis", "tierärztin", "zoohandlung", "tierbedarf",
     "tiernahrung", "hundeschule", "hundefriseur"], "out"],
   ["household", ["ikea", "obi", "hornbach", "toom", "höffner", "hoeffner", "xxxlutz", "mömax", "moemax", "jysk",
-    "bauhaus fachcentrum", "bauhaus gesellschaft", "bauhaus fil", "bauhaus filiale", "hellweg baumarkt",
+    "bauhaus fachcentrum", "bauhaus e-business gesellschaft", "bauhaus gesellschaft", "bauhaus fil", "bauhaus filiale", "hellweg baumarkt",
     "hellweg die profi-baumärkte", "depot gries deco", "gries deco", "westwing", "wayfair", "zara home", "h&m home",
     "dänisches bettenlager", "porta möbel", "roller möbel", "poco einrichtungsmärkte", "poco einrichtungsmarkt",
     "poco domäne"], "both"],
@@ -534,10 +557,10 @@ export const RULES: readonly Block[] = [
     "freizeitpark", "bowling", "escape room", "lasertag", "laser tag", "minigolf", "trampolinpark", "therme"], "out"],
   ["hobbies", ["thalia bücher", "thalia buchhandlung", "just music", "idee creativmarkt", "modulor", "gerstaecker",
     "medimops", "buecher.de"], "both"],
-  ["hobbies", ["musikhaus", "buchhandlung", "buchhaus", "modellbau"], "out"],
+  ["hobbies", ["musikhaus", "buchhandlung", "buchhaus", "modellbau", "books", "bookshop", "bücherladen"], "out"],
   ["health", ["docmorris", "shop apotheke", "medpex", "sanicare", "mycare", "aponeo", "eurapon", "apotal", "misterspex",
     "lensbest"], "both"],
-  ["health", ["apotheke", "arztpraxis", "zahnarzt", "podolog", "physiotherapie", "klinik", "kontaktlinsen",
+  ["health", ["apotheke", "arztpraxis", "gemeinschaftspraxis", "salzgrotte", "zahnarzt", "podolog", "physiotherapie", "klinik", "kontaktlinsen",
     "sanitätshaus", "brillen", "arzt", "ärztin", "ärzte", "hausarzt", "hausarztpraxis", "facharzt", "frauenarzt",
     "hautarzt", "augenarzt", "kinderarzt", "orthopäde", "orthopädie", "zahnärztin", "zahnarztpraxis",
     "kieferorthopädie", "kieferorthopäde", "zahnklinik", "praxis dr", "dr med", "mvz",
@@ -577,11 +600,11 @@ export const RULES: readonly Block[] = [
   ["gifts", ["fleurop", "wunschgutschein", "jochen schweizer", "mydays", "smartbox"], "both"],
   ["gifts", ["floristik", "florist", "blumenladen", "blumen", "blumenhaus", "geschenke", "geschenkeladen",
     "geschenkshop"], "out"],
-  ["electronics", ["apple store", "mediamarkt", "media markt", "saturn", "cyberport", "notebooksbilliger",
+  ["electronics", ["apple store", "mediamarkt", "media markt", "mediamarktsaturn", "saturn", "cyberport", "notebooksbilliger",
     "conrad electronic", "gravis", "alternate", "mindfactory", "caseking", "computeruniverse", "proshop",
     "reichelt elektronik", "pollin electronic", "berrybase", "backmarket", "back market", "refurbed", "dell",
     "lenovo", "logitech", "anker innovations", "sonos", "lautsprecher teufel", "nubert", "expert technomarkt"], "both"],
-  ["electronics", ["elektromarkt"], "out"],
+  ["electronics", ["elektromarkt", "computer"], "out"],
   ["education", ["goethe-institut", "inlingua", "coursera", "udemy", "linkedin learning", "toefl", "ielts"], "both"],
   ["education", ["fahrschule", "semesterbeitrag", "technische universität", "hochschule", "sprachschule",
     "universität", "university", "semestergebühr", "semesterbeiträge", "studiengebühr", "studiengebühren",
@@ -590,7 +613,9 @@ export const RULES: readonly Block[] = [
     "fahrstunde", "fahrstunden", "kursgebühr", "bibliothek", "stadtbibliothek", "bücherei"], "out"],
   ["memberships", ["adac", "adfc", "alpenverein", "dav sektion", "dlrg", "ver.di", "dgb", "haus & grund"], "both"],
   ["memberships", ["mitgliedsbeitrag", "gewerkschaft", "mitgliedsbeiträge", "mitgliedschaft", "vereinsbeitrag",
-    "mieterverein", "sportverein", "turnverein", "förderverein"], "out"],
+    "mieterverein", "sportverein", "turnverein", "förderverein", "vereinsbeiträge", "vereinsmitgliedschaft",
+    "mitgliedsgebühr", "mitgliedsgebühren", "parteibeitrag", "parteibeiträge", "gewerkschaftsbeitrag", "gewerkschaftsbeiträge",
+    "clubbeitrag", "clubbeiträge", "klubbeitrag", "klubbeiträge"], "out"],
   ["donations", ["greenpeace", "amnesty", "unicef", "wwf", "ärzte ohne grenzen", "médecins sans frontières",
     "brot für die welt", "misereor", "sos-kinderdorf", "welthungerhilfe", "save the children", "plan international",
     "nabu", "bund naturschutz", "foodwatch", "campact", "betterplace", "wikimedia", "sea-watch", "mission lifeline",
@@ -616,6 +641,14 @@ export const MERCHANTS: readonly Block[] = [
   ["eating-out", ["nordsee"], "both"],
   ["household", ["bauhaus", "hellweg", "roller", "porta", "depot", "poco"], "both"],
   ["car-fuel", ["jet", "total", "star", "westfalen", "tesla"], "both"],
+  // Car makes from pinned NSI brands/shop/car. Whole payees only, spending only: no employer income,
+  // no brands mentioned in a friend's text, no generic Mini/Smart/Seat or personal-name Mercedes.
+  ["car-fuel", ["abarth", "acura", "aixam", "alfa romeo", "aston martin", "audi", "bentley", "bmw",
+    "byd", "cadillac", "chevrolet", "chrysler", "citroën", "cupra", "dacia", "daihatsu", "dodge", "ferrari", "fiat",
+    "ford", "honda", "hyundai", "infiniti", "isuzu", "jeep", "kia", "koenigsegg", "lamborghini", "lancia",
+    "land rover", "maserati", "mazda", "mclaren", "mercedes-benz", "mitsubishi", "nissan", "opel", "peugeot",
+    "polestar", "porsche", "range rover", "renault", "rolls-royce", "skoda", "ssangyong", "subaru", "suzuki",
+    "toyota", "vauxhall", "volkswagen", "volvo", "xpeng", "bp", "q1", "oil!"], "out"],
   ["taxi-sharing", ["uber"], "out"],
   ["taxi-sharing", ["cambio"], "both"],
   ["travel", ["hertz", "budget", "enterprise", "alamo", "thrifty", "adina", "aloft", "campanile", "avis"], "both"],
@@ -633,6 +666,15 @@ export const MERCHANTS: readonly Block[] = [
   ["electronics", ["expert", "teufel"], "both"],
   ["insurance", ["ergo", "nürnberger", "württembergische", "mecklenburgische", "die bayerische", "gothaer",
     "hallesche"], "both"],
+  // Short regional supplier names from the same pinned NSI operator list: whole merchants only.
+  ["utilities", ["ewv", "eam", "ewr", "evo", "avu", "eswe", "ggew", "ovag", "teag", "swb"], "both"],
+  // German party names/abbreviations: Bundeswahlleiterin,
+  // https://www.bundeswahlleiterin.de/parteien/unterlagensammlung/downloads.html.
+  // Union abbreviations from pinned NSI brands/office/union; ordinary-word abbreviations are whole payees only.
+  ["memberships", ["spd", "cdu", "csu", "fdp", "afd", "bündnis 90 die grünen", "die linke",
+    "sozialdemokratische partei deutschlands", "christlich demokratische union", "christlich demokratische union deutschlands",
+    "christlich soziale union", "christlich soziale union in bayern",
+    "freie demokratische partei", "alternative für deutschland", "gew", "ngg", "gdp", "evg"], "out"],
   ["memberships", ["verdi"], "both"],
   ["subscriptions", ["sky"], "both"],
 ];

@@ -1,4 +1,5 @@
-import { BOOKING_TYPE, cardMerchant, payeeText, type SortingPayment } from "./merchant.js";
+import { BOOKING_TYPE, cardMerchant, payeeText, SHOP_PROCESSOR_PREFIX, type SortingPayment } from "./merchant.js";
+import { townMatches } from "./towns.js";
 import { shopWords } from "./shop-words.js";
 
 /** Optional, separately loaded ODbL database. Never imported by the engine bundle. */
@@ -51,10 +52,9 @@ export function findLocalPlace(payment: SortingPayment, data: LocalPlacesData): 
   // Incoming money can be wages, transfers or a seller payout. We deliberately leave refunds to learning.
   if (data.version !== 1 || !(typeof payment.amount === "number" && Number.isFinite(payment.amount) && payment.amount < 0)) return null;
   const raw = payeeText(payment);
-  const processor = /^(?:paypal|sumup|sq|iz|izettle|zettle|stripe|adyen|nexi|worldline)\s*[*_]\s*/iu;
   const card = cardMerchant(raw);
   if (card && !/^deu\b/u.test(raw.slice(card.merchant.length).trim())) return null;
-  const clean = (text: string) => localName(text.toLowerCase().replace(BOOKING_TYPE, "").replace(processor, "")
+  const clean = (text: string) => localName(text.toLowerCase().replace(BOOKING_TYPE, "").replace(SHOP_PROCESSOR_PREFIX, "")
     .split(/\b(?:eref|mref|cred|iban|bic|mandatsreferenz|glaeubiger-id|gläubiger-id)\s*[:+]/iu)[0]);
   const head = clean(card?.merchant ?? raw);
   const details = clean(payment.description ?? payment.bookingText ?? "");
@@ -64,8 +64,12 @@ export function findLocalPlace(payment: SortingPayment, data: LocalPlacesData): 
     if (!safeLocalName(name)) return;
     const row = rowFor(data, name);
     if (!row) return;
-    const location = (town: string) => explicitTown === town || tail === town || tail === `${town} de`
-      || tail === `${town} deu` || details === `${name} ${town} de` || details === `${name} ${town}`;
+    const located = (text: string, town: string) => {
+      const country = / (?:de|deu)$/u.test(text);
+      return townMatches(text.replace(/ (?:de|deu)$/u, ""), town, country);
+    };
+    const location = (town: string) => (!tail && townMatches(explicitTown, town, true)) || located(tail, town)
+      || (!tail && details.startsWith(`${name} `) && located(details.slice(name.length + 1), town));
     const categories = new Set<number>();
     for (let i = 0; i < row[2].length; i += 2) if (location(data.towns[row[2][i]])) categories.add(row[2][i + 1]);
     if (categories.size > 1) { found.push({ categoryId: "", name, town: true }); return; }

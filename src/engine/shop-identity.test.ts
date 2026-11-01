@@ -41,6 +41,8 @@ test("known shops unify chain spellings, corporate changes and the Apple billing
     [["Wolt Enterprises Deutschland", "Wolt"], "wolt"],
     [["BackWerk Filiale Beispielstadt", "Backwerk"], "backwerk"],
     [["Union Investment Service", "Union Investment"], "union investment"],
+    [["Bauhaus E-Business Gesellschaft für Bau- und Hausbedarf mbH", "Bauhaus E-Business Gesellschaft", "Bauhaus E-Business"],
+      "bauhaus e business gesellschaft"],
   ] as const) assert.deepEqual(identities(...names), names.map(() => identity), identity);
   // Identity ignores payment direction; sorting still uses the shop list's own direction rules.
   assert.deepEqual(sortPayments([{ counterparty: "Vinted, UAB", amount: 12 }], { categories: DEFAULT_CATEGORIES }),
@@ -68,7 +70,6 @@ test("cut-off names take the longest eligible completion at a word boundary or i
   for (const [short, long, identity] of [
     ["autobahnen und schnellstrassen-fin", "autobahnen und schnellstraßen-finanzierungs", "autobahnen und schnellstrassen finanzierungs"],
     ["muenchener rueckver", "muenchener rueckversic", "muenchener rueckversic"],
-    ["bauhaus e-business", "bauhaus e-business gesellschaft für bau- und hausbedarf mbh", "bauhaus e business gesellschaft fuer bau und hausbedarf"],
     ["Fiktivfirma Nord", "Fiktivfirma Nord Niederlassung", "fiktivfirma nord niederlassung"],
   ]) assert.deepEqual(identities(short, long), [identity, identity], short);
   const ambiguous = ["Fiktivfirma Haupt", "Fiktivfirma Hauptlager", "Fiktivfirma Haupthaus"];

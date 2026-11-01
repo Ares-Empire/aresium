@@ -10,7 +10,7 @@ const list = make([["quarzfunken", 0, [0, 0]], ["zur quarzmuehle", -1, [0, 0, 1,
 const payment = (counterparty: string, description = "") => ({ counterparty, description, amount: -12, source: "bank" as const });
 
 test("local places match exact normalised names and explicit processor separators", () => {
-  for (const name of ["QUARZFUNKEN", "SUMUP *Quarzfunken", "ZETTLE_Quarzfunken", "PAYPAL *Quarzfunken", "Kartenzahlung Quarzfunken"]) {
+  for (const name of ["QUARZFUNKEN", "SUMUP *Quarzfunken", "SPC*Quarzfunken", "Klarna *Quarzfunken", "ZETTLE_Quarzfunken", "PAYPAL *Quarzfunken", "Kartenzahlung Quarzfunken"]) {
     assert.equal(findLocalPlace(payment(name), list)?.categoryId, "eating-out", name);
   }
   assert.equal(findLocalPlace(payment("Zur Quarzmühle", "ZUR QUARZMUEHLE Quarzhausen DE"), list)?.categoryId, "eating-out");
@@ -32,7 +32,7 @@ test("local names reject ordinary words, truncations, references, mentions and p
   for (const name of ["sonne", "lieblingsstueck", "international", "einkauf", "am markt", "abc", "Zur Post", "sparkasse"]) assert.equal(safeLocalName(localName(name)), false, name);
   const unsafe = make([["lieblingsstueck", 0, []]]);
   assert.equal(findLocalPlace(payment("Lieblingsstück"), unsafe), null);
-  for (const name of ["Quarzfunk", "Quarzfunkenhaus", "Fiktiv Quarzfunken", "Quarzfunken Ersatzteile", "Quarzfunken & Co.", "Quarzfunken 123456", "EREF:Quarzfunken"]) assert.equal(findLocalPlace(payment(name), list), null, name);
+  for (const name of ["Quarzfunk", "Quarzfunkenhaus", "Fiktiv Quarzfunken", "Quarzfunken Ersatzteile", "Quarzfunken & Co.", "Quarzfunken 123456", "SPC Quarzfunken", "SPC*Quarzfunken Ersatzteile", "EREF:Quarzfunken"]) assert.equal(findLocalPlace(payment(name), list), null, name);
   assert.equal(findLocalPlace(payment("Fiktiv Person", "Quarzfunken Quarzhausen DE"), list), null);
   assert.equal(findLocalPlace({ ...payment("Quarzfunken"), amount: 12 }, list), null);
   assert.equal(findLocalPlace({ counterparty: "Quarzfunken" }, list), null);
@@ -74,4 +74,18 @@ test("builder keeps nationwide conflicts and removes excluded names before sampl
   assert.equal(intersectsExcludedArea([[49, 8], [49.01, 8.01]]), false);
   const differentKind = { ...b, category: a.category, kind: "amenity=food_court" };
   assert.equal(buildLocalPlaces([a, differentKind], new Set(), "2026-01-01").data.rows[0][1], -1);
+});
+
+test("local town evidence handles damaged umlauts and bounded card cutoffs, retaining collisions", () => {
+  const data = { ...make([["quarzfunken", -1, [0, 0, 1, 1, 2, 2]]]), towns: ["koeln", "muenchen", "garching"] };
+  for (const [town, expected] of [["K LN", "eating-out"], ["KOLN", "eating-out"], ["M NCHEN", "clothes"],
+    ["MUNCHEN", "clothes"], ["GARCHIN", "hobbies"]]) {
+    assert.equal(findLocalPlace(payment(`Quarzfunken ${town} DE`), data)?.categoryId, expected, town);
+    assert.equal(findLocalPlace(payment(`Quarzfunken   DEU ${town}   EUR 12,00 Umsatz vom 01.01.2026`), data)?.categoryId, expected, town);
+  }
+  for (const text of ["Quarzfunken GARCH DE", "Quarzfunken GARCHIN", "Quarzfunken K LIN DE", "Quarzfunk K LN DE",
+    "Quarzfunken Service K LN DE"]) assert.equal(findLocalPlace(payment(text), data), null, text);
+  // Two towns may collapse to the same terminal spelling; never pick the first category.
+  const conflict = { ...make([["quarzfunken", -1, [0, 0, 1, 1]]]), towns: ["moerlen", "morlen"] };
+  assert.equal(findLocalPlace(payment("Quarzfunken MORLEN DE"), conflict), null);
 });
