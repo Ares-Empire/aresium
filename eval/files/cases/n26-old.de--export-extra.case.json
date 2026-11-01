@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "file": "n26-old.de--export-extra.csv",
+  "seed": 78,
+  "bank": "n26-old",
+  "kind": "preamble",
+  "situation": "The bank adds account, period and balance lines above its table.",
+  "change": "preamble",
+  "provenance": {
+    "method": "original",
+    "fixture": "n26-old.de.csv",
+    "reference": "n26-old.de.csv.expected.json",
+    "sha256": "0a69c24c4b9afca083aac062a04854567b77cb86db7f6985933f3ea6099b2cc2"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2017-10-06",
+        "amountCents": -340,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Markt",
+        "text": "Fiktiv Markt"
+      },
+      {
+        "date": "2017-10-02",
+        "amountCents": 180000,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Werke GmbH",
+        "text": "Gehalt Oktober"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "f96f679b7bf289c37a48d21e",
+      "f45372b7b71daee0bcba829f"
+    ]
+  }
+}

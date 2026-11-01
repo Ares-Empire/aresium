@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "file": "refuse-volksbank-cutoff.csv",
+  "seed": 78,
+  "bank": "volksbank",
+  "kind": "cutoff",
+  "situation": "A download ends halfway through a payment row; partial payment data must not be imported silently.",
+  "change": "refuse-volksbank-cutoff",
+  "provenance": {
+    "method": "hand",
+    "reason": "A download ends halfway through a payment row; partial payment data must not be imported silently."
+  },
+  "expected": {
+    "outcome": "refuse",
+    "code": "unknown",
+    "reason": "A download ends halfway through a payment row; partial payment data must not be imported silently."
+  }
+}

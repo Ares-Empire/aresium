@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "file": "dkb.2023--encoding.csv",
+  "seed": 78,
+  "bank": "dkb",
+  "kind": "encoding-utf8-bom",
+  "situation": "A bank download or spreadsheet uses a different text encoding and line ending.",
+  "change": "utf8-bom; \"\\n\" record endings; unchanged cells.",
+  "provenance": {
+    "method": "original",
+    "fixture": "dkb.2023.csv",
+    "reference": "dkb.2023.csv.expected.json",
+    "sha256": "c63c6b8144aa293560e1edcd3c1b2ea7f94a54a3bc4d5dcd1c0357954a95315c"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2023-11-28",
+        "amountCents": -318,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Bäckerei",
+        "text": "Kartenzahlung"
+      },
+      {
+        "date": "2023-11-27",
+        "amountCents": 1200,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Verein",
+        "text": "Rückerstattung"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "491791c8edab0271a4838768",
+      "edb07768bddb35d202d9ce45"
+    ]
+  }
+}

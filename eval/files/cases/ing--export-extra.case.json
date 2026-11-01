@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "file": "ing--export-extra.csv",
+  "seed": 78,
+  "bank": "ing",
+  "kind": "total-row",
+  "situation": "A spreadsheet appends a total below the payment table.",
+  "change": "total-row",
+  "provenance": {
+    "method": "original",
+    "fixture": "ing.csv",
+    "reference": "ing.csv.expected.json",
+    "sha256": "5e49bc204c8135b93b90e4d87096bb3f54c31b77d1ce1e06ce811ef3651009ce"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2026-02-06",
+        "amountCents": -3640,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Stadtwerke",
+        "text": "Abschlag Strom Februar"
+      },
+      {
+        "date": "2026-02-05",
+        "amountCents": -320,
+        "currency": "EUR",
+        "counterparty": "Café Märchen",
+        "text": "Lastschrift"
+      },
+      {
+        "date": "2026-02-05",
+        "amountCents": -320,
+        "currency": "EUR",
+        "counterparty": "Café Märchen",
+        "text": "Lastschrift"
+      },
+      {
+        "date": "2026-02-03",
+        "amountCents": 180000,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Werke GmbH",
+        "text": "Gehalt Februar 2026"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "b775445a6832598ac9af3166",
+      "f2059353ab90b82999e98536",
+      "b2b572cbcb53f7efc386e160",
+      "8137aaa870ad320805cf24f3"
+    ]
+  }
+}

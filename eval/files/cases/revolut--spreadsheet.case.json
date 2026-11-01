@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "file": "revolut--spreadsheet.csv",
+  "seed": 78,
+  "bank": "revolut",
+  "kind": "separator-semicolon",
+  "situation": "Excel or Numbers saves the downloaded statement again with local CSV settings.",
+  "change": "separator-semicolon; cells preserved, quotes retained wherever CSV syntax requires them.",
+  "provenance": {
+    "method": "original",
+    "fixture": "revolut.csv",
+    "reference": "revolut.csv.expected.json",
+    "sha256": "1a211f7f8fb2460fd8264f53505013cc52922d733d2f0e8a5f4e23c1476dfdd6"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2026-02-01",
+        "amountCents": 50000,
+        "currency": "EUR",
+        "counterparty": "Top-up by *1234",
+        "text": "Top-up by *1234"
+      },
+      {
+        "date": "2026-02-03",
+        "amountCents": -4250,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Restaurant",
+        "text": "Fiktiv Restaurant"
+      },
+      {
+        "date": "2026-02-04",
+        "amountCents": -10050,
+        "currency": "EUR",
+        "counterparty": "Exchanged to GBP",
+        "text": "Exchanged to GBP"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "588e6af3243ef766be213025",
+      "6031ac49ab9121330b825a03",
+      "21a8b5f89e53c45555b103e9"
+    ]
+  }
+}

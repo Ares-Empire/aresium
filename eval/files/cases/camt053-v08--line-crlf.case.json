@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "file": "camt053-v08--line-crlf.xml",
+  "seed": 78,
+  "bank": "camt",
+  "kind": "line-crlf",
+  "situation": "A statement is downloaded on Windows.",
+  "change": "CRLF record endings.",
+  "provenance": {
+    "method": "original",
+    "fixture": "camt053-v08.xml",
+    "reference": "camt053-v08.xml.expected.json",
+    "sha256": "1d06339d29e7c0f24e3aa06d585e6e58957ef90516ce1c0eb2e7254d182aced8"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2026-02-03",
+        "amountCents": 180000,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Werke GmbH",
+        "text": "Gehalt Februar 2026"
+      },
+      {
+        "date": "2026-02-04",
+        "amountCents": -320,
+        "currency": "EUR",
+        "counterparty": "Café Märchen",
+        "text": "Kartenzahlung girocard"
+      },
+      {
+        "date": "2026-02-04",
+        "amountCents": -320,
+        "currency": "EUR",
+        "counterparty": "Café Märchen",
+        "text": "Kartenzahlung girocard"
+      },
+      {
+        "date": "2026-02-06",
+        "amountCents": -3640,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Stadtwerke",
+        "text": "Abschlag Strom Kundennr. 0000"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "FICT-SPK-0001",
+      "317ef5116047e805fc54caee",
+      "a3b13e8e469b61e1cd9ff7bd",
+      "FICT-SPK-0004"
+    ]
+  }
+}

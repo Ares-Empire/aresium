@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "file": "refuse-pdf-renamed.csv",
+  "seed": 78,
+  "bank": "non-bank",
+  "kind": "must-refuse",
+  "situation": "A PDF statement was renamed .csv instead of converted to a table.",
+  "change": "refuse-pdf-renamed",
+  "provenance": {
+    "method": "hand",
+    "reason": "A PDF statement was renamed .csv instead of converted to a table."
+  },
+  "expected": {
+    "outcome": "refuse",
+    "code": "noTable",
+    "reason": "A PDF statement was renamed .csv instead of converted to a table."
+  }
+}

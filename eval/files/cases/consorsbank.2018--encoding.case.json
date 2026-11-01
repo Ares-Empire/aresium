@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "file": "consorsbank.2018--encoding.csv",
+  "seed": 78,
+  "bank": "consorsbank",
+  "kind": "encoding-latin15",
+  "situation": "A bank download or spreadsheet uses a different text encoding and line ending.",
+  "change": "latin15; \"\\r\\n\" record endings; unchanged cells.",
+  "provenance": {
+    "method": "original",
+    "fixture": "consorsbank.2018.csv",
+    "reference": "consorsbank.2018.csv.expected.json",
+    "sha256": "85343619b8e2cb872002af3ab9161288414b8216041c75926edca5b2f0a6ff0f"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2018-03-05",
+        "amountCents": -7000,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Stadtwerke",
+        "text": "Abschlag Strom März"
+      },
+      {
+        "date": "2018-03-01",
+        "amountCents": 150000,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Werke GmbH",
+        "text": "Gehalt März"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "61cd7cb0accbdc2bb1ac24d6",
+      "c794aebd39459f7e55f68db0"
+    ]
+  }
+}

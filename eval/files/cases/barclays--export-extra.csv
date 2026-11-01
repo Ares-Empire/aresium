@@ -1,0 +1,20 @@
+Account;Fictional test account
+Period;2026-02-01 to 2026-02-28
+Opening balance;500,00 EUR
+;
+Transaktionsansicht;
+;
+Kontonummer;0000998877
+IBAN;DE97201306000000998877
+Kontoname;Barclays Visa
+Kontotyp;Kreditkarte
+Kreditrahmen;2.500,00 €
+Verfügungsrahmen;2.379,55 €
+Status;Aktiv
+Stand;07 Feb 26
+;
+Referenznummer;Buchungsdatum;Buchungsdatum;Betrag;Beschreibung;Typ;Status;Kartennummer;Originalbetrag;Mögliche Zahlpläne;Land;Name des Karteninhabers;Kartennetzwerk;Kontaktlose Bezahlung;Details
+FICT0000000004;06.02.2026;;-9,99 €;Fiktiv Streaming;Belastung;vorgemerkt;4000********1234;;;Deutschland;Erika Mustermann;Visa;Nein;FIKTIV STREAMING BERLIN DE
+FICT0000000003;04.02.2026;05.02.2026;100,00 €;Gutschrift;Gutschrift;Berechnet;4000********1234;;;;Erika Mustermann;Visa;;
+FICT0000000002;02.02.2026;03.02.2026;-1.619,25 €;Fiktiv Reisebüro;Belastung;noch nicht abgerechnet;4000********1234;;;Deutschland;Erika Mustermann;Visa;Nein;FIKTIV REISEBUERO HAMBURG DE
+FICT0000000001;01.02.2026;02.02.2026;-23,17 €;Fiktiv Markt;Belastung;Berechnet;4000********1234;;;Deutschland;Erika Mustermann;Visa;Ja;FIKTIV MARKT MUSTERSTADT DE

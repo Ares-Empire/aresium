@@ -1,0 +1,12 @@
+Konto;Inhaber;Exportdatum
+000101112;Erika Mustermann;07.02.2026, 18:00:00
+
+Saldo;Währung für Saldo;Datum;max. Verfügungsrahmen;Währung für max. Verfügungsrahmen
+2.257,20;EUR;07.02.2026;5.000,00;EUR
+Buchung ;Valuta;Sender / Empfänger;IBAN;BIC;Buchungstext;Verwendungszweck;Betrag;Währung
+06.02.2026;06.02.2026;Fiktiv Stadtwerke;DE34701500000000246810;SSKMDEMMXXX;Lastschrift (Einzugsermächtigung);Abschlag Strom Februar;-36,40;EUR
+04.02.2026;04.02.2026;Fiktiv Vermietung;DE25100900000000202122;BEVODEBBXXX;Dauerauftrag;Miete Februar;-1.080,00;EUR
+03.02.2026;03.02.2026;Fiktiv Werke GmbH;DE96100500000000123456;BELADEBEXXX;Gehalt/Rente;Gehalt Februar 2026;1.800,00;EUR
+
+
+

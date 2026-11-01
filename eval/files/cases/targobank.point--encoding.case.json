@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "file": "targobank.point--encoding.csv",
+  "seed": 78,
+  "bank": "targobank",
+  "kind": "encoding-utf8",
+  "situation": "A bank download or spreadsheet uses a different text encoding and line ending.",
+  "change": "utf8; \"\\n\" record endings; unchanged cells.",
+  "provenance": {
+    "method": "original",
+    "fixture": "targobank.point.csv",
+    "reference": "targobank.point.csv.expected.json",
+    "sha256": "3598824a5f4d4b01036089daa39782385ccc5e0d3421de427d5bf5a6e1e42ee4"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2025-03-10",
+        "amountCents": -500,
+        "currency": "EUR",
+        "counterparty": null,
+        "text": "KARTENZAHLUNG FIKTIV BAECKEREI"
+      },
+      {
+        "date": "2025-03-09",
+        "amountCents": 8316,
+        "currency": "EUR",
+        "counterparty": null,
+        "text": "GUTSCHRIFT FIKTIV VEREIN RUECKERSTATTUNG"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "5aec2bad03745c5fa6c8e44d",
+      "2431d21ef5016e188deab110"
+    ]
+  }
+}

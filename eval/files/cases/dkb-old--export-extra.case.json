@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "file": "dkb-old--export-extra.csv",
+  "seed": 78,
+  "bank": "dkb-old",
+  "kind": "no-final-newline",
+  "situation": "A CSV editor omits the final record ending.",
+  "change": "no-final-newline",
+  "provenance": {
+    "method": "original",
+    "fixture": "dkb-old.csv",
+    "reference": "dkb-old.csv.expected.json",
+    "sha256": "96fba21ddabe476c077a21ce91f7fda3ceb0d2c6d98d98cd0139c7a5157bea84"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2023-03-06",
+        "amountCents": -3640,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Stadtwerke",
+        "text": "Abschlag Strom März"
+      },
+      {
+        "date": "2023-03-02",
+        "amountCents": 180000,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Werke GmbH",
+        "text": "Gehalt März"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "a2dcd97b0d78d215f77dceeb",
+      "0861845b72fea8ba782149af"
+    ]
+  }
+}

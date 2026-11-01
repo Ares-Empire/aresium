@@ -1,0 +1,23 @@
+Fiktive Volksbank eG;;;;;;;;;;;;
+;;;;;;;;;;;;
+Umsatzanzeige;;;;;;;;;;;;
+;;;;;;;;;;;;
+BLZ:;10090000;;Datum:;19.06.2019;;;;;;;;
+Konto:;0000202122;;Uhrzeit:;12:00:00;;;;;;;;
+Abfrage von:;Erika Mustermann;;Kontoinhaber:;Erika Mustermann;;;;;;;;
+;;;;;;;;;;;;
+Zeitraum:;;von:;01.06.2019;bis:;;;;;;;;
+Betrag in EUR:;;von:; ;bis:; ;;;;;;;
+Sortiert nach:;Buchungstag;absteigend;;;;;;;;;;
+;;;;;;;;;;;;
+Buchungstag;Valuta;Auftraggeber/Zahlungsempfänger;Empfänger/Zahlungspflichtiger;Konto-Nr.;IBAN;BLZ;BIC;Vorgang/Verwendungszweck;Kundenreferenz;Währung;Umsatz; 
+18.06.2019;18.06.2019;Erika Mustermann;Fiktiv Vermietung;0000246810;DE34701500000000246810;70150000;SSKMDEMMXXX;"ÜBERWEISUNG
+Miete Juni
+Verwendete TAN: 123456";;EUR;650,00;S
+17.06.2019;17.06.2019;Erika Mustermann;Fiktiv Markt;;;;;"KARTENZAHLUNG
+Fiktiv Markt Musterstadt";;EUR;41,95;S
+14.06.2019;14.06.2019;Erika Mustermann;Fiktiv Werke GmbH;0000123456;DE96100500000000123456;10050000;BELADEBEXXX;"GUTSCHRIFT
+Gehalt Juni";;EUR;1.800,00;H
+;;;;;;;;;;;;
+01.06.2019;;;;;;;;;Anfangssaldo;EUR;2.257,11;H
+19.06.2019;;;;;;;;;Endsaldo;EUR;3.365,16;H

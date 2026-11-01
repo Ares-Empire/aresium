@@ -1,0 +1,15 @@
+Umsatzanzeige;Datei erstellt am: 07.02.2026 18:30
+
+IBAN;DE67 5001 0517 0000 6543 21
+Kontoname;Girokonto
+Bank;ING
+Kunde;Erika Mustermann
+Zeitraum;01.02.2026 - 07.02.2026
+
+Sortierung;Datum absteigend
+
+In der CSV-Datei finden Sie alle bereits gebuchten Umsätze. Die vorgemerkten Umsätze werden nicht aufgenommen, auch wenn sie in Ihrem Internetbanking angezeigt werden.
+
+Buchung;Wertstellungsdatum;Auftraggeber/Empfänger;Buchungstext;Verwendungszweck;Referenz;Betrag;Währung
+06.10.2026;06.10.2026;Fiktiv Stadtwerke;Lastschrift;Abschlag Strom Oktober;FICT-REF-0001;-36,40;EUR
+05.10.2026;05.10.2026;Fiktiv Buchladen;Lastschrift;Einkauf Bücher;FICT-REF-0002;-24,99;EUR

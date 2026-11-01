@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "file": "dkb-visa--encoding.csv",
+  "seed": 78,
+  "bank": "dkb-visa",
+  "kind": "encoding-utf8",
+  "situation": "A bank download or spreadsheet uses a different text encoding and line ending.",
+  "change": "utf8; \"\\n\" record endings; unchanged cells.",
+  "provenance": {
+    "method": "original",
+    "fixture": "dkb-visa.csv",
+    "reference": "dkb-visa.csv.expected.json",
+    "sha256": "7ad51b8f1e44515f4a5d07ffa889f5fa72225d8fc95f7664b138ebc5403d8ffd"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2026-02-04",
+        "amountCents": -11046,
+        "currency": "EUR",
+        "counterparty": "FIKTIV HOTEL LONDON",
+        "text": "FIKTIV HOTEL LONDON"
+      },
+      {
+        "date": "2026-02-02",
+        "amountCents": -2990,
+        "currency": "EUR",
+        "counterparty": "FIKTIV BAHN",
+        "text": "FIKTIV BAHN"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "babc5d193b32a75b1fa79ce6",
+      "3ceba33dfac6111745f0afbb"
+    ]
+  }
+}

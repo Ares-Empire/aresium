@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "file": "camt052-vr--no-final-newline.xml",
+  "seed": 78,
+  "bank": "camt",
+  "kind": "no-final-newline",
+  "situation": "A file transfer omits the final line ending.",
+  "change": "Remove only final line endings.",
+  "provenance": {
+    "method": "original",
+    "fixture": "camt052-vr.xml",
+    "reference": "camt052-vr.xml.expected.json",
+    "sha256": "efc8c8d41cbd749a1311f1af5f6f5f8442d7ae76c34e221f344101a9ea7d7140"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2026-02-04",
+        "amountCents": -4999,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Mobilfunk",
+        "text": "Rechnung 02/2026"
+      },
+      {
+        "date": "2026-02-04",
+        "amountCents": -750,
+        "currency": "EUR",
+        "counterparty": "Bäckerei Fiktiv",
+        "text": "Kartenzahlung"
+      },
+      {
+        "date": "2026-02-04",
+        "amountCents": -750,
+        "currency": "EUR",
+        "counterparty": "Bäckerei Fiktiv",
+        "text": "Kartenzahlung"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "FICT-E2E-4711",
+      "3be0da3c90eb32ec145c2df3",
+      "df7adc69106afce895b031b1"
+    ]
+  }
+}

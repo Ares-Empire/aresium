@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Made-up camt.054.001.02 notification with a namespace prefix and a batch booking (two TxDtls, one entry). -->
+<ns:Document xmlns:ns="urn:iso:std:iso:20022:tech:xsd:camt.054.001.02">
+  <ns:BkToCstmrDbtCdtNtfctn>
+    <ns:GrpHdr><ns:MsgId>FICTIONAL-NTF</ns:MsgId><ns:CreDtTm>2026-02-06T08:00:00</ns:CreDtTm></ns:GrpHdr>
+    <ns:Ntfctn>
+      <ns:Id>FICTIONAL-NTF-1</ns:Id>
+      <ns:Acct><ns:Id><ns:IBAN>DE31120300000000111222</ns:IBAN></ns:Id><ns:Ccy>EUR</ns:Ccy><ns:Svcr><ns:FinInstnId><ns:BIC>BYLADEM1001</ns:BIC></ns:FinInstnId></ns:Svcr></ns:Acct>
+      <ns:Ntry>
+        <ns:Amt Ccy="EUR">80.00</ns:Amt><ns:CdtDbtInd>CRDT</ns:CdtDbtInd><ns:Sts>BOOK</ns:Sts>
+        <ns:BookgDt><ns:DtTm>2026-02-06T00:30:00+01:00</ns:DtTm></ns:BookgDt><ns:ValDt><ns:Dt>2026-02-06</ns:Dt></ns:ValDt>
+        <ns:AcctSvcrRef>FICT-DKB-9001</ns:AcctSvcrRef>
+        <ns:NtryDtls>
+          <ns:Btch><ns:NbOfTxs>2</ns:NbOfTxs></ns:Btch>
+          <ns:TxDtls><ns:RltdPties><ns:Dbtr><ns:Nm>Fiktiv Verein</ns:Nm></ns:Dbtr></ns:RltdPties><ns:RmtInf><ns:Ustrd>Rueckerstattung Teil 1</ns:Ustrd></ns:RmtInf></ns:TxDtls>
+          <ns:TxDtls><ns:RltdPties><ns:Dbtr><ns:Nm>Fiktiv Verein</ns:Nm></ns:Dbtr></ns:RltdPties><ns:RmtInf><ns:Ustrd>Rueckerstattung Teil 2</ns:Ustrd></ns:RmtInf></ns:TxDtls>
+        </ns:NtryDtls>
+      </ns:Ntry>
+      <ns:Ntry>
+        <ns:Amt Ccy="EUR">15.00</ns:Amt><ns:CdtDbtInd>DBIT</ns:CdtDbtInd><ns:Sts>BOOK</ns:Sts>
+        <ns:BookgDt><ns:Dt>2026-02-06</ns:Dt></ns:BookgDt>
+        <ns:NtryDtls><ns:TxDtls>
+          <ns:Refs><ns:EndToEndId>REUSED-EVERY-MONTH</ns:EndToEndId></ns:Refs>
+          <ns:RltdPties><ns:Cdtr><ns:Nm>Fiktiv Streaming</ns:Nm></ns:Cdtr></ns:RltdPties>
+          <ns:RmtInf><ns:Strd><ns:CdtrRefInf><ns:Ref>RF18539007547034</ns:Ref></ns:CdtrRefInf></ns:Strd></ns:RmtInf>
+        </ns:TxDtls></ns:NtryDtls>
+      </ns:Ntry>
+    </ns:Ntfctn>
+  </ns:BkToCstmrDbtCdtNtfctn>
+</ns:Document>

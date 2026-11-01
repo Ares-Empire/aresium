@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "file": "refuse-unknown-accounts.csv",
+  "seed": 78,
+  "bank": "fictional-German",
+  "kind": "account-sections",
+  "situation": "An unfamiliar export contains a separate payment section for each account; silently taking only one loses money movements.",
+  "change": "refuse-unknown-accounts",
+  "provenance": {
+    "method": "hand",
+    "reason": "An unfamiliar export contains a separate payment section for each account; silently taking only one loses money movements."
+  },
+  "expected": {
+    "outcome": "refuse",
+    "code": "unknown",
+    "reason": "An unfamiliar export contains a separate payment section for each account; silently taking only one loses money movements."
+  }
+}

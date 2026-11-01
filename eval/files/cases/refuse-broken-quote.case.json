@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "file": "refuse-broken-quote.csv",
+  "seed": 78,
+  "bank": "n26",
+  "kind": "broken-quote",
+  "situation": "A damaged quoted field runs to the end of the download; the file must be refused.",
+  "change": "refuse-broken-quote",
+  "provenance": {
+    "method": "hand",
+    "reason": "A damaged quoted field runs to the end of the download; the file must be refused."
+  },
+  "expected": {
+    "outcome": "refuse",
+    "code": "unknown",
+    "reason": "A damaged quoted field runs to the end of the download; the file must be refused."
+  }
+}

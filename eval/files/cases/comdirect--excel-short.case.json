@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "file": "comdirect--excel-short.csv",
+  "seed": 78,
+  "bank": "comdirect",
+  "kind": "excel-short",
+  "situation": "German Excel shortens years and removes thousands separators.",
+  "change": "short dates; de-plain amounts; semicolon CSV.",
+  "provenance": {
+    "method": "original",
+    "fixture": "comdirect.csv",
+    "reference": "comdirect.csv.expected.json",
+    "sha256": "c77789bb3cdb942d11bfa7e35628f0530d57a7773288e82f2cf4c38dcdb8d21f"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2026-02-06",
+        "amountCents": -3640,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Stadtwerke",
+        "text": "Abschlag Strom Februar"
+      },
+      {
+        "date": "2026-02-05",
+        "amountCents": -320,
+        "currency": "EUR",
+        "counterparty": null,
+        "text": "CAFE MÄRCHEN MUSTERSTADT 2026-02-05T08:10:00"
+      },
+      {
+        "date": "2026-02-03",
+        "amountCents": 180000,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Werke GmbH",
+        "text": "Gehalt Februar 2026"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "7fbdc900f2e7f5368090d301",
+      "c9b0da3813775cc8d5396d83",
+      "839d0fec43e17ba493898127"
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+Type;Product;Started Date;Completed Date;Description;Amount;Fee;Currency;State;Balance
+TOPUP;Current;01.02.26 09:12:33;01.02.26 09:12:35;Top-up by *1234;500,00;0,00;EUR;COMPLETED;500,00
+CARD_PAYMENT;Current;03.02.26 18:45:10;04.02.26 08:01:00;Fiktiv Restaurant;-42,50;0,00;EUR;COMPLETED;457,50
+EXCHANGE;Current;04.02.26 10:00:00;04.02.26 10:00:01;Exchanged to GBP;-100,00;0,50;EUR;COMPLETED;357,00
+CARD_PAYMENT;Current;05.02.26 12:00:00;;Fiktiv Online Shop;-19,99;0,00;EUR;REVERTED;
+CARD_PAYMENT;Current;07.02.26 20:30:00;;Fiktiv Kino;-12,00;0,00;EUR;PENDING;

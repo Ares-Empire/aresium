@@ -26,10 +26,11 @@
     "uncat": "tsx scripts/uncategorised.ts",
     "typecheck": "tsc --noEmit",
     "sample": "tsx scripts/build-sample.ts",
-    "test": "tsx --test src/**/*.test.ts",
+    "test": "tsx --test src/**/*.test.ts eval/*/*.test.ts",
     "engine": "tsx scripts/build-engine.ts",
-    "shops": "tsx scripts/build-shop-list.ts",
-    "eval:sorting": "tsx eval/sorting/score.ts"
+    "eval:files": "tsx eval/files/score.ts",
+    "eval:sorting": "tsx eval/sorting/score.ts",
+    "shops": "tsx scripts/build-shop-list.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.2.1",

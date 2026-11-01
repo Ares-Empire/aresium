@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "file": "camt054--line-crlf.xml",
+  "seed": 78,
+  "bank": "camt",
+  "kind": "line-crlf",
+  "situation": "A statement is downloaded on Windows.",
+  "change": "CRLF record endings.",
+  "provenance": {
+    "method": "original",
+    "fixture": "camt054.xml",
+    "reference": "camt054.xml.expected.json",
+    "sha256": "c9ff94e8b465805eb7803f444fbb3b20003d43fb818b152dee15ce226e556daf"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2026-02-06",
+        "amountCents": 8000,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Verein",
+        "text": "Rueckerstattung Teil 1 / Rueckerstattung Teil 2"
+      },
+      {
+        "date": "2026-02-06",
+        "amountCents": -1500,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Streaming",
+        "text": "RF18539007547034"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "FICT-DKB-9001",
+      "79c37f5d5f353d1ab222fdd1"
+    ]
+  }
+}

@@ -1,0 +1,18 @@
+Umsatzanzeige,Datei erstellt am: 07.02.2026 18:30
+
+IBAN,DE67 5001 0517 0000 6543 21
+Kontoname,Girokonto
+Bank,ING
+Kunde,Erika Mustermann
+Zeitraum,01.02.2026 - 07.02.2026
+Saldo,"2.257,20",EUR
+
+Sortierung,Datum absteigend
+
+"In der CSV-Datei finden Sie alle bereits gebuchten Umsätze. Die vorgemerkten Umsätze werden nicht aufgenommen, auch wenn sie in Ihrem Internetbanking angezeigt werden."
+
+Buchung,Wertstellungsdatum,Auftraggeber/Empfänger,Buchungstext,Verwendungszweck,Saldo,Währung,Betrag,Währung
+2026-02-06,2026-02-06,Fiktiv Stadtwerke,Lastschrift,Abschlag Strom Februar,2257.20,EUR,-36.40,EUR
+2026-02-05,2026-02-05,Café Märchen,Lastschrift,,2293.60,EUR,-3.20,EUR
+2026-02-05,2026-02-05,Café Märchen,Lastschrift,,2296.80,EUR,-3.20,EUR
+2026-02-03,2026-02-03,Fiktiv Werke GmbH,Gehalt/Rente,Gehalt Februar 2026,2300.00,EUR,1800.00,EUR

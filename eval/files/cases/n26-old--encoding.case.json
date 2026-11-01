@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "file": "n26-old--encoding.csv",
+  "seed": 78,
+  "bank": "n26-old",
+  "kind": "encoding-utf8-bom",
+  "situation": "A bank download or spreadsheet uses a different text encoding and line ending.",
+  "change": "utf8-bom; \"\\r\\n\" record endings; unchanged cells.",
+  "provenance": {
+    "method": "original",
+    "fixture": "n26-old.csv",
+    "reference": "n26-old.csv.expected.json",
+    "sha256": "1864cee33ceb18d23f66d9457205006ef00b1c12c6fbf3321897f2211048c50a"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2022-03-06",
+        "amountCents": -3640,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Stadtwerke",
+        "text": "Abschlag Strom März"
+      },
+      {
+        "date": "2022-03-05",
+        "amountCents": -1400,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Markt",
+        "text": "Fiktiv Markt"
+      },
+      {
+        "date": "2022-03-03",
+        "amountCents": 180000,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Werke GmbH",
+        "text": "Gehalt März"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "4e1a329e52f1f3278e0a0a30",
+      "dc5173b16de52b2592fbca44",
+      "2252f4dd28eb5cad9bf0a5be"
+    ]
+  }
+}

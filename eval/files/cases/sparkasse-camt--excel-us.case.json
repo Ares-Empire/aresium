@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "file": "sparkasse-camt--excel-us.csv",
+  "seed": 78,
+  "bank": "sparkasse-camt",
+  "kind": "excel-us",
+  "situation": "Excel with US settings rewrites dates and thousands separators.",
+  "change": "us dates; en-grouped amounts; comma CSV.",
+  "provenance": {
+    "method": "original",
+    "fixture": "sparkasse-camt.csv",
+    "reference": "sparkasse-camt.csv.expected.json",
+    "sha256": "7c7bc2b4c3753e95a300ac936e2d9b6fc82c0481c0ae8a9ef8c7f600bbfe7a75"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2026-02-06",
+        "amountCents": -3640,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Stadtwerke",
+        "text": "Abschlag Strom Februar Kundennr. 0000"
+      },
+      {
+        "date": "2026-02-05",
+        "amountCents": -320,
+        "currency": "EUR",
+        "counterparty": "Café Märchen",
+        "text": "Café Märchen Musterstadt"
+      },
+      {
+        "date": "2026-02-05",
+        "amountCents": -320,
+        "currency": "EUR",
+        "counterparty": "Café Märchen",
+        "text": "Café Märchen Musterstadt"
+      },
+      {
+        "date": "2026-02-03",
+        "amountCents": 180000,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Werke GmbH",
+        "text": "Gehalt Februar 2026"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "8aca7c3d66872bd0fa3fdd34",
+      "b22fc8a61b7c89fc395c3226",
+      "c83f2e07e0204bee19a85496",
+      "9ff9e62da94c532eb083622d"
+    ]
+  }
+}

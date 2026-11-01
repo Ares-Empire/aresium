@@ -1,0 +1,4 @@
+Date;Payee;Account number;Transaction type;Payment reference;Amount (EUR);Amount (Foreign Currency);Type Foreign Currency;Exchange Rate
+2022-03-06;Fiktiv Stadtwerke;DE34701500000000246810;Direct Debit;Abschlag Strom März;-36.4;;;
+2022-03-05;Fiktiv Markt;;MasterCard Payment;;-14.0;-14.0;EUR;1.0
+2022-03-03;Fiktiv Werke GmbH;DE96100500000000123456;Income;Gehalt März;1800.0;;;

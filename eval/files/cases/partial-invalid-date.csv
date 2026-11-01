@@ -1,0 +1,5 @@
+Booking Date,Value Date,Partner Name,Partner Iban,Type,Payment Reference,Account Name,Amount (EUR),Original Amount,Original Currency,Exchange Rate
+2026-10-14,2026-10-14,Fiktiv Märchenmarkt 400,,Transfer,"Öl, Süßwaren und Grüße",Fictional account,-1234.65,,,
+2026-10-15,2026-10-15,Fiktiv Café 400,,Transfer,"Beleg ""Herbst""",Fictional account,-3.45,,,
+2026-10-18,2026-10-18,Fiktiv Beispielwerke 400,,Transfer,Gehalt Oktober,Fictional account,2100.45,,,
+2026-02-30,2026-10-19,Fiktiv bad row,,Transfer,Unreadable row,Fictional account,-1.00,,,
