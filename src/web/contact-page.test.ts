@@ -219,4 +219,11 @@ test("appearance.js: a look passed in the address (patrikbreeck.com's links) win
   assert.equal(appearance({}, true, "?look=light").theme.value, "light");
   assert.equal(appearance(stored, false, "?look=red").theme.value, "light");
   assert.equal(appearance(stored, false, "?looking=dark").theme.value, "light");
+  // the demo saves its look once as it opens: that save of the passed look is skipped, a switch after it is not
+  const demo = appearance(stored, false, "?look=dark");
+  demo.api.save("dark");
+  assert.deepEqual(stored, { "aresium-appearance": "light" });
+  demo.api.save("light");
+  demo.api.save("dark");
+  assert.deepEqual(stored, {});
 });
