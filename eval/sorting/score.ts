@@ -1,6 +1,6 @@
 import { appendFile, open, readFile, stat, writeFile, mkdir } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { resolve } from "node:path";
 import { createContext, runInContext } from "node:vm";
 import { DEFAULT_CATEGORIES } from "../../src/engine/categories.js";
@@ -8,6 +8,7 @@ import { splitCsv } from "../../src/engine/readers/csv.js";
 import { sortPayments } from "../../src/engine/sorting/sort.js";
 import { ROOT, heldback, loadCases, initialLabel, fingerprint, readLines, type EvalCase, type Label } from "./model.js";
 import { batches, merge } from "./judge.js";
+import { appendHistory } from "../history.js";
 import type { LocalPlacesData } from "../../src/engine/sorting/local-places.js";
 import { readLocalPlaces } from "./local-places-file.js";
 export type Sorter = typeof sortPayments;
@@ -99,29 +100,10 @@ export function report(cases: EvalCase[], labels: Map<string, Label>, prediction
   return { text: lines.join("\n"), worked: scored(partitions[0]), held: scored(partitions[1]) };
 }
 export async function record(worked: Counts, held: Counts, file = new URL("../history.csv", ROOT)): Promise<void> {
-  const columns = ["date", "commit", "suite", ...["worked", "heldback"].flatMap((part) => ["total", "disputed", "sorted", "right", "wrong", "missed", "unsortedRight"].map((key) => `${part}_${key}`))];
-  await mkdir(new URL("./", file), { recursive: true });
-  const lockPath = new URL(file.href + ".lock");
-  let lock;
-  for (let i = 0; i < 50; i++) { try { lock = await open(lockPath, "wx"); break; } catch (e) { if ((e as NodeJS.ErrnoException).code !== "EEXIST") throw e; await new Promise((r) => setTimeout(r, 100)); } }
-  if (!lock) throw new Error("History is locked; retry after the other evaluator finishes");
-  try {
-    let existing = "";
-    try { existing = await readFile(file, "utf8"); } catch (e) { if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e; }
-    const rows = existing ? splitCsv(existing, ",").filter((row) => row.some((cell) => cell !== "")) : [];
-    const oldHeader = rows[0] ?? [];
-    if (new Set(oldHeader).size !== oldHeader.length || rows.slice(1).some((row) => row.length !== oldHeader.length)) throw new Error("Invalid shared history CSV; no history was changed");
-    const combined = [...oldHeader, ...columns.filter((key) => !oldHeader.includes(key))];
-    const csv = (row: string[]) => row.map((cell) => /[,"\r\n]/.test(cell) ? `"${cell.replace(/"/g, '""')}"` : cell).join(",") + "\n";
-    if (!existing || combined.length !== oldHeader.length) {
-      // Keep brief 78's columns and rows when either evaluator creates the shared file first.
-      await writeFile(file, csv(combined) + rows.slice(1).map((row) => csv([...row, ...new Array<string>(combined.length - oldHeader.length).fill("")])).join(""));
-    }
-    const commit = execFileSync("git", ["rev-parse", "HEAD"], { cwd: new URL("../../", ROOT), encoding: "utf8" }).trim();
-    const values = [new Date().toISOString(), commit, "sorting", ...Object.values(worked), ...Object.values(held)].map(String);
-    const fields = new Map(columns.map((key, i) => [key, values[i]]));
-    await appendFile(file, csv(combined.map((key) => fields.get(key) ?? "")));
-  } finally { await lock.close(); const { unlink } = await import("node:fs/promises"); await unlink(lockPath); }
+  const root = new URL("../../", ROOT);
+  const commit = execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim();
+  const dirty = execFileSync("git", ["status", "--porcelain", "--untracked-files=normal"], { cwd: root, encoding: "utf8" }).trim();
+  await appendHistory(fileURLToPath(file), "sorting", commit + (dirty ? "-dirty" : ""), { worked, heldback: held });
 }
 export async function main(args = process.argv.slice(2)): Promise<void> {
   const cases = await loadCases();

@@ -6,6 +6,7 @@ import { createContext, runInContext } from "node:vm";
 import { readBankFile } from "../../src/engine/readers/read.js";
 import type { BankFile, BankTxn, CsvLayout } from "../../src/engine/readers/types.js";
 import { cents, type FileCase, type Payment } from "./types.js";
+import { appendHistory } from "../history.js";
 
 export type Reader = (bytes: ArrayLike<number>, savedLayouts?: readonly CsvLayout[]) => BankFile;
 type ActualPayment = Omit<Payment, "amountCents"> & { amountCents: number | string };
@@ -172,19 +173,10 @@ export function formatReport(results: CaseResult[]): string {
   return lines.join("\n");
 }
 
-// Shared, suite-neutral CSV format: brief 79 can put its headline metrics in the same JSON cell.
-export const HISTORY_HEADER = "date,commit,suite,metrics\n";
+// The shared history format lives in ../history.ts; this suite's numbers are its summary.
+export { HISTORY_HEADER } from "../history.js";
 export async function recordHistory(path: string, commit: string, metrics: ReturnType<typeof summarize>, date = new Date().toISOString()) {
-  await mkdir(dirname(path), { recursive: true });
-  try {
-    const handle = await open(path, "ax");
-    try { await handle.writeFile(HISTORY_HEADER); } finally { await handle.close(); }
-  } catch (error) { if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error; }
-  const existing = await readFile(path, "utf8");
-  // The sorting suite widens the header with its own columns after these four; a files row fills the first four.
-  if (!existing.startsWith(HISTORY_HEADER.trim()) || !existing.endsWith("\n")) throw new Error(`Unexpected history format in ${path}; expected ${HISTORY_HEADER.trim()}.`);
-  const cell = (v: string) => `"${v.replace(/"/g, '""')}"`;
-  await appendFile(path, [date, commit, "files", JSON.stringify(metrics)].map(cell).join(",") + "\n");
+  await appendHistory(path, "files", commit, metrics, date);
 }
 
 export async function loadReader(path?: string): Promise<Reader> {

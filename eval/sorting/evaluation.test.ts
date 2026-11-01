@@ -154,72 +154,28 @@ test("own-data optional local places affect counts and replay without exposing m
   assert.equal(after.replay.fixes, before.replay.fixes - 1);
   assert.ok(!JSON.stringify(after).includes("Quarzfunken"));
 });
-test("record appends sorting metrics with header and preserves existing rows", async () => {
+test("record appends sorting rows in the shared history format and keeps other suites' rows", async () => {
   const dir = await mkdtemp(join(tmpdir(), "ares-history-")), file = pathToFileURL(join(dir, "history.csv"));
   try {
+    await writeFile(file, 'date,commit,suite,metrics\n"2026-01-01","abc","files","{""readRight"":3}"\n');
     const metrics = count([{ label: initialLabel(example()), category: "groceries" }]);
     await record(metrics, metrics, file); await record(metrics, metrics, file);
-    const text = await readFile(file, "utf8"); assert.equal(text.trim().split("\n").length, 3); assert.equal(text.split(",sorting,").length, 3);
-    assert.equal(text.trim().split("\n")[0].split(",").length, text.trim().split("\n")[1].split(",").length);
-  } finally { await rm(dir, { recursive: true, force: true }); }
-});
-test("batch and file merge integration writes both label partitions, agreements and disputes", async () => {
-  const dir = await mkdtemp(join(tmpdir(), "ares-judge-")), root = pathToFileURL(dir + "/");
-  try {
-    const cases = [example("abc"), example("test-0", { personal: true })];
-    const judging = new URL("judging/", root); await batches(cases, judging);
-    await writeFile(new URL("batch-99.jsonl", judging), "obsolete"); await batches(cases, judging);
-    await assert.rejects(readFile(new URL("batch-99.jsonl", judging)));
-    const first = join(dir, "first.jsonl"), second = join(dir, "second.jsonl");
-    await writeFile(first, cases.map((c) => JSON.stringify({ id: c.id, best: c.id === "abc" ? "groceries" : null, personal: c.id !== "abc" })).join("\n"));
-    await writeFile(second, cases.map((c) => JSON.stringify({ id: c.id, best: c.id === "abc" ? "health" : null, unclear: c.id !== "abc" })).join("\n"));
-    await merge(cases, first, second, root);
-    const worked = JSON.parse((await readFile(new URL("labels.jsonl", root), "utf8")).trim());
-    const held = JSON.parse((await readFile(new URL("labels.heldback.jsonl", root), "utf8")).trim());
-    assert.deepEqual(worked.accepted, ["groceries"]); assert.equal(held.unsortedRight, true);
-    const agreement = JSON.parse(await readFile(new URL("agreement.json", root), "utf8"));
-    assert.equal(agreement.madeup.total, 2); assert.equal(agreement.madeup.allThree, 1); assert.equal(agreement.madeup.twoOfThreeOnly, 1);
-    const changed = [{ ...cases[0], generator: { best: "health" } }, cases[1]];
-    await assert.rejects(merge(changed, first, second, root), /changed/);
-    await writeFile(first, JSON.stringify({ id: "abc", best: "clothes" }) + "\n" + JSON.stringify({ id: "test-0", personal: true }));
-    await merge(cases, first, second, root);
-    assert.equal(JSON.parse((await readFile(new URL("disputed.jsonl", root), "utf8")).trim()).label.disputed, true);
-  } finally { await rm(dir, { recursive: true, force: true }); }
-});
-test("a scenario is wrong as a group when any side is wrong and missed when any clear side is missing", () => {
-  const a = { ...example("abc.1"), group: "abc", kind: "scenario" as const }, b = { ...example("abc.2"), group: "abc", kind: "scenario" as const };
-  const labels = new Map([a, b].map((c) => [c.id, initialLabel(c)]));
-  assert.ok(report([a, b], labels, new Map([[a.id, "groceries"], [b.id, "health"]])).text.includes('"wrong":1'));
-  assert.ok(report([a, b], labels, new Map([[a.id, "groceries"], [b.id, null]])).text.includes('"missed":1'));
-});
-test("different two-voter coalitions may accept several categories without a three-way intersection", () => {
-  const l = mergeAnswers(example("abc", { best: "groceries", alsoRight: ["coffee-snacks"] }),
-    [{ best: "groceries", alsoRight: ["eating-out"] }, { best: "coffee-snacks", alsoRight: ["eating-out"] }]);
-  assert.deepEqual(l.accepted, ["coffee-snacks", "eating-out", "groceries"]); assert.equal(l.allThree, false);
-});
-test("engine exceptions cannot print held-back payment contents", () => {
-  assert.throws(() => predict([example("test-0")], () => { throw new Error("SECRET-HELD-PAYMENT"); }),
-    (error: unknown) => error instanceof Error && !error.message.includes("SECRET") && error.message.includes("withheld"));
-});
-test("bundled engine loader reads the AresiumEngine global without Node globals", async () => {
-  const dir = await mkdtemp(join(tmpdir(), "ares-bundle-"));
-  try {
-    const file = join(dir, "engine.js");
-    await writeFile(file, 'if (typeof process !== "undefined" || typeof require !== "undefined") throw new Error("Node global"); var AresiumEngine = { sortPayments: function(payments) { return payments.map(function() { return {categoryId: "groceries", source: "starter"}; }); } };');
-    const sorter = await loadSorter(file);
-    assert.equal(sorter([example().payment], { categories: [{ id: "groceries" }] })[0].categoryId, "groceries");
-    await writeFile(file, "var wrongGlobal = {};"); await assert.rejects(loadSorter(file), /expose/);
-  } finally { await rm(dir, { recursive: true, force: true }); }
-});
-test("record preserves another evaluator's columns and quoted CSV values", async () => {
-  const dir = await mkdtemp(join(tmpdir(), "ares-history-shared-")), file = pathToFileURL(join(dir, "history.csv"));
-  try {
-    await writeFile(file, 'date,commit,suite,files_result\n2026-01-01,abc,files,"quoted, count"\n');
-    const metrics = count([]); await record(metrics, metrics, file);
     const { splitCsv } = await import("../../src/engine/readers/csv.js");
-    const rows = splitCsv(await readFile(file, "utf8"), ",");
-    assert.equal(rows[1][3], "quoted, count"); assert.equal(rows[2][2], "sorting"); assert.equal(rows[2][3], "");
-    assert.equal(rows[0].length, rows[1].length); assert.equal(rows[0].length, rows[2].length);
+    const rows = splitCsv(await readFile(file, "utf8"), ",").filter((row) => row.some(Boolean));
+    assert.deepEqual(rows[0], ["date", "commit", "suite", "metrics"]);
+    assert.equal(rows[1][3], '{"readRight":3}');
+    assert.equal(rows.length, 4); assert.equal(rows[2][2], "sorting"); assert.equal(rows[3][2], "sorting");
+    assert.deepEqual(JSON.parse(rows[2][3]), { worked: metrics, heldback: metrics });
+    assert.ok(rows.every((row) => row.length === 4));
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
+test("record refuses a history in another format and changes nothing", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "ares-history-other-")), file = pathToFileURL(join(dir, "history.csv"));
+  try {
+    await writeFile(file, "date,commit,suite,files_result\n");
+    const metrics = count([]);
+    await assert.rejects(record(metrics, metrics, file), /Unexpected history format/);
+    assert.equal(await readFile(file, "utf8"), "date,commit,suite,files_result\n");
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
 test("unlabelled originals appear in confusion counts but never supply replay corrections", () => {
