@@ -5,7 +5,7 @@ export interface Month {
 }
 export interface Category {
   name: string; icon: string; color: string; kind: "spend" | "income" | "transfer";
-  otherSide?: true; // also offered for the other direction of money; totals still follow kind
+  otherSide?: true; // also offered for the other direction of money; totals follow the payment's direction
 }
 // Receipts (brief 30): every field here is optional, so older readers of the JSON keep working.
 export interface ReceiptMarks {
@@ -94,7 +94,6 @@ const money = (n: number) => Math.round(n * 100) / 100;
 // "Not sorted"'s spending, and a month with more unsorted money in than out showed no "Not sorted" spending at all.
 const isUnsorted = (categoryName: string) => !categoryName || categoryName === "Uncategorised";
 const INCOME_META: Record<string, Category> = {
-  Refunds: { name: "Refunds", icon: "RotateCcw", color: "#34E27A", kind: "income" },
   Other: { name: "Other", icon: "CircleHelp", color: "#9AA6B8", kind: "income" },
 };
 
@@ -103,9 +102,6 @@ export function buildDashboard(source: DashboardSource): Dashboard {
   const catByName = new Map(categories.map((c) => [c.name, c]));
   // Recategorise choices for money in: income and transfer categories (and Tax).
   const incomeKeep = new Set(["Tax", ...categories.filter((c) => c.kind !== "spend").map((c) => c.name)]);
-  // Income rows: income categories (and Tax). Transfer categories count nowhere, on either side (Patrik, 2026-10-27:
-  // money moved between one's own accounts is not income).
-  const incomeBucketKeep = new Set(["Tax", ...categories.filter((c) => c.kind === "income").map((c) => c.name)]);
   const monthIndex = new Map(months.map((m, i) => [m.key, i]));
   const makeSeries = (): Series => ({
     months: months.map(() => 0),
@@ -141,21 +137,14 @@ export function buildDashboard(source: DashboardSource): Dashboard {
     const tags = t.tags || [];
     // Cash covered by receipts lowers its withdrawal's spending; it is never income.
     const covered = t.coveredBy !== undefined;
-    // Unsorted money in is listed under "Other" income only: not under "Not sorted", not in its spending.
-    const unsortedIn = t.amount > 0 && isUnsorted(t.categoryName) && !covered;
-    const categoriesIn = [...new Set([t.categoryName, ...tags])].filter((name) => !(unsortedIn && isUnsorted(name)));
-    const primaryKind = catByName.get(t.categoryName)?.kind;
-    const isTransfer = primaryKind === "transfer";
-    const incomeOut = t.amount < 0 && primaryKind === "income" && !isUnsorted(t.categoryName);
-    const primaryBucket = isUnsorted(t.categoryName) ? "Other"
-      : incomeBucketKeep.has(t.categoryName) ? t.categoryName : "Refunds";
-    // Money given back reduces income only in income categories (Tax keeps its spending rules).
-    const buckets = isTransfer || covered ? [] : t.amount > 0
-      ? [...new Set([primaryBucket, ...tags.filter((n) => incomeBucketKeep.has(n))])]
-      : t.amount < 0 ? [...new Set([
-        ...(incomeOut ? [t.categoryName] : []),
-        ...tags.filter((n) => catByName.get(n)?.kind === "income" && !isUnsorted(n)),
-      ])] : [];
+    const isTransfer = catByName.get(t.categoryName)?.kind === "transfer";
+    const names = [...new Set([t.categoryName, ...tags])]
+      .filter((name) => catByName.get(name)?.kind !== "transfer");
+    // Sides decide the choices only. Each payment counts in the direction it went, including its tags.
+    const spending = !isTransfer && (t.amount < 0 || covered);
+    const incoming = !isTransfer && t.amount > 0 && !covered;
+    const categoriesIn = spending ? names : [];
+    const buckets = incoming ? [...new Set(names.map((name) => isUnsorted(name) ? "Other" : name))] : [];
     const txn: Txn = {
       id: t.id, date: t.date, day, month, amount: t.amount, categoryName: t.categoryName,
       tags: [...tags], place: t.place, city: t.city, categoriesIn, incomeBuckets: buckets,
@@ -165,7 +154,7 @@ export function buildDashboard(source: DashboardSource): Dashboard {
     if (covered) txn.coveredBy = [...t.coveredBy!];
     if (t.cashWithdrawal) txn.cashWithdrawal = true;
     transactions.push(txn);
-    if (catByName.get(t.categoryName)?.kind === "spend" && !unsortedIn) {
+    if (spending) {
       total.expense += -t.amount;
       if (mo) { mo.expense += -t.amount; if (validDay) mo.dayExpense[day - 1] += -t.amount; }
     }
@@ -179,7 +168,7 @@ export function buildDashboard(source: DashboardSource): Dashboard {
         if (validDay) series.days[month][day - 1] += -t.amount;
       }
     }
-    if ((t.amount > 0 || incomeOut) && !isTransfer && !covered) {
+    if (incoming) {
       total.income += t.amount;
       if (mo) { mo.income += t.amount; if (validDay) mo.dayIncome[day - 1] += t.amount; }
     }
@@ -195,7 +184,7 @@ export function buildDashboard(source: DashboardSource): Dashboard {
     }
   }
 
-  const categoryRows = (totals: Map<string, number>) => categories.filter((c) => c.kind === "spend")
+  const categoryRows = (totals: Map<string, number>) => categories.filter((c) => c.kind !== "transfer")
     .map((c) => ({ name: c.name, total: money(totals.get(c.name) ?? 0) }))
     .filter((c) => c.total > 0).sort((a, b) => b.total - a.total);
   const incomeRows = (totals: Map<string, number>) => [...totals].map(([name, n]) => ({ name, total: money(n) }))

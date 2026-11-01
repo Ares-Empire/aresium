@@ -10,10 +10,10 @@ import * as engine from "./index.js";
 import { starterCategory } from "./sorting/starter-rules.js";
 import { buildDashboardSource, type SourceCategory, type SourcePayment, type SourceReceipt } from "./source.js";
 
-// ── Without receipts nothing changes (Patrik's server never sends them) ──────────────────────────────────
+// ── Bank fixtures and optional receipts ─────────────────────────────────────────────────────────────────
 
 // The names the hash below was taken with. Brief 32 renamed the category `cash` to "Cash withdrawals"; the input keeps
-// the old name, so that the hash still proves the counting did not change.
+// the old name, so that the source hash still proves its JSON did not change.
 const nameAtHash = (c: (typeof DEFAULT_CATEGORIES)[number]) => (c.id === "cash" ? "Cash" : c.name.en);
 
 // Every payment of the existing bank fixtures (made-up payments in real formats), sorted by the shop list.
@@ -43,27 +43,29 @@ const fixtureCategories: SourceCategory[] = DEFAULT_CATEGORIES.map((c) => ({
   name: nameAtHash(c), icon: "Tag", color: "#123456", excludeFromTotals: c.kind === "transfer",
 }));
 const sha256 = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
-// The hash of the fixtures' dashboard JSON as main computed it before brief 30 (commit 612b96a), 477,944 characters.
-const HASH_BEFORE_RECEIPTS = "90a059bc6ad8738592ba9a303ee04fd3dc816c52c4ac0f4a7f9f4f8df7f3d8b5";
+// Full dashboard after direction-based counting (brief 71); the source remains byte-identical to brief 68.
+const DASHBOARD_HASH = "9f7ab984a1f519eb556b7c5504173ad5f8fbe80b90e954e020e392ad8a00a227";
 const SOURCE_HASH_BEFORE_SIDES = "9142fa1a3d8ceda53a989d06dff88c68a8c11b129d4053f306e522b3ef5de90d";
 
-// Brief 68 adds transfers to money-out choices for everyone. Apart from that addition these fixtures (no income
-// money out) still match the original dashboard byte for byte; keep the old hash as the oracle.
-function assertLegacyDashboard(dashboard: ReturnType<typeof buildDashboard>) {
-  const transfers = dashboard.categories.filter((c) => c.kind === "transfer").map((c) => c.name);
-  const spend = dashboard.pick.spend.filter((n) => !transfers.includes(n));
-  assert.deepEqual(dashboard.pick.spend, [...spend, ...transfers.sort((a, b) => a.localeCompare(b))]);
-  assert.equal(sha256({ ...dashboard, pick: { ...dashboard.pick, spend } }), HASH_BEFORE_RECEIPTS);
+function assertFixtureDashboard(dashboard: ReturnType<typeof buildDashboard>) {
+  assert.equal(sha256(dashboard), DASHBOARD_HASH);
+  const transfers = new Set(dashboard.categories.filter((c) => c.kind === "transfer").map((c) => c.name));
+  assert.equal(dashboard.total.income,
+    Math.round(dashboard.transactions.filter((t) => t.amount > 0 && !transfers.has(t.categoryName))
+      .reduce((sum, t) => sum + t.amount, 0) * 100) / 100);
+  assert.equal(dashboard.total.expense,
+    Math.round(dashboard.transactions.filter((t) => t.amount < 0 && !transfers.has(t.categoryName))
+      .reduce((sum, t) => sum - t.amount, 0) * 100) / 100);
 }
 
-test("no receipts: the dashboard of every bank fixture is the same as before receipts existed", async () => {
+test("no receipts: every bank fixture follows direction and keeps the existing source JSON", async () => {
   const input = { transactions: await fixturePayments(), categories: fixtureCategories, today: "2026-03-15" };
   assert.equal(input.transactions.length, 128);
   assert.ok(input.transactions.some((p) => p.category === "Cash"), "the fixtures hold cash withdrawals");
   const source = buildDashboardSource(input);
   assert.equal(sha256(source), SOURCE_HASH_BEFORE_SIDES, "source JSON without side fields stays byte-identical");
   const dashboard = buildDashboard(source);
-  assertLegacyDashboard(dashboard);
+  assertFixtureDashboard(dashboard);
   // The server's JSON gains nothing of the Cash page (brief 32).
   assert.equal("cash" in dashboard, false);
   assert.equal(dashboard.transactions.some((t) => "cashWithdrawal" in t), false);
@@ -73,7 +75,7 @@ test("receipts given but none stored: the same numbers; only the Cash page and t
   const input = { transactions: await fixturePayments(), categories: fixtureCategories, today: "2026-03-15", receipts: [] };
   const { cash, ...dashboard } = buildDashboard(buildDashboardSource(input));
   const unmarked = { ...dashboard, transactions: dashboard.transactions.map(({ cashWithdrawal, ...t }) => t) };
-  assertLegacyDashboard(unmarked);
+  assertFixtureDashboard(unmarked);
   const marked = dashboard.transactions.filter((t) => t.cashWithdrawal).map((t) => t.id);
   assert.ok(marked.length > 0);
   assert.deepEqual(cash!.movements.map((m) => [m.id, m.kind, m.paidFrom, m.coveredBy]), marked.map((id) => [id, "withdrawal", null, []]));
@@ -182,6 +184,33 @@ test("cash with the withdrawal Not sorted: the covered row lowers Not sorted, an
   assert.equal(dashboard.total.income, 0);
   assert.deepEqual(dashboard.total.incomeBuckets, []);
   assert.deepEqual(dashboard.transactions.find((t) => t.id === "atm:covered")?.categoriesIn, ["Uncategorised"]);
+});
+
+test("covered withdrawals lower spending across category sides and tags; cash received stays income", () => {
+  const dashboard = buildDashboard(buildDashboardSource({
+    categories: categories.map((c) => ({ ...c, side: c.name === "Income" ? "income" : "spend" })),
+    today: "2026-02-27",
+    transactions: [withdrawal("2026-02-02", -100, { id: "atm", category: "Income", tags: ["Coffee & snacks", "Income"] })],
+    receipts: [
+      receipt("gift", "2026-02-03", 15, "cash", { direction: "in", kind: "manual" }),
+      receipt("spent", "2026-02-05", 30, "cash", { paidFrom: "atm" }),
+    ],
+  }));
+  const month = dashboard.byMonth["2026-02"];
+  assert.deepEqual([dashboard.total.expense, dashboard.total.income], [100, 15]);
+  assert.deepEqual(month.categories, [
+    { name: "Coffee & snacks", total: 70 }, { name: "Income", total: 70 }, { name: "Groceries", total: 30 },
+  ]);
+  assert.deepEqual(month.incomeBuckets, [{ name: "Groceries", total: 15 }]);
+  const covered = dashboard.transactions.find((t) => t.coveredBy)!;
+  assert.deepEqual([covered.categoriesIn, covered.incomeBuckets], [["Income", "Coffee & snacks"], []]);
+  assert.equal(month.dayExpense[1], 70);
+  assert.equal(month.dayExpenseRunning.at(-1), 100);
+  assert.equal(month.dayIncome[1], 0);
+  assert.equal(month.dayIncome[2], 15);
+  assert.deepEqual(dashboard.spend.Income.months, [70]);
+  assert.deepEqual(dashboard.income.Groceries.months, [15]);
+  assert.equal(dashboard.income.Income, undefined);
 });
 
 test("a withdrawal in a transfer category: the receipts are the spending, nothing turns into income", () => {

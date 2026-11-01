@@ -84,11 +84,15 @@ test("a given side wins over the net, including empty income categories; transfe
     spend: ["Friends", "Groceries", "Own transfers", "Savings & investing", "Salary"],
     income: ["Own transfers", "Salary", "Savings & investing", "Selling things", "Friends"],
   });
-  assert.deepEqual([dashboard.total.expense, dashboard.total.income], [-20, 25]);
-  assert.deepEqual(dashboard.total.categories, []);
-  assert.deepEqual(dashboard.total.incomeBuckets, [{ name: "Refunds", total: 30 }]);
-  assert.deepEqual(dashboard.income.Salary.months, [0]);
-  assert.equal(dashboard.income.Friends, undefined, "Friends stays a spending category; money back is Refunds");
+  assert.deepEqual([dashboard.total.expense, dashboard.total.income], [15, 30]);
+  assert.deepEqual(dashboard.total.categories, [{ name: "Friends", total: 10 }, { name: "Salary", total: 5 }]);
+  assert.deepEqual(dashboard.total.incomeBuckets, [{ name: "Friends", total: 30 }]);
+  assert.equal(dashboard.income.Salary, undefined);
+  assert.deepEqual(dashboard.income.Friends.months, [30]);
+  assert.deepEqual(dashboard.spend.Friends.months, [10]);
+  assert.deepEqual(dashboard.transactions.map((t) => [t.categoriesIn, t.incomeBuckets]), [
+    [["Friends"], []], [[], ["Friends"]], [["Salary"], []],
+  ]);
   const withoutOtherSide = buildDashboard(build([], "2026-02-10", list.map(({ otherSide, ...c }) => c)));
   assert.ok(withoutOtherSide.pick.income.includes("Selling things"), "an empty income category can receive money");
   assert.ok(!withoutOtherSide.pick.spend.includes("Selling things"));
@@ -98,7 +102,7 @@ test("a given side wins over the net, including empty income categories; transfe
   assert.deepEqual(numbers, unofferedNumbers, "otherSide widens choices without changing any numbers");
 });
 
-test("without a side the net still chooses income, and money out in that category now reduces its income", () => {
+test("without a side the net still chooses menus, while both directions count under the category", () => {
   const source = build([
     pay("2026-02-01", 100, { category: "Income" }),
     pay("2026-02-02", -25, { category: "Income" }),
@@ -106,9 +110,11 @@ test("without a side the net still chooses income, and money out in that categor
   assert.equal(source.categories.find((c) => c.name === "Income")!.kind, "income");
   assert.ok(source.categories.every((c) => !("otherSide" in c)));
   const dashboard = buildDashboard(source);
-  assert.deepEqual([dashboard.total.income, dashboard.total.expense], [75, 0]);
-  assert.deepEqual(dashboard.total.incomeBuckets, [{ name: "Income", total: 75 }]);
-  assert.deepEqual(dashboard.transactions[1].incomeBuckets, ["Income"]);
+  assert.deepEqual([dashboard.total.income, dashboard.total.expense], [100, 25]);
+  assert.deepEqual(dashboard.total.incomeBuckets, [{ name: "Income", total: 100 }]);
+  assert.deepEqual(dashboard.total.categories, [{ name: "Income", total: 25 }]);
+  assert.deepEqual(dashboard.transactions[1].incomeBuckets, []);
+  assert.deepEqual(dashboard.transactions[1].categoriesIn, ["Income"]);
 });
 
 test("months span the payments and the current month counts up to today", () => {
