@@ -1,7 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { pulseLine } from "./pulse.js";
-import type { Dashboard } from "./dashboard.js";
+import { buildDashboard, type Dashboard } from "./dashboard.js";
+import { buildDashboardSource } from "../engine/source.js";
 
 const dashboard = (months: Record<string, number>) => ({ byMonth: Object.fromEntries(
   Object.entries(months).map(([key, expense]) => [key, { expense }])) }) as unknown as Dashboard;
@@ -14,8 +15,19 @@ test("a new month without data says so instead of showing zero", () => {
   assert.equal(pulseLine(dashboard({ "2026-10": 1339.32 }), new Date(2026, 10, 1)), "Nothing imported for November yet");
 });
 
-test("refunds larger than spending show as a negative amount, not hidden", () => {
-  assert.equal(pulseLine(dashboard({ "2026-01": -12 }), new Date(2026, 0, 5)), "-€12 spent in January");
+test("refunds larger than spending leave the pulse's spending unchanged", () => {
+  const source = buildDashboardSource({
+    categories: [{ name: "Shopping", icon: "Tag", color: "#123456", excludeFromTotals: false, side: "spend" }],
+    today: "2026-01-05",
+    transactions: [-20, 32].map((amount, i) => ({
+      id: `sample-${i}`, externalId: `sample-${i}`, date: "2026-01-02", amount, currency: "EUR",
+      description: "Sample shop", category: "Shopping",
+    })),
+  });
+  const data = buildDashboard(source);
+  assert.deepEqual([data.total.expense, data.total.income], [20, 32]);
+  assert.equal(pulseLine(data, new Date(2026, 0, 5)), "€20 spent in January");
+  assert.equal(pulseLine(data, new Date(2026, 0, 5), "de"), "20 € im Januar ausgegeben");
 });
 
 test("pulse translates all months and formats whole euros in both languages", () => {

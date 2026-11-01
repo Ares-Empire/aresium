@@ -49,26 +49,27 @@ test("bundled sample dashboard equals the direct server calculation", () => {
   assert.deepEqual(json(bundled.buildDashboard(source)), json(buildDashboard(source)));
 });
 
-test("sample source JSON stays byte-identical; its dashboard changes only for transfers in pick and the income tag on money out", async () => {
+test("sample source JSON stays byte-identical; its dashboard counts the income tag on money out as spending", async () => {
   const source = buildSampleSource();
   assert.equal(createHash("sha256").update(JSON.stringify(source)).digest("hex"),
     "f79896e7c5135e670fd035f42357d109f775a3d46cdc215642a320622576bab0");
   const expected: Dashboard = JSON.parse(await readFile(new URL("../../web/public/app/dashboard.sample.json", import.meta.url), "utf8"));
   expected.pick.spend.push("Transfer");
-  // This existing Add example now lowers its tagged income row, without changing headline income or spending.
+  // Against the stored pre-68 sample: incoming payments leave spending lists, and the Fitness payment
+  // tagged Income creates spending there. It no longer lowers Income's income row as brief 68 did.
+  for (const t of expected.transactions) {
+    if (t.amount > 0) t.categoriesIn = [];
+    if (t.amount <= 0) t.incomeBuckets = [];
+  }
   const tagged = expected.transactions.find((t) => t.amount < 0 && t.tags.includes("Income"))!;
   assert.equal(tagged.amount, -24.9);
-  tagged.incomeBuckets = ["Income"];
-  const subtractReturn = (rows: { name: string; total: number }[]) => {
-    const row = rows.find((r) => r.name === "Income")!;
-    row.total = Math.round((row.total + tagged.amount) * 100) / 100;
-  };
-  subtractReturn(expected.total.incomeBuckets);
-  subtractReturn(expected.byMonth[tagged.month].incomeBuckets);
+  expected.total.categories.push({ name: "Income", total: 24.9 });
+  expected.total.categories.sort((a, b) => b.total - a.total);
+  expected.byMonth[tagged.month].categories.push({ name: "Income", total: 24.9 });
+  expected.byMonth[tagged.month].categories.sort((a, b) => b.total - a.total);
   const index = source.months.findIndex((m) => m.key === tagged.month);
-  expected.income.Income.months[index] = Math.round((expected.income.Income.months[index] + tagged.amount) * 100) / 100;
-  expected.income.Income.days[tagged.month][tagged.day - 1] = Math.max(0,
-    Math.round((expected.income.Income.days[tagged.month][tagged.day - 1] + tagged.amount) * 100) / 100);
+  expected.spend.Income.months[index] = 24.9;
+  expected.spend.Income.days[tagged.month][tagged.day - 1] = 24.9;
   assert.deepEqual(buildDashboard(source), expected);
 });
 for (const [name, parser, bundledParser] of [

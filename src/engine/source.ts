@@ -33,7 +33,7 @@ export type SourcePayment = {
 /** A category on the person's list, with its look. */
 export type SourceCategory = {
   name: string; icon: string; color: string; excludeFromTotals: boolean;
-  /** Its home side; without it the category's net decides. Ignored for transfers. */
+  /** Its home side for category choices; without it the category's net decides. Ignored for transfers. */
   side?: "spend" | "income";
   /** Also offered for the other direction of money. Ignored for transfers (already offered both ways). */
   otherSide?: boolean;
