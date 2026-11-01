@@ -348,6 +348,8 @@
         "mcdonald",
         "mcdonalds",
         "mcdonald's",
+        "mc donald's",
+        "mc donalds",
         "burger king",
         "kfc",
         "subway",
@@ -423,6 +425,12 @@
         "noodle",
         "noodles",
         "falafel",
+        "chicken",
+        "mezedes",
+        "kimchi",
+        "simit",
+        "spanferkel",
+        "ratskeller",
         "brasserie",
         "burger",
         "onigiri",
@@ -780,6 +788,41 @@
     [
       "car-fuel",
       [
+        "autobahnen und schnellstraßen finanzierungs aktiengesellschaft",
+        "autobahnen und schnellstraßen finanzierungs ag"
+      ],
+      "both"
+    ],
+    [
+      "car-fuel",
+      [
+        "wirelane",
+        "allego",
+        "evbox",
+        "leap24",
+        "citywatt",
+        "comfortcharge",
+        "qwello",
+        "reev",
+        "e-flux",
+        "ladeverbund+",
+        "autostrom plus"
+      ],
+      "both"
+    ],
+    [
+      "car-fuel",
+      [
+        "motors",
+        "automobile",
+        "autozentrum",
+        "audi zentrum"
+      ],
+      "out"
+    ],
+    [
+      "car-fuel",
+      [
         "aral",
         "shell",
         "esso",
@@ -1070,7 +1113,56 @@
     [
       "utilities",
       [
+        "123energie",
+        "allgäuer überlandwerk",
+        "avacon",
+        "bayernwerk",
+        "bigge energie",
+        "bs energy",
+        "e-regio",
+        "e-werk mittelbaden",
+        "eberwerk",
+        "eins energie in sachsen",
+        "emscher lippe energie",
+        "energie calw",
+        "energie saarlorlux",
+        "energie und wasser potsdam",
+        "energiedienst",
+        "energis",
+        "enviam",
+        "envia mitteldeutsche energie",
+        "fairenergie",
+        "herzo werke",
+        "inselwerke",
+        "kreiswerke main-kinzig",
+        "lechwerke",
+        "lokalwerke",
+        "lsw energie",
+        "maingau",
+        "mark-e",
+        "naturenergie",
+        "pfalzwerke",
+        "regionalwerk bodensee",
+        "rewag",
+        "rhönenergie fulda",
+        "stadtwerk am see",
+        "stawag",
+        "süwag",
+        "teag thüringer energie",
+        "thüringer energie",
+        "wemag",
+        "westenergie",
+        "zeag energie"
+      ],
+      "both"
+    ],
+    [
+      "utilities",
+      [
         "stadtwerke",
+        "gemeindewerke",
+        "regionalwerk",
+        "kreiswerke",
         "rundfunkbeitrag",
         "nebenkosten",
         "energieversorgung",
@@ -1339,6 +1431,7 @@
         "moemax",
         "jysk",
         "bauhaus fachcentrum",
+        "bauhaus e-business gesellschaft",
         "bauhaus gesellschaft",
         "bauhaus fil",
         "bauhaus filiale",
@@ -1481,7 +1574,10 @@
         "musikhaus",
         "buchhandlung",
         "buchhaus",
-        "modellbau"
+        "modellbau",
+        "books",
+        "bookshop",
+        "bücherladen"
       ],
       "out"
     ],
@@ -1506,6 +1602,8 @@
       [
         "apotheke",
         "arztpraxis",
+        "gemeinschaftspraxis",
+        "salzgrotte",
         "zahnarzt",
         "podolog",
         "physiotherapie",
@@ -1819,6 +1917,7 @@
         "apple store",
         "mediamarkt",
         "media markt",
+        "mediamarktsaturn",
         "saturn",
         "cyberport",
         "notebooksbilliger",
@@ -1849,7 +1948,8 @@
     [
       "electronics",
       [
-        "elektromarkt"
+        "elektromarkt",
+        "computer"
       ],
       "out"
     ],
@@ -1927,7 +2027,19 @@
         "mieterverein",
         "sportverein",
         "turnverein",
-        "förderverein"
+        "förderverein",
+        "vereinsbeiträge",
+        "vereinsmitgliedschaft",
+        "mitgliedsgebühr",
+        "mitgliedsgebühren",
+        "parteibeitrag",
+        "parteibeiträge",
+        "gewerkschaftsbeitrag",
+        "gewerkschaftsbeiträge",
+        "clubbeitrag",
+        "clubbeiträge",
+        "klubbeitrag",
+        "klubbeiträge"
       ],
       "out"
     ],
@@ -2031,6 +2143,22 @@
       "both"
     ],
     [
+      "utilities",
+      [
+        "ewv",
+        "eam",
+        "ewr",
+        "evo",
+        "avu",
+        "eswe",
+        "ggew",
+        "ovag",
+        "teag",
+        "swb"
+      ],
+      "both"
+    ],
+    [
       "household",
       [
         "bauhaus",
@@ -2052,6 +2180,67 @@
         "tesla"
       ],
       "both"
+    ],
+    [
+      "car-fuel",
+      [
+        "abarth",
+        "acura",
+        "aixam",
+        "alfa romeo",
+        "aston martin",
+        "audi",
+        "bentley",
+        "bmw",
+        "byd",
+        "cadillac",
+        "chevrolet",
+        "chrysler",
+        "citroën",
+        "cupra",
+        "dacia",
+        "daihatsu",
+        "dodge",
+        "ferrari",
+        "fiat",
+        "ford",
+        "honda",
+        "hyundai",
+        "infiniti",
+        "isuzu",
+        "jeep",
+        "kia",
+        "koenigsegg",
+        "lamborghini",
+        "lancia",
+        "land rover",
+        "maserati",
+        "mazda",
+        "mclaren",
+        "mercedes-benz",
+        "mitsubishi",
+        "nissan",
+        "opel",
+        "peugeot",
+        "polestar",
+        "porsche",
+        "range rover",
+        "renault",
+        "rolls-royce",
+        "skoda",
+        "ssangyong",
+        "subaru",
+        "suzuki",
+        "toyota",
+        "vauxhall",
+        "volkswagen",
+        "volvo",
+        "xpeng",
+        "bp",
+        "q1",
+        "oil!"
+      ],
+      "out"
     ],
     [
       "taxi-sharing",
@@ -2172,6 +2361,30 @@
         "hallesche"
       ],
       "both"
+    ],
+    [
+      "memberships",
+      [
+        "spd",
+        "cdu",
+        "csu",
+        "fdp",
+        "afd",
+        "bündnis 90 die grünen",
+        "die linke",
+        "sozialdemokratische partei deutschlands",
+        "christlich demokratische union",
+        "christlich demokratische union deutschlands",
+        "christlich soziale union",
+        "christlich soziale union in bayern",
+        "freie demokratische partei",
+        "alternative für deutschland",
+        "gew",
+        "ngg",
+        "gdp",
+        "evg"
+      ],
+      "out"
     ],
     [
       "memberships",
@@ -2308,7 +2521,6 @@
         "auntie anne's",
         "auntie annes pretzels",
         "bageterie boulevard",
-        "bb.q chicken",
         "beets & roots",
         "belchicken",
         "bigchefs",
@@ -2319,7 +2531,6 @@
         "carl's jr.",
         "checkers drive-in restaurants, inc",
         "chipotle",
-        "cinnabon",
         "dairy queen",
         "domino's",
         "domino's australia",
@@ -2368,7 +2579,6 @@
         "papa john's",
         "papparich",
         "pelicana",
-        "pelicana chicken",
         "pepper lunch",
         "peter pane",
         "pita pit",
@@ -2382,7 +2592,6 @@
         "quiznos sub",
         "quiznos subs",
         "red lobster",
-        "risa chicken",
         "royal donuts",
         "ruby tuesday",
         "saizeriya",
@@ -2399,7 +2608,6 @@
         "taco bell",
         "telepizza",
         "tgi fridays",
-        "the chicken rice shop",
         "tony roma",
         "tony roma's",
         "wagamama",
@@ -2430,6 +2638,7 @@
         "cadera",
         "campus suite",
         "chatime",
+        "cinnabon",
         "coco fresh tea & juice",
         "coffeeshop company",
         "cold stone",
@@ -3219,7 +3428,6 @@
         "lumas",
         "mayersche",
         "osiander",
-        "press & books",
         "readshop",
         "tsutaya",
         "warhammer",
@@ -3612,7 +3820,6 @@
     [
       "electronics",
       [
-        "arlt computer",
         "bang & olufsen",
         "beko",
         "bose",

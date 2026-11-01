@@ -27,6 +27,10 @@ export function cardMerchant(text: string): { merchant: string; town: string } |
 /** The kind of booking some banks print before the merchant ("Kartenzahlung PENNY …", "SEPA-Lastschrift …"). */
 export const BOOKING_TYPE = /^(?:(?:sepa[ -])?(?:basis[ -]?)?lastschrift|kartenzahlung|debitkartenzahlung|kaufumsatz|sepa überweisung)\s*[:/-]?\s*/u;
 
+// Explicit card descriptor separators only. SPC is a SumUp descriptor (brief 96).
+// Sorting uses this separately from merchantKey so existing learned identities remain stable.
+export const SHOP_PROCESSOR_PREFIX = /^(?:paypal|sumup|spc|sq|iz|izettle|zettle|stripe|adyen|klarna|nexi|worldline)\s*[*_]\s*/iu;
+
 /** A correction groups merchant identities, not individual bookings. Empty keys are never learned. */
 export function merchantKey(payment: SortingPayment): string {
   let text = payeeText(payment);

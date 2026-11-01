@@ -1,5 +1,6 @@
-import { BOOKING_TYPE, cardMerchant, merchantKey, payeeText, type SortingPayment } from "./merchant.js";
-import { foodBusinessWord, shopSpellings, shopWords, withoutShopReferences } from "./shop-words.js";
+import { BOOKING_TYPE, cardMerchant, merchantKey, payeeText, SHOP_PROCESSOR_PREFIX, type SortingPayment } from "./merchant.js";
+import { SHOP_TOWNS, townMatches } from "./towns.js";
+import { businessFieldWords, businessWord, shopSpellings, shopWords, withoutShopReferences } from "./shop-words.js";
 
 /**
  * Which way the money moves for a name to count: "out" only for money going out (spending words such as "Miete":
@@ -55,13 +56,12 @@ const applies = (direction: Direction, money: Money) => money === null || direct
 
 // The text before the first number, and that number when it is a branch number: 2 to 6 digits standing alone, not
 // part of a word ("4211A"), a price ("23,50") or a time ("12:34"). "PENNY 4211 GARCHING" → "penny ", "4211".
-const branchNumber = /^((?:\D*[^\p{L}\p{N}])?)\d{2,6}(?![\p{L}\p{N}]|[.,:]\d)/u;
+const branchNumber = /^(.+?[^\p{L}\p{N}])\d{2,6}(?![\p{L}\p{N}]|[.,:]\d)/u;
 
 // A processor's explicit merchant separator, never a mere mention of a payment service. Keep merchantKey itself
 // unchanged so stored learned keys still work. PayPal's bank prose/seller extraction remains merchantKey's job.
-const processorPrefix = /^(?:(?:sumup|sq|iz|izettle|zettle|stripe|adyen|klarna|nexi|worldline)\s*[*_]\s*)/iu;
 function shopPayment(payment: SortingPayment): SortingPayment {
-  const clean = (text: string) => text.replace(processorPrefix, "");
+  const clean = (text: string) => text.toLowerCase().trim().replace(BOOKING_TYPE, "").replace(SHOP_PROCESSOR_PREFIX, "");
   return { ...payment, counterparty: payment.counterparty ? clean(payment.counterparty) : payment.counterparty,
     description: payment.description ? clean(payment.description) : payment.description,
     bookingText: payment.bookingText ? clean(payment.bookingText) : payment.bookingText };
@@ -85,9 +85,28 @@ export function compileShopList(list: ShopListData): ShopMatcher {
   const seen = new Set<string>();
   const otherWords = new Set(list.plainVowelWords ?? []);
   const noBranches = new Set((list.noBranches ?? []).flatMap((name) => shopSpellings(name, otherWords)));
+  // Joining spaces must not shadow an independently listed name in another category.
+  const compactOwners = new Map<string, Set<string>>();
+  for (const [categoryId, names] of [...list.rules, ...list.merchants, ...list.brands]) for (const name of names) {
+    for (const spelling of shopSpellings(name, otherWords)) {
+      const compact = spelling.replaceAll(" ", "");
+      const owners = compactOwners.get(compact) ?? new Set<string>();
+      owners.add(categoryId);
+      compactOwners.set(compact, owners);
+    }
+  }
   // A spelling listed twice keeps its first (higher-priority) place.
   const add = (index: Index, name: string, categoryId: string, rank: number, direction: Direction, source: StarterRule["source"]) => {
-    for (const spelling of shopSpellings(name, otherWords)) {
+    const spellings = shopSpellings(name, otherWords);
+    // NSI multiword brands also occur as one terminal word. Keep full word boundaries on both sides;
+    // this never searches for a brand inside an unrelated word or joins generic business-word rules.
+    if (source === "brand") for (const spelling of [...spellings]) {
+      const compact = spelling.replaceAll(" ", "");
+      if (/^[a-z]+(?: [a-z]+)+$/u.test(spelling) && compact.length >= 6 && compactOwners.get(compact)?.size === 1) {
+        spellings.push(compact);
+      }
+    }
+    for (const spelling of spellings) {
       if (seen.has(spelling)) continue;
       seen.add(spelling);
       const words = spelling.split(" ");
@@ -118,7 +137,7 @@ export function compileShopList(list: ShopListData): ShopMatcher {
   function find(index: Index, words: readonly string[]): Found[] {
     const found: Found[] = [];
     for (let start = 0; start < words.length; start++) {
-      const compound = index === handWritten ? foodBusinessWord(words[start]) : null;
+      const compound = index === handWritten ? businessWord(words[start]) : null;
       const entries = [...(index.get(words[start]) ?? []), ...(compound ? index.get(compound) ?? [] : [])];
       for (const entry of entries) {
         const end = start + entry.words.length;
@@ -151,27 +170,31 @@ export function compileShopList(list: ShopListData): ShopMatcher {
     return name && !noBranches.has(name) ? merchants.get(name) ?? null : null;
   }
 
-  /** Only one extra word, proven by this card line or other card lines in the person's payments. */
+  /** Only a known location suffix may follow an otherwise whole merchant, including damaged umlauts. */
   function townMerchant(payment: SortingPayment, towns: readonly string[]): Merchant | null {
     const card = cardMerchant(payeeText(payment)) ?? cardMerchant(payment.description ?? payment.bookingText ?? "");
     const name = shopWords(merchantKey(payment));
-    if (["de", "deu", "deutschland"].includes(name.at(-1) ?? "")) name.pop();
-    if (name.length < 2) return null;
-    const town = card ? shopWords(card.town) : [];
-    const proven = (town.length === 1 && name.at(-1) === town[0]) || towns.some((text) => {
-      const words = shopWords(text);
-      return words.length === 1 && name.at(-1) === words[0];
-    });
-    if (!proven) return null;
-    return merchants.get(name.slice(0, -1).join(" ")) ?? null;
+    const country = ["de", "deu", "deutschland"].includes(name.at(-1) ?? "");
+    if (country) name.pop();
+    const knownTowns = [...SHOP_TOWNS, ...towns, ...(card ? [card.town] : [])];
+    const found: Merchant[] = [];
+    for (let cut = 1; cut < name.length; cut++) {
+      const merchant = merchants.get(name.slice(0, cut).join(" "));
+      if (!merchant) continue;
+      const tail = name.slice(cut).join(" ");
+      if (!knownTowns.some((town) => townMatches(tail, town, country || !!card))) continue;
+      found.push(merchant);
+    }
+    return found.length && new Set(found.map((m) => m.categoryId)).size === 1 ? found[0] : null;
   }
 
   function decide(payment: SortingPayment, towns: readonly string[] = []): ShopFound | null {
     const money = moneyOf(payment.amount);
     const details = payment.description ?? payment.bookingText ?? "";
-    const text = `${cardMerchant(payment.counterparty ?? "")?.merchant ?? payment.counterparty ?? ""} ${cardMerchant(details)?.merchant ?? details}`;
-    const words = shopWords(withoutShopReferences(text));
-    const written = find(handWritten, words);
+    const payeeField = cardMerchant(payment.counterparty ?? "")?.merchant ?? payment.counterparty ?? "";
+    const detailField = cardMerchant(details)?.merchant ?? details;
+    const ruleWords = [...businessFieldWords(payeeField), ...businessFieldWords(detailField)];
+    const written = find(handWritten, ruleWords);
     const rule = best(written, written, money);
     if (rule) return rule;
     // A merchant found for the other direction decides too: Uber's money in is a driver's payout, not a ride.
@@ -182,6 +205,7 @@ export function compileShopList(list: ShopListData): ShopMatcher {
       return applies(direction, money) ? { categoryId, name, source: "merchant", direction, at: null } : null;
     }
     // A hand-written name for the other direction also hides the brands inside it.
+    const words = shopWords(withoutShopReferences(`${payeeField} ${detailField}`));
     const branded = find(brands, words);
     return best(branded, [...written, ...branded], money);
   }

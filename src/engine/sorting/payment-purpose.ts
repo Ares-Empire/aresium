@@ -7,6 +7,8 @@ export function paymentPurpose(payment: SortingPayment): string | null {
   const has = (...names: string[]) => names.some((name) => words.includes(name));
   const amount = payment.amount;
   if (typeof amount === "number" && Number.isFinite(amount) && amount < 0) {
+    // A canteen payment describes the purchase even when its host is an office or authority.
+    if (has("kantine", "betriebskantine", "mensa")) return "eating-out";
     // An explicit grocery purchase is clearer than a bakery's name (which otherwise permits a café snack).
     const purpose = shopWords(withoutShopReferences(payment.description || payment.bookingText || "")).join(" ");
     if (has("brot") && has("einkauf") && !purpose.includes("ihr einkauf bei")) return "groceries";
@@ -21,4 +23,12 @@ export function paymentPurpose(payment: SortingPayment): string | null {
     return "selling-things";
   }
   return null;
+}
+
+/** Association names are a last resort: a known school, charity, sports venue or shop keeps its specific purpose. */
+export function associationPurpose(payment: SortingPayment): string | null {
+  if (!(typeof payment.amount === "number" && Number.isFinite(payment.amount) && payment.amount < 0)) return null;
+  const payee = withoutShopReferences(payment.counterparty?.trim() || payment.description || payment.bookingText || "");
+  return /\be\s*\.\s*v\.?(?=[^.\p{L}\p{N}]|$)/iu.test(payee)
+    || /(?:^| )eingetragener verein(?: |$)/u.test(shopWords(payee).join(" ")) ? "memberships" : null;
 }
