@@ -90,12 +90,12 @@ export interface Dashboard {
 
 const money = (n: number) => Math.round(n * 100) / 100;
 // Payments without a category ("Not sorted" in the apps; engine/source.ts names them so). Their money in counts as
-// income ("Other") only, never as negative spending (Patrik, 2026-10-27): a salary from a new employer used to lower
-// "Not sorted"'s spending, and a month with more unsorted money in than out showed no "Not sorted" spending at all.
-const isUnsorted = (categoryName: string) => !categoryName || categoryName === "Uncategorised";
-const INCOME_META: Record<string, Category> = {
-  Other: { name: "Other", icon: "CircleHelp", color: "#9AA6B8", kind: "income" },
-};
+// income only, never as negative spending (Patrik, 2026-10-27), under the same "Uncategorised" on the income side as
+// their money out on the spending side (2026-11-01: the income side's old name "Other" showed untranslated in the
+// app and shared its row with the default category called "Other" in English).
+const UNSORTED = "Uncategorised";
+const isUnsorted = (categoryName: string) => !categoryName || categoryName === UNSORTED;
+const UNSORTED_META: Category = { name: UNSORTED, icon: "CircleHelp", color: "#9ca3af", kind: "spend" };
 
 export function buildDashboard(source: DashboardSource): Dashboard {
   const { months, categories, balanceByDay } = source;
@@ -144,7 +144,7 @@ export function buildDashboard(source: DashboardSource): Dashboard {
     const spending = !isTransfer && (t.amount < 0 || covered);
     const incoming = !isTransfer && t.amount > 0 && !covered;
     const categoriesIn = spending ? names : [];
-    const buckets = incoming ? [...new Set(names.map((name) => isUnsorted(name) ? "Other" : name))] : [];
+    const buckets = incoming ? [...new Set(names.map((name) => isUnsorted(name) ? UNSORTED : name))] : [];
     const txn: Txn = {
       id: t.id, date: t.date, day, month, amount: t.amount, categoryName: t.categoryName,
       tags: [...tags], place: t.place, city: t.city, categoriesIn, incomeBuckets: buckets,
@@ -237,7 +237,7 @@ export function buildDashboard(source: DashboardSource): Dashboard {
   };
   return {
     version: 2, months, categories, pick,
-    incomeBuckets: [...income.keys()].map((name) => catByName.get(name) ?? INCOME_META[name]
+    incomeBuckets: [...income.keys()].map((name) => catByName.get(name) ?? (name === UNSORTED ? UNSORTED_META : undefined)
       ?? { name, icon: "Tag", color: "#34E27A", kind: "income" }),
     transactions, total, byMonth, spend: Object.fromEntries(spend), income: Object.fromEntries(income),
     overview: {

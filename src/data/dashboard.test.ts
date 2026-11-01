@@ -161,25 +161,26 @@ test("other-side choices follow all home choices and transfers, in their own row
 
 // Money moved between one's own accounts (a transfer category) counts as neither spending nor income
 // (Patrik, 2026-10-27); a transfer tag on an income payment does not make a Transfer income row either.
-test("uncategorised money in uses Other; transfers count as neither spending nor income", () => {
+test("uncategorised money in is income under Uncategorised; transfers count as neither spending nor income", () => {
   const d = buildDashboard(fixture());
   assert.deepEqual(d.transactions[1].incomeBuckets, ["Income", "Tax"]);
-  assert.deepEqual(d.transactions[3].incomeBuckets, ["Other"]);
+  assert.deepEqual(d.transactions[3].incomeBuckets, ["Uncategorised"]);
   assert.deepEqual(d.transactions[4].incomeBuckets, []);
   assert.deepEqual(d.transactions[5].incomeBuckets, []);
   assert.equal(d.byMonth["2026-01"].dayExpense[2], 0);
   assert.equal(d.total.income, 42);
   assert.deepEqual(d.total.incomeBuckets, [
-    { name: "Income", total: 35 }, { name: "Tax", total: 35 }, { name: "Health", total: 15 }, { name: "Other", total: 7 },
+    { name: "Income", total: 35 }, { name: "Tax", total: 35 }, { name: "Health", total: 15 }, { name: "Uncategorised", total: 7 },
   ]);
   assert.ok(d.pick.income.includes("Transfer"), "incoming money can still be moved to a transfer category");
-  assert.equal(d.incomeBuckets.find((c) => c.name === "Other")?.icon, "CircleHelp");
+  // The fixture has a database category called Uncategorised (icon Tag); its money in shows with its own look.
+  assert.equal(d.incomeBuckets.find((c) => c.name === "Uncategorised")?.icon, "Tag");
 });
 
-// "Not sorted" (Uncategorised) counts money out only; unsorted money in is income under "Other" (Patrik, 2026-10-27).
+// "Not sorted" (Uncategorised) counts money out only; unsorted money in is income under the same "Uncategorised" (Patrik, 2026-10-27; named so since 2026-11-01).
 // Before, the 150 below lowered Not sorted's spending to -130, so the month vanished from its list ("No activity
 // recorded"). Run through buildDashboardSource, as the server and the phone do.
-test("unsorted money in is income in Other only; Not sorted shows the money out; refunds leave spending unchanged", () => {
+test("unsorted money in is income under Uncategorised only; Not sorted shows the money out; refunds leave spending unchanged", () => {
   const look = (name: string) => ({ name, icon: "Tag", color: "#123456", excludeFromTotals: false });
   const pay = (id: string, date: string, amount: number, category: string | null): SourcePayment => ({
     id, externalId: id, date, amount, currency: "EUR", description: "Fiktiv", counterparty: "Fiktiv", category,
@@ -199,8 +200,9 @@ test("unsorted money in is income in Other only; Not sorted shows the money out;
   assert.deepEqual(d.spend.Uncategorised.months, [20]);
   assert.equal(d.spend.Uncategorised.days["2026-03"][4], 0);
   assert.equal(d.spend.Uncategorised.days["2026-03"][6], 20);
-  assert.deepEqual(march.incomeBuckets, [{ name: "Other", total: 150 }, { name: "Groceries", total: 12 }]);
-  assert.deepEqual(d.income.Other.months, [150]);
+  assert.deepEqual(march.incomeBuckets, [{ name: "Uncategorised", total: 150 }, { name: "Groceries", total: 12 }]);
+  assert.deepEqual(d.income.Uncategorised.months, [150]);
+  assert.equal(d.incomeBuckets.find((c) => c.name === "Uncategorised")?.icon, "CircleHelp", "the synthesised entry's look");
   // Both payments out count in full; neither payment in lowers spending.
   assert.equal(march.expense, 50);
   assert.equal(d.total.expense, 50);
@@ -208,7 +210,7 @@ test("unsorted money in is income in Other only; Not sorted shows the money out;
   assert.equal(march.dayExpense[4], 0);
   assert.equal(march.dayExpenseRunning.at(-1), 50);
   const byId = new Map(d.transactions.map((t) => [t.id, t]));
-  assert.deepEqual([byId.get("in")!.categoriesIn, byId.get("in")!.incomeBuckets], [[], ["Other"]]);
+  assert.deepEqual([byId.get("in")!.categoriesIn, byId.get("in")!.incomeBuckets], [[], ["Uncategorised"]]);
   assert.deepEqual([byId.get("out")!.categoriesIn, byId.get("out")!.incomeBuckets], [["Uncategorised"], []]);
   assert.deepEqual([byId.get("refund")!.categoriesIn, byId.get("refund")!.incomeBuckets], [[], ["Groceries"]]);
   assert.equal(byId.get("in")!.categoryName, "Uncategorised", "the payment keeps its real name for Switch and Add");
@@ -251,7 +253,7 @@ test("addition order, cent rounding, income ties and out-of-window bookings foll
   );
   const d = buildDashboard(source);
   assert.deepEqual(d.total.incomeBuckets.map((b) => [b.name, b.total]),
-    [["Food", 100000000000000], ["Income", 235], ["Second income", 200], ["Tax", 35], ["Health", 15], ["Other", 7]]);
+    [["Food", 100000000000000], ["Income", 235], ["Second income", 200], ["Tax", 35], ["Health", 15], ["Uncategorised", 7]]);
   assert.deepEqual(d.byMonth["2026-02"].incomeBuckets.map((b) => [b.name, b.total]),
     [["Income", 100], ["Second income", 100]]);
   assert.deepEqual([d.total.expense, d.byMonth["2026-01"].expense, d.byMonth["2026-02"].expense], [100000000000013, 100000000000010, 3.01]);

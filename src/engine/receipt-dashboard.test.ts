@@ -43,8 +43,9 @@ const fixtureCategories: SourceCategory[] = DEFAULT_CATEGORIES.map((c) => ({
   name: nameAtHash(c), icon: "Tag", color: "#123456", excludeFromTotals: c.kind === "transfer",
 }));
 const sha256 = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
-// Full dashboard after direction-based counting (brief 71); the source remains byte-identical to brief 68.
-const DASHBOARD_HASH = "9f7ab984a1f519eb556b7c5504173ad5f8fbe80b90e954e020e392ad8a00a227";
+// Full dashboard after direction-based counting (brief 71) and unsorted money in under "Uncategorised" instead of
+// "Other" (2026-11-01); the source remains byte-identical to brief 68.
+const DASHBOARD_HASH = "66bde09a3ac35268682f29efa0d4c929541b8ca6859fb0e28eb29414abea8321";
 const SOURCE_HASH_BEFORE_SIDES = "9142fa1a3d8ceda53a989d06dff88c68a8c11b129d4053f306e522b3ef5de90d";
 
 function assertFixtureDashboard(dashboard: ReturnType<typeof buildDashboard>) {
@@ -305,8 +306,8 @@ test("cash received with no category: Other income once, never Not sorted spendi
   assert.deepEqual(tookFrom(source), { r: ["sold"] });
   assert.deepEqual(coveredRows(source), []);
   const sold = dashboard.transactions.find((t) => t.id === "sold")!;
-  assert.deepEqual([sold.categoryName, sold.categoriesIn, sold.incomeBuckets, sold.coveredBy], ["Uncategorised", [], ["Other"], undefined]);
-  assert.deepEqual(dashboard.total.incomeBuckets, [{ name: "Other", total: 40 }]);
+  assert.deepEqual([sold.categoryName, sold.categoriesIn, sold.incomeBuckets, sold.coveredBy], ["Uncategorised", [], ["Uncategorised"], undefined]);
+  assert.deepEqual(dashboard.total.incomeBuckets, [{ name: "Uncategorised", total: 40 }]);
   assert.equal(dashboard.total.income, 40);
   assert.equal(spentIn(dashboard, "2026-02", "Uncategorised"), 100, "only the withdrawal: the gift does not lower it");
   assert.equal(dashboard.total.expense, 110);
