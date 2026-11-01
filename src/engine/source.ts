@@ -31,7 +31,13 @@ export type SourcePayment = {
 };
 
 /** A category on the person's list, with its look. */
-export type SourceCategory = { name: string; icon: string; color: string; excludeFromTotals: boolean };
+export type SourceCategory = {
+  name: string; icon: string; color: string; excludeFromTotals: boolean;
+  /** Its home side; without it the category's net decides. Ignored for transfers. */
+  side?: "spend" | "income";
+  /** Also offered for the other direction of money. Ignored for transfers (already offered both ways). */
+  otherSide?: boolean;
+};
 
 /** A stored receipt (brief 30) or cash entry typed in by hand (brief 32), as plain JSON. */
 export type SourceReceipt = {
@@ -122,7 +128,8 @@ export function buildDashboardSource(input: DashboardSourceInput): DashboardSour
   }
   const categories: Category[] = input.categories.map((c) => ({
     name: c.name, icon: c.icon, color: c.color,
-    kind: c.excludeFromTotals ? "transfer" : (net.get(c.name) ?? 0) > 0 ? "income" : "spend",
+    kind: c.excludeFromTotals ? "transfer" : c.side ?? ((net.get(c.name) ?? 0) > 0 ? "income" : "spend"),
+    ...(c.otherSide && !c.excludeFromTotals ? { otherSide: true as const } : {}),
   }));
   if (hasUncategorised) categories.push({ ...UNCATEGORISED });
 

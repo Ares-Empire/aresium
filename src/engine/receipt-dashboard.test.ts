@@ -45,13 +45,25 @@ const fixtureCategories: SourceCategory[] = DEFAULT_CATEGORIES.map((c) => ({
 const sha256 = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
 // The hash of the fixtures' dashboard JSON as main computed it before brief 30 (commit 612b96a), 477,944 characters.
 const HASH_BEFORE_RECEIPTS = "90a059bc6ad8738592ba9a303ee04fd3dc816c52c4ac0f4a7f9f4f8df7f3d8b5";
+const SOURCE_HASH_BEFORE_SIDES = "9142fa1a3d8ceda53a989d06dff88c68a8c11b129d4053f306e522b3ef5de90d";
+
+// Brief 68 adds transfers to money-out choices for everyone. Apart from that addition these fixtures (no income
+// money out) still match the original dashboard byte for byte; keep the old hash as the oracle.
+function assertLegacyDashboard(dashboard: ReturnType<typeof buildDashboard>) {
+  const transfers = dashboard.categories.filter((c) => c.kind === "transfer").map((c) => c.name);
+  const spend = dashboard.pick.spend.filter((n) => !transfers.includes(n));
+  assert.deepEqual(dashboard.pick.spend, [...spend, ...transfers.sort((a, b) => a.localeCompare(b))]);
+  assert.equal(sha256({ ...dashboard, pick: { ...dashboard.pick, spend } }), HASH_BEFORE_RECEIPTS);
+}
 
 test("no receipts: the dashboard of every bank fixture is the same as before receipts existed", async () => {
   const input = { transactions: await fixturePayments(), categories: fixtureCategories, today: "2026-03-15" };
   assert.equal(input.transactions.length, 128);
   assert.ok(input.transactions.some((p) => p.category === "Cash"), "the fixtures hold cash withdrawals");
-  const dashboard = buildDashboard(buildDashboardSource(input));
-  assert.equal(sha256(dashboard), HASH_BEFORE_RECEIPTS);
+  const source = buildDashboardSource(input);
+  assert.equal(sha256(source), SOURCE_HASH_BEFORE_SIDES, "source JSON without side fields stays byte-identical");
+  const dashboard = buildDashboard(source);
+  assertLegacyDashboard(dashboard);
   // The server's JSON gains nothing of the Cash page (brief 32).
   assert.equal("cash" in dashboard, false);
   assert.equal(dashboard.transactions.some((t) => "cashWithdrawal" in t), false);
@@ -61,7 +73,7 @@ test("receipts given but none stored: the same numbers; only the Cash page and t
   const input = { transactions: await fixturePayments(), categories: fixtureCategories, today: "2026-03-15", receipts: [] };
   const { cash, ...dashboard } = buildDashboard(buildDashboardSource(input));
   const unmarked = { ...dashboard, transactions: dashboard.transactions.map(({ cashWithdrawal, ...t }) => t) };
-  assert.equal(sha256(unmarked), HASH_BEFORE_RECEIPTS);
+  assertLegacyDashboard(unmarked);
   const marked = dashboard.transactions.filter((t) => t.cashWithdrawal).map((t) => t.id);
   assert.ok(marked.length > 0);
   assert.deepEqual(cash!.movements.map((m) => [m.id, m.kind, m.paidFrom, m.coveredBy]), marked.map((id) => [id, "withdrawal", null, []]));

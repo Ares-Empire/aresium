@@ -58,6 +58,59 @@ test("transactions keep id, day, amount, tags, place and city in the dashboard's
   assert.equal(build([pay("2026-02-03", -1)]).transactions[0].city, "");
 });
 
+test("a given side wins over the net, including empty income categories; transfers ignore both new fields", () => {
+  const list: SourceCategory[] = [
+    { ...look("Friends"), side: "spend", otherSide: true },
+    { ...look("Selling things"), side: "income" },
+    { ...look("Salary"), side: "income", otherSide: true },
+    { ...look("Own transfers", true), side: "income", otherSide: true },
+    { ...look("Savings & investing", true), side: "spend" },
+    { ...look("Groceries"), otherSide: false },
+  ];
+  const source = build([
+    pay("2026-02-01", -10, { category: "Friends" }), pay("2026-02-02", 30, { category: "Friends" }),
+    pay("2026-02-03", -5, { category: "Salary" }),
+  ], "2026-02-10", list);
+  assert.deepEqual(source.categories, [
+    { name: "Friends", icon: "Tag", color: "#123456", kind: "spend", otherSide: true },
+    { name: "Selling things", icon: "Tag", color: "#123456", kind: "income" },
+    { name: "Salary", icon: "Tag", color: "#123456", kind: "income", otherSide: true },
+    { name: "Own transfers", icon: "Tag", color: "#123456", kind: "transfer" },
+    { name: "Savings & investing", icon: "Tag", color: "#123456", kind: "transfer" },
+    { name: "Groceries", icon: "Tag", color: "#123456", kind: "spend" },
+  ]);
+  const dashboard = buildDashboard(source);
+  assert.deepEqual(dashboard.pick, {
+    spend: ["Friends", "Groceries", "Own transfers", "Savings & investing", "Salary"],
+    income: ["Own transfers", "Salary", "Savings & investing", "Selling things", "Friends"],
+  });
+  assert.deepEqual([dashboard.total.expense, dashboard.total.income], [-20, 25]);
+  assert.deepEqual(dashboard.total.categories, []);
+  assert.deepEqual(dashboard.total.incomeBuckets, [{ name: "Refunds", total: 30 }]);
+  assert.deepEqual(dashboard.income.Salary.months, [0]);
+  assert.equal(dashboard.income.Friends, undefined, "Friends stays a spending category; money back is Refunds");
+  const withoutOtherSide = buildDashboard(build([], "2026-02-10", list.map(({ otherSide, ...c }) => c)));
+  assert.ok(withoutOtherSide.pick.income.includes("Selling things"), "an empty income category can receive money");
+  assert.ok(!withoutOtherSide.pick.spend.includes("Selling things"));
+  const { pick, categories: meta, incomeBuckets, ...numbers } = dashboard;
+  const unoffered = buildDashboard({ ...source, categories: source.categories.map(({ otherSide, ...c }) => c) });
+  const { pick: unofferedPick, categories: unofferedMeta, incomeBuckets: unofferedBuckets, ...unofferedNumbers } = unoffered;
+  assert.deepEqual(numbers, unofferedNumbers, "otherSide widens choices without changing any numbers");
+});
+
+test("without a side the net still chooses income, and money out in that category now reduces its income", () => {
+  const source = build([
+    pay("2026-02-01", 100, { category: "Income" }),
+    pay("2026-02-02", -25, { category: "Income" }),
+  ]);
+  assert.equal(source.categories.find((c) => c.name === "Income")!.kind, "income");
+  assert.ok(source.categories.every((c) => !("otherSide" in c)));
+  const dashboard = buildDashboard(source);
+  assert.deepEqual([dashboard.total.income, dashboard.total.expense], [75, 0]);
+  assert.deepEqual(dashboard.total.incomeBuckets, [{ name: "Income", total: 75 }]);
+  assert.deepEqual(dashboard.transactions[1].incomeBuckets, ["Income"]);
+});
+
 test("months span the payments and the current month counts up to today", () => {
   const months = build([pay("2025-12-30", -1), pay("2026-02-03", -1)], "2026-02-10").months;
   assert.deepEqual(months.map((m) => [m.key, m.label, m.short, m.year, m.month, m.days, m.partial]), [
@@ -131,14 +184,19 @@ const bundled = context.AresiumEngine as typeof engine;
 const json = (value: unknown) => JSON.parse(JSON.stringify(value));
 
 test("the bundle's buildDashboardSource equals the direct one, and its dashboard too", () => {
-  const input = { categories, today: "2026-02-10", transactions: [
+  const transactions = [
     pay("2026-01-20", 1200, { category: "Income", balance: 1500 }), pay("2026-02-03", -18.9, { category: null, balance: 1481.1 }),
     pay("2026-02-04", -105.91, { externalId: "X", currency: "USD", raw: { Typ: "PayPal Express-Zahlung" } }),
     pay("2026-02-04", -95.07, { raw: { Typ: "Allgemeine Währungsumrechnung", "Zugehöriger Transaktionscode": "X" } }),
-  ] };
-  const direct = buildDashboardSource(input);
-  assert.deepEqual(json(bundled.buildDashboardSource(input)), json(direct));
-  assert.deepEqual(json(bundled.buildDashboard(bundled.buildDashboardSource(input))), json(buildDashboard(direct)));
+    pay("2026-02-05", -25, { category: "Income", tags: ["Income"] }),
+  ];
+  const withSides: SourceCategory[] = categories.map((c) => ({ ...c, side: c.name === "Income" ? "income" : "spend", otherSide: true }));
+  for (const list of [categories, withSides]) {
+    const input = { categories: list, today: "2026-02-10", transactions };
+    const direct = buildDashboardSource(input);
+    assert.deepEqual(json(bundled.buildDashboardSource(input)), json(direct));
+    assert.deepEqual(json(bundled.buildDashboard(bundled.buildDashboardSource(input))), json(buildDashboard(direct)));
+  }
 });
 
 test("the bundle's transfer step and sorting equal the direct ones", () => {

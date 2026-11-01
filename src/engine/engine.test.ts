@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import { createContext, runInContext } from "node:vm";
 import { bundleEngine, buildTimingSource } from "../../scripts/build-engine.js";
-import { buildDashboard } from "../data/dashboard.js";
+import { buildDashboard, type Dashboard } from "../data/dashboard.js";
 import { buildSampleSource } from "../data/sample-source.js";
 import { parseVrBankCsv } from "../import/vrbank-csv.js";
 import { parseCamt } from "../import/camt.js";
@@ -46,6 +47,29 @@ test("bundled shop identities and cross-shop learning equal the direct engine wi
 test("bundled sample dashboard equals the direct server calculation", () => {
   const source = buildSampleSource();
   assert.deepEqual(json(bundled.buildDashboard(source)), json(buildDashboard(source)));
+});
+
+test("sample source JSON stays byte-identical; its dashboard changes only for transfers in pick and the income tag on money out", async () => {
+  const source = buildSampleSource();
+  assert.equal(createHash("sha256").update(JSON.stringify(source)).digest("hex"),
+    "f79896e7c5135e670fd035f42357d109f775a3d46cdc215642a320622576bab0");
+  const expected: Dashboard = JSON.parse(await readFile(new URL("../../web/public/app/dashboard.sample.json", import.meta.url), "utf8"));
+  expected.pick.spend.push("Transfer");
+  // This existing Add example now lowers its tagged income row, without changing headline income or spending.
+  const tagged = expected.transactions.find((t) => t.amount < 0 && t.tags.includes("Income"))!;
+  assert.equal(tagged.amount, -24.9);
+  tagged.incomeBuckets = ["Income"];
+  const subtractReturn = (rows: { name: string; total: number }[]) => {
+    const row = rows.find((r) => r.name === "Income")!;
+    row.total = Math.round((row.total + tagged.amount) * 100) / 100;
+  };
+  subtractReturn(expected.total.incomeBuckets);
+  subtractReturn(expected.byMonth[tagged.month].incomeBuckets);
+  const index = source.months.findIndex((m) => m.key === tagged.month);
+  expected.income.Income.months[index] = Math.round((expected.income.Income.months[index] + tagged.amount) * 100) / 100;
+  expected.income.Income.days[tagged.month][tagged.day - 1] = Math.max(0,
+    Math.round((expected.income.Income.days[tagged.month][tagged.day - 1] + tagged.amount) * 100) / 100);
+  assert.deepEqual(buildDashboard(source), expected);
 });
 for (const [name, parser, bundledParser] of [
   ["vrbank.csv", parseVrBankCsv, bundled.parseVrBankCsv],

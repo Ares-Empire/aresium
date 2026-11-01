@@ -50,7 +50,10 @@ interface Dashboard {
 }
 
 interface Month { key: MonthKey; label: string; short: string; year: number; month: number; days: number; partial: boolean }
-interface Category { name: string; icon: string; color: string; kind: "spend" | "income" | "transfer" }
+interface Category {
+  name: string; icon: string; color: string; kind: "spend" | "income" | "transfer";
+  otherSide?: true;                  // also offered for the other direction of money; totals still follow kind
+}
 
 interface Txn {
   id: string; date: string; day: number; month: MonthKey;   // date "2026-10-03", day 3, month "2026-10"
@@ -59,14 +62,14 @@ interface Txn {
   tags: string[];                    // extra categories the user "Add"-ed
   place: string; city: string;
   categoriesIn: string[];            // [categoryName, ...tags] without duplicates: where it is listed on the spend side
-  incomeBuckets: string[];           // amount > 0 only: [primary bucket, ...tagged income buckets]; [] otherwise
+  incomeBuckets: string[];           // money in: primary and tagged buckets; money out: income categories it lowers
 }
 
 interface Totals {
   expense: number;                   // money out, counted once (primary category, kind "spend")
-  income: number;                    // money in, counted once (every amount > 0)
+  income: number;                    // money in minus money given back in a primary income category; excludes transfers/covered cash
   categories: { name: string; total: number }[];      // spend categories incl. tagged txns, total > 0, largest first
-  incomeBuckets: { name: string; total: number }[];   // incl. tagged txns, largest first
+  incomeBuckets: { name: string; total: number }[];   // incl. tagged txns, total > 0, largest first
 }
 
 interface MonthData extends Totals {
@@ -83,8 +86,9 @@ interface Series {
 }
 ```
 
-All money values are rounded to cents. Spend values are positive numbers (money out). `spend` series are
-never below 0 (refunds inside a category do not make it negative), as in version 1.
+All money values are rounded to cents. Spend values are positive numbers (money out). `spend` and `income`
+series are never below 0 (money given back inside a category does not make its series negative). Headline
+`expense` and `income`, including daily and monthly totals, can be negative.
 
 ## Rules the server applies (clients never re-implement these)
 
@@ -92,9 +96,16 @@ never below 0 (refunds inside a category do not make it negative), as in version
   every headline figure (`expense`, `income`, `overview`, `dayExpense`). `tags` only widen where it is listed:
   a category's own totals, series and list include its tagged transactions, so category rows may overlap.
 - **Income buckets.** Money in (amount > 0) is grouped by its primary category if that category is of kind
-  `income` or `transfer`, or is `Tax`; a positive amount in a spend category is `Refunds`; no category is
-  `Other`. Tagged income/transfer/Tax categories add further buckets. `incomeBuckets` carries the icon and
-  colour for each, including `Refunds` and `Other`.
+  `income` or is `Tax`; a positive amount in another spend category is `Refunds`; no category is `Other`.
+  Tagged income/Tax categories add further buckets. Transfers and cash covered by receipts never count as
+  income and have no income buckets; a transfer tag adds no bucket either. `incomeBuckets` carries the icon
+  and colour for each, including `Refunds` and `Other`.
+- **Money given back in an income category.** Money out in a primary `income` category lowers headline
+  income, the month's income and `dayIncome`, and never counts as headline spending. It also lowers that
+  category's income rows and series; its transaction's `incomeBuckets` names the category. Each tagged
+  income category is lowered too, once per category, without changing the headline totals. Series clamp at
+  zero after adding the payments; rows show only totals above zero. Money out in `Tax` with kind `spend`
+  stays spending. Unsorted payments, transfers and cash covered by receipts keep their own rules.
 - **Balance** is the bank's own balance, carried forward on days without a booking.
 - **Foreign currency** (PayPal, decided 2026-10-24): a purchase in another currency counts at its euro cost (the
   euro row of PayPal's "Allgemeine Währungsumrechnung" with the purchase's code), keeping its category; both
@@ -106,11 +117,19 @@ never below 0 (refunds inside a category do not make it negative), as in version
   `buildDashboardSource` (`src/engine/source.ts`), then `buildDashboard`. The server maps its rows to the engine's
   plain input and adds the categories' icons and colours (`getDashboardSource` in `src/data/queries.ts`); the iPhone
   app in phone mode runs the same two functions on the payments it stores.
-- **Recategorise choices** (`pick`): money out (amount ≤ 0) can move among `spend` categories, money in among
-  `income`/`transfer` categories and `Tax`. Each list starts with the categories in the order of their
-  all-time rows (`total.categories` / `total.incomeBuckets`), then the rest alphabetically. Only database
-  categories are offered: a synthesised `Uncategorised` is omitted from both lists, while a real database
-  category with that name remains eligible under the same kind rules.
+- **Category side** (engine input). Each `SourceCategory` can give `side?: "spend" | "income"`, its home
+  side for totals, and `otherSide?: boolean`, whether it is also offered for the other direction of money.
+  `buildDashboardSource` uses `side` as the output category's `kind`; without it, a net above zero means
+  `income`, otherwise `spend`, as before. `excludeFromTotals: true` always means `transfer` and ignores
+  both fields. Only `otherSide: true` is passed to the output, so older inputs gain no JSON fields. The
+  caller chooses the side; the engine does not look up default category ids.
+- **Recategorise choices** (`pick`): money out (amount ≤ 0) offers `spend` categories, then transfers,
+  then `income` categories with `otherSide`. Money in offers `income`/`transfer` categories and `Tax` as
+  before, then `spend` categories with `otherSide` (each name once). Each part follows its home side's
+  all-time row order (`total.categories` / `total.incomeBuckets`), then the rest alphabetically. Transfers
+  appear in both lists without needing `otherSide`. `otherSide` only widens the choices; it never changes
+  how money counts. Only the caller's stored categories are offered: a synthesised `Uncategorised` is
+  omitted from both lists, while a real stored category with that name follows the same kind rules.
 
 ## What clients do
 
@@ -124,7 +143,7 @@ Only lookups, filters and sorting for display:
 | A category's or income bucket's chart by month / by day | `spend[name]` or `income[name]`: `.months`, `.days[key]` |
 | A category's list of months | `months` where the series value is > 0 |
 | A category's transactions in a month | `transactions` with `month == key` and `categoriesIn` containing it, sorted by `day`; "tagged" when `categoryName` differs |
-| An income bucket's transactions in a month | same with `incomeBuckets`; "tagged" when `incomeBuckets[0]` differs |
+| An income bucket's transactions in a month | same with `incomeBuckets`; "tagged" when `incomeBuckets[0]` differs for money in, or `categoryName` differs for money out |
 
 | Categories to offer when recategorising a transaction | `pick.income` if its amount > 0, else `pick.spend` |
 
