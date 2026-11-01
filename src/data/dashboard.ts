@@ -5,6 +5,7 @@ export interface Month {
 }
 export interface Category {
   name: string; icon: string; color: string; kind: "spend" | "income" | "transfer";
+  otherSide?: true; // also offered for the other direction of money; totals still follow kind
 }
 // Receipts (brief 30): every field here is optional, so older readers of the JSON keep working.
 export interface ReceiptMarks {
@@ -143,10 +144,18 @@ export function buildDashboard(source: DashboardSource): Dashboard {
     // Unsorted money in is listed under "Other" income only: not under "Not sorted", not in its spending.
     const unsortedIn = t.amount > 0 && isUnsorted(t.categoryName) && !covered;
     const categoriesIn = [...new Set([t.categoryName, ...tags])].filter((name) => !(unsortedIn && isUnsorted(name)));
-    const isTransfer = catByName.get(t.categoryName)?.kind === "transfer";
+    const primaryKind = catByName.get(t.categoryName)?.kind;
+    const isTransfer = primaryKind === "transfer";
+    const incomeOut = t.amount < 0 && primaryKind === "income" && !isUnsorted(t.categoryName);
     const primaryBucket = isUnsorted(t.categoryName) ? "Other"
       : incomeBucketKeep.has(t.categoryName) ? t.categoryName : "Refunds";
-    const buckets = t.amount > 0 && !isTransfer && !covered ? [...new Set([primaryBucket, ...tags.filter((n) => incomeBucketKeep.has(n))])] : [];
+    // Money given back reduces income only in income categories (Tax keeps its spending rules).
+    const buckets = isTransfer || covered ? [] : t.amount > 0
+      ? [...new Set([primaryBucket, ...tags.filter((n) => incomeBucketKeep.has(n))])]
+      : t.amount < 0 ? [...new Set([
+        ...(incomeOut ? [t.categoryName] : []),
+        ...tags.filter((n) => catByName.get(n)?.kind === "income" && !isUnsorted(n)),
+      ])] : [];
     const txn: Txn = {
       id: t.id, date: t.date, day, month, amount: t.amount, categoryName: t.categoryName,
       tags: [...tags], place: t.place, city: t.city, categoriesIn, incomeBuckets: buckets,
@@ -170,18 +179,18 @@ export function buildDashboard(source: DashboardSource): Dashboard {
         if (validDay) series.days[month][day - 1] += -t.amount;
       }
     }
-    if (t.amount > 0 && !isTransfer && !covered) {
+    if ((t.amount > 0 || incomeOut) && !isTransfer && !covered) {
       total.income += t.amount;
       if (mo) { mo.income += t.amount; if (validDay) mo.dayIncome[day - 1] += t.amount; }
-      for (const bucket of buckets) {
-        if (!income.has(bucket)) income.set(bucket, makeSeries());
-        add(incomeAll, bucket, t.amount);
-        if (index !== undefined) {
-          add(incomeMonths[index], bucket, t.amount);
-          const series = income.get(bucket)!;
-          series.months[index] += t.amount;
-          if (validDay) series.days[month][day - 1] += t.amount;
-        }
+    }
+    for (const bucket of buckets) {
+      if (!income.has(bucket)) income.set(bucket, makeSeries());
+      add(incomeAll, bucket, t.amount);
+      if (index !== undefined) {
+        add(incomeMonths[index], bucket, t.amount);
+        const series = income.get(bucket)!;
+        series.months[index] += t.amount;
+        if (validDay) series.days[month][day - 1] += t.amount;
       }
     }
   }
@@ -190,7 +199,7 @@ export function buildDashboard(source: DashboardSource): Dashboard {
     .map((c) => ({ name: c.name, total: money(totals.get(c.name) ?? 0) }))
     .filter((c) => c.total > 0).sort((a, b) => b.total - a.total);
   const incomeRows = (totals: Map<string, number>) => [...totals].map(([name, n]) => ({ name, total: money(n) }))
-    .sort((a, b) => b.total - a.total);
+    .filter((c) => c.total > 0).sort((a, b) => b.total - a.total);
   total.expense = money(total.expense);
   total.income = money(total.income);
   total.categories = categoryRows(categoryAll);
@@ -204,14 +213,15 @@ export function buildDashboard(source: DashboardSource): Dashboard {
     mo.dayExpense = mo.dayExpense.map(money); mo.dayIncome = mo.dayIncome.map(money);
     mo.categories = categoryRows(categoryMonths[i]); mo.incomeBuckets = incomeRows(incomeMonths[i]);
   });
-  for (const [map, round] of [[spend, (n: number) => money(Math.max(0, n))], [income, money]] as const) {
+  const roundSeries = (n: number) => money(Math.max(0, n));
+  for (const map of [spend, income]) {
     for (const series of map.values()) {
-      series.months = series.months.map(round);
-      for (const m of months) series.days[m.key] = series.days[m.key].map(round);
+      series.months = series.months.map(roundSeries);
+      for (const m of months) series.days[m.key] = series.days[m.key].map(roundSeries);
     }
   }
-  // Recategorise choices: money out moves among spend categories, money in among income/transfer
-  // categories (+ Tax); each list in the order of its all-time rows, the rest alphabetically.
+  // Home-side choices first, then transfers; money in also keeps Tax. Categories offered on the other side come
+  // last, in their own side's row order. Within each part, categories without rows follow alphabetically.
   const ordered = (names: string[], order: string[]) => names.slice().sort((a, b) => {
     const ia = order.indexOf(a), ib = order.indexOf(b);
     if (ia !== -1 && ib !== -1) return ia - ib;
@@ -223,9 +233,18 @@ export function buildDashboard(source: DashboardSource): Dashboard {
   // Database categories precede any synthesised names in the source. Keep each real choice once.
   const choices = categories.filter((c, i) => databaseNames.has(c.name)
     && categories.findIndex((other) => other.name === c.name) === i);
+  const spendOrder = total.categories.map((r) => r.name);
+  const incomeOrder = total.incomeBuckets.map((r) => r.name);
   const pick = {
-    spend: ordered(choices.filter((c) => c.kind === "spend").map((c) => c.name), total.categories.map((r) => r.name)),
-    income: ordered(choices.filter((c) => incomeKeep.has(c.name)).map((c) => c.name), total.incomeBuckets.map((r) => r.name)),
+    spend: [
+      ...ordered(choices.filter((c) => c.kind === "spend").map((c) => c.name), spendOrder),
+      ...ordered(choices.filter((c) => c.kind === "transfer").map((c) => c.name), incomeOrder),
+      ...ordered(choices.filter((c) => c.kind === "income" && c.otherSide).map((c) => c.name), incomeOrder),
+    ],
+    income: [
+      ...ordered(choices.filter((c) => incomeKeep.has(c.name)).map((c) => c.name), incomeOrder),
+      ...ordered(choices.filter((c) => c.kind === "spend" && c.otherSide && !incomeKeep.has(c.name)).map((c) => c.name), spendOrder),
+    ],
   };
   return {
     version: 2, months, categories, pick,

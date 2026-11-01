@@ -38,7 +38,7 @@ function fixture(): DashboardSource {
 test("tagged spend appears in both categories but contributes once to expense", () => {
   const d = buildDashboard(fixture());
   assert.deepEqual(d.transactions[0].categoriesIn, ["Food", "Theme", "Income"]);
-  assert.deepEqual(d.transactions[0].incomeBuckets, []);
+  assert.deepEqual(d.transactions[0].incomeBuckets, ["Income"]);
   assert.deepEqual(d.byMonth["2026-01"].categories, [{ name: "Food", total: 10 }, { name: "Theme", total: 10 }]);
   assert.equal(d.byMonth["2026-01"].dayExpense[0], 10);
   assert.equal(d.total.expense, -3); // 10 - 15 refund + 2; the 7 of unsorted money in is income only
@@ -54,6 +54,85 @@ test("spend-category refund goes to Refunds and spend series clamp at zero", () 
   assert.equal(d.byMonth["2026-01"].dayExpense[1], -15);
 });
 
+test("money given back lowers primary income everywhere; series clamp after adding and rows require a positive total", () => {
+  for (const [received, allTime] of [[100, 45], [10, -45], [55, 0]]) {
+    const source = fixture();
+    source.transactions = [
+      txn("paid", "2026-01-01", received, "Income"),
+      txn("same-day-return", "2026-01-01", -25, "Income"),
+      txn("returned", "2026-01-02", -10, "Income"),
+      txn("later-return", "2026-02-02", -20, "Income"),
+      txn("zero", "2026-02-03", 0, "Income"),
+    ];
+    const d = buildDashboard(source);
+    assert.deepEqual([d.total.income, d.total.expense], [allTime, 0]);
+    assert.deepEqual(d.overview.income, [received - 35, -20]);
+    assert.deepEqual(d.overview.expense, [0, 0]);
+    assert.deepEqual(d.byMonth["2026-01"].dayIncome.slice(0, 3), [received - 25, -10, 0]);
+    assert.deepEqual(d.byMonth["2026-02"].dayIncome, [0, -20, 0]);
+    assert.deepEqual(d.income.Income.months, [Math.max(0, received - 35), 0]);
+    assert.deepEqual(d.income.Income.days["2026-01"].slice(0, 3), [Math.max(0, received - 25), 0, 0]);
+    assert.deepEqual(d.income.Income.days["2026-02"], [0, 0, 0]);
+    assert.deepEqual(d.total.incomeBuckets, allTime > 0 ? [{ name: "Income", total: allTime }] : []);
+    assert.deepEqual(d.byMonth["2026-01"].incomeBuckets,
+      received > 35 ? [{ name: "Income", total: received - 35 }] : []);
+    assert.deepEqual(d.byMonth["2026-02"].incomeBuckets, []);
+    assert.deepEqual(d.total.categories, []);
+    assert.deepEqual(d.transactions.map((t) => t.incomeBuckets), [["Income"], ["Income"], ["Income"], ["Income"], []]);
+  }
+});
+
+test("each tagged income category includes money out once; tags never change headline income or the existing exclusions", () => {
+  const source = fixture();
+  source.categories.push(category("Second income", "income"), category("Returned tag", "income"));
+  source.transactions = [
+    txn("paid", "2026-01-01", 100, "Income", ["Second income"]),
+    txn("tagged", "2026-01-01", -20, "Food", ["Income", "Second income", "Income", "Tax", "Transfer", "Returned tag"]),
+    txn("returned", "2026-01-02", -5, "Income", ["Income", "Second income", "Second income"]),
+    txn("transfer", "2026-01-02", -50, "Transfer", ["Income"]),
+    { ...txn("covered", "2026-01-02", 7, "Income", ["Second income"]), coveredBy: ["receipt"] },
+    txn("unsorted", "2026-01-02", -3, "Uncategorised", ["Income"]),
+    txn("tax", "2026-01-02", -2, "Tax"),
+    txn("zero", "2026-01-02", 0, "Food", ["Income"]),
+  ];
+  const d = buildDashboard(source);
+  assert.deepEqual([d.total.income, d.total.expense], [95, 25]);
+  assert.deepEqual(d.byMonth["2026-01"].dayIncome.slice(0, 2), [100, -5]);
+  assert.deepEqual(d.total.incomeBuckets, [{ name: "Second income", total: 75 }, { name: "Income", total: 72 }]);
+  assert.deepEqual(d.transactions.map((t) => t.incomeBuckets), [
+    ["Income", "Second income"], ["Income", "Second income", "Returned tag"], ["Income", "Second income"], [], [], ["Income"], [], [],
+  ]);
+  assert.deepEqual(d.income.Income.months, [72, 0]);
+  assert.deepEqual(d.income["Second income"].days["2026-01"].slice(0, 2), [80, 0]);
+  assert.deepEqual(d.income["Returned tag"].months, [0, 0], "a tagged category with only money out also clamps at zero");
+  assert.equal(d.income.Tax, undefined, "money out in Tax stays spending");
+  assert.equal(d.income.Transfer, undefined);
+  assert.deepEqual(d.total.categories, [{ name: "Tax", total: 22 }, { name: "Food", total: 20 }, { name: "Uncategorised", total: 3 }]);
+});
+
+test("other-side choices follow all home choices and transfers, in their own row order then alphabetical", () => {
+  const source = fixture();
+  source.categories = [
+    category("Food"), category("Health"), category("Theme"), category("Empty spending"), category("Tax"),
+    category("Income", "income"), category("Second income", "income"), category("Empty income", "income"),
+    category("Transfer", "transfer"), category("Savings", "transfer"),
+  ].map((c) => ({ ...c, otherSide: true }));
+  source.databaseCategoryNames = source.categories.map((c) => c.name);
+  source.transactions = [
+    txn("food", "2026-01-01", -10, "Food"), txn("health", "2026-01-01", -20, "Health"),
+    txn("income", "2026-01-01", 100, "Income"), txn("second", "2026-01-01", 200, "Second income"),
+  ];
+  const d = buildDashboard(source);
+  assert.deepEqual(d.pick, {
+    spend: ["Health", "Food", "Empty spending", "Tax", "Theme", "Savings", "Transfer", "Second income", "Income", "Empty income"],
+    income: ["Second income", "Income", "Empty income", "Savings", "Tax", "Transfer", "Health", "Food", "Empty spending", "Theme"],
+  });
+  assert.equal(new Set(d.pick.income).size, d.pick.income.length, "Tax appears only once");
+  assert.deepEqual([d.total.expense, d.total.income], [30, 300]);
+  assert.deepEqual(d.total.categories, [{ name: "Health", total: 20 }, { name: "Food", total: 10 }]);
+  assert.deepEqual(d.total.incomeBuckets, [{ name: "Second income", total: 200 }, { name: "Income", total: 100 }]);
+});
+
 // Money moved between one's own accounts (a transfer category) counts as neither spending nor income
 // (Patrik, 2026-10-27); a transfer tag on an income payment does not make a Transfer income row either.
 test("uncategorised money in uses Other; transfers count as neither spending nor income", () => {
@@ -65,7 +144,7 @@ test("uncategorised money in uses Other; transfers count as neither spending nor
   assert.equal(d.byMonth["2026-01"].dayExpense[2], 0);
   assert.equal(d.total.income, 42);
   assert.deepEqual(d.total.incomeBuckets, [
-    { name: "Income", total: 35 }, { name: "Tax", total: 35 }, { name: "Refunds", total: 15 }, { name: "Other", total: 7 },
+    { name: "Tax", total: 35 }, { name: "Income", total: 25 }, { name: "Refunds", total: 15 }, { name: "Other", total: 7 },
   ]);
   assert.ok(d.pick.income.includes("Transfer"), "incoming money can still be moved to a transfer category");
   assert.equal(d.incomeBuckets.find((c) => c.name === "Other")?.icon, "CircleHelp");
@@ -132,6 +211,7 @@ test("builder leaves its source untouched", () => {
 // version 2) and matched by buildDashboard when the switch was checked on 2026-10-23; they pin its addition
 // order, cent rounding, income-row ties and bookings outside a partial month. Since 2026-10-27 the fixture's 7 of
 // unsorted money in no longer lowers spending, so January's and the total expense are 7 higher than the old values.
+// Brief 68 also subtracts the 10 tagged as Income from its income row (the headline income stays the same).
 test("addition order, cent rounding, income ties and out-of-window bookings keep the old results", () => {
   const source = fixture();
   source.categories.push(category("Second income", "income"));
@@ -148,7 +228,7 @@ test("addition order, cent rounding, income ties and out-of-window bookings keep
   );
   const d = buildDashboard(source);
   assert.deepEqual(d.total.incomeBuckets.map((b) => [b.name, b.total]),
-    [["Refunds", 100000000000015], ["Income", 235], ["Second income", 200], ["Tax", 35], ["Other", 7]]);
+    [["Refunds", 100000000000015], ["Income", 225], ["Second income", 200], ["Tax", 35], ["Other", 7]]);
   assert.deepEqual(d.byMonth["2026-02"].incomeBuckets.map((b) => [b.name, b.total]),
     [["Income", 100], ["Second income", 100]]);
   assert.deepEqual([d.total.expense, d.byMonth["2026-01"].expense, d.byMonth["2026-02"].expense], [-1.99, -5, 3.01]);
@@ -210,15 +290,12 @@ test("adapter refresh updates the captured object after edits", async () => {
   assert.equal(listed[0].tagged, true);
 });
 
-test("pick lists: spend rows first in total order, the rest alphabetical; income side only income/transfer/Tax", () => {
+test("pick lists: spend rows then unused spend categories then transfers; income keeps its own row order", () => {
   const d = buildDashboard(fixture());
-  const rows = d.total.categories.map((r) => r.name);
-  assert.deepEqual(d.pick.spend.slice(0, rows.length), rows);
-  const rest = d.pick.spend.slice(rows.length);
-  assert.deepEqual(rest, [...rest].sort((a, b) => a.localeCompare(b)));
-  const kind = new Map(d.categories.map((c) => [c.name, c.kind]));
-  assert.deepEqual(new Set(d.pick.spend), new Set(d.categories.filter((c) => c.kind === "spend").map((c) => c.name)));
-  for (const n of d.pick.income) assert.ok(n === "Tax" || kind.get(n) !== "spend", n);
+  assert.deepEqual(d.pick, {
+    spend: ["Food", "Theme", "Health", "Tax", "Uncategorised", "Transfer"],
+    income: ["Tax", "Income", "Transfer"],
+  });
 });
 
 test("dayExpenseRunning: running total of the month's spending, one value per day", () => {
@@ -243,7 +320,7 @@ test("pick excludes a synthesised Uncategorised but keeps a real one under the k
 
     source.databaseCategoryNames.push("Uncategorised");
     const real = buildDashboard(source);
-    assert.equal(real.pick.spend.includes("Uncategorised"), kind === "spend");
+    assert.equal(real.pick.spend.includes("Uncategorised"), kind !== "income");
     assert.equal(real.pick.income.includes("Uncategorised"), kind !== "spend");
     const { pick: syntheticPick, ...syntheticData } = synthetic;
     const { pick: realPick, ...realData } = real;
