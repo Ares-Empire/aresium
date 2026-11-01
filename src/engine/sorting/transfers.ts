@@ -4,9 +4,9 @@
 //
 // 1. PayPal. A person who imports both their bank's and their PayPal export sees each PayPal purchase twice: in the
 //    PayPal export with the shop, and on the bank as the money moving into PayPal ("PayPal Europe S.a.r.l. et Cie
-//    S.C.A … Ihr Einkauf bei <shop>"). When PayPal export rows are present, such bank lines are own transfers.
-//    Without them the bank line is the only record of the purchase and is left to the other rules. PayPal's own
-//    funding rows ("Bankgutschrift auf PayPal-Konto", "Bank Deposit to PP Account", "General Card Deposit": the
+//    S.C.A … Ihr Einkauf bei <shop>"). Only bank lines within the dates covered by PayPal rows (plus 3 days for bank
+//    settlement) are own transfers. Outside that range the bank line is the only record of the purchase and is left
+//    to the other rules. PayPal's own funding rows ("Bankgutschrift auf PayPal-Konto", "Bank Deposit to PP Account", "General Card Deposit": the
 //    same money arriving in PayPal, see ../paypal.ts) are own transfers too; the dashboard leaves them out.
 //    Its currency-conversion rows are own transfers exactly when the dashboard folds them into the purchase.
 // 2. Between accounts. Two payments of the same absolute amount (and currency), with opposite signs, on different
@@ -108,11 +108,21 @@ const proven = (a: Side, b: Side) =>
 export function ownTransfers(payments: readonly TransferPayment[]): (OwnTransfer | null)[] {
   const result: (OwnTransfer | null)[] = payments.map(() => null);
 
-  const hasPaypalExport = payments.some((p) => p.source === "paypal");
+  let paypalStart = Infinity, paypalEnd = -Infinity;
+  for (const p of payments) {
+    const date = p.source === "paypal" ? parseDay(p.date) : null;
+    if (!date) continue;
+    const day = dayNumber(date);
+    paypalStart = Math.min(paypalStart, day);
+    paypalEnd = Math.max(paypalEnd, day);
+  }
   // The dashboard removes funding before folding conversions; use precisely the same input here.
   const conversions = paypalConversionRows(payments.filter((p) => !isPaypalBankFunding({ description: p.description ?? "", raw: p.raw })));
   payments.forEach((p, i) => {
-    if (isPaypalFundingRow(p) || isPaypalWithdrawalRow(p) || (hasPaypalExport && isPaypalBankLine(p))) result[i] = { rule: "paypal" };
+    const date = parseDay(p.date);
+    const day = date ? dayNumber(date) : NaN;
+    const covered = day >= paypalStart - TRANSFER_DAYS && day <= paypalEnd + TRANSFER_DAYS;
+    if (isPaypalFundingRow(p) || isPaypalWithdrawalRow(p) || (covered && isPaypalBankLine(p))) result[i] = { rule: "paypal" };
     if (conversions.has(p)) result[i] = { rule: "paypal-conversion" };
   });
 

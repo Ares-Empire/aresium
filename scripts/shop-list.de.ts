@@ -7,8 +7,8 @@ import type { Direction } from "../src/engine/sorting/shop-matcher.js";
 /**
  * Name-suggestion-index (NSI) brand types → Aresium default category ids, one OSM tag per line.
  * Types not listed are left out: banks and ATMs (any payment), car makes and dealers (BMW, Audi, Mercedes: big
- * employers and ordinary words; the generic "autohaus" rule covers servicing), jewellers and watches, coffee, sweets
- * and chocolate shops (gift or snack), cash & carry, kiosks and newsagents, ticket shops, associations and charities
+ * employers and ordinary words; the generic "autohaus" rule covers servicing), cash & carry, kiosks and newsagents,
+ * ticket shops, associations and charities
  * (mostly services), tutoring schools (as often an employer as a shop), vending machines, parcel lockers, post
  * offices, estate agents.
  */
@@ -33,6 +33,8 @@ export const OSM_CATEGORIES: Readonly<Record<string, string>> = {
   "brands/amenity/cafe": "coffee-snacks",
   "brands/shop/bakery": "coffee-snacks",
   "brands/shop/pastry": "coffee-snacks",
+  "brands/shop/confectionery": "coffee-snacks",
+  "brands/shop/chocolate": "coffee-snacks",
   "brands/amenity/ice_cream": "coffee-snacks",
   "brands/shop/ice_cream": "coffee-snacks",
   // Home
@@ -121,6 +123,8 @@ export const OSM_CATEGORIES: Readonly<Record<string, string>> = {
   "brands/shop/shoes": "clothes",
   "brands/shop/fashion_accessories": "clothes",
   "brands/shop/bag": "clothes",
+  "brands/shop/jewelry": "clothes",
+  "brands/shop/watches": "clothes",
   "brands/shop/leather": "clothes",
   "brands/shop/outdoor": "clothes",
   "brands/shop/boutique": "clothes",
@@ -134,6 +138,7 @@ export const OSM_CATEGORIES: Readonly<Record<string, string>> = {
   "brands/shop/variety_store": "shopping",
   "brands/shop/department_store": "shopping",
   "brands/shop/general": "shopping",
+  "brands/shop/mall": "shopping",
   "brands/shop/gift": "gifts",
   "brands/shop/toys": "gifts",
   // Study & work
@@ -160,6 +165,10 @@ export const SURNAME_TRADES: readonly string[] = [
   "brands/shop/hairdresser",
   "brands/shop/beauty",
   "brands/shop/furniture",
+  "brands/shop/jewelry",
+  "brands/shop/watches",
+  "brands/shop/confectionery",
+  "brands/shop/chocolate",
 ];
 /** One-word names from those trades that are chains or made-up names, not common surnames. */
 export const KEEP_SINGLE: readonly string[] = [
@@ -177,6 +186,9 @@ export const KEEP_SINGLE: readonly string[] = [
   // furniture
   "höffner", "segmüller", "zurbrüggen", "multipolster", "musterring", "mömax", "xxxlutz", "poco", "hardeck",
   "bolia", "boconcept", "natuzzi", "home24",
+  // Distinctive jewellery/watch chains from the pinned NSI; one-word personal names stay out.
+  "aristocrazy", "swarovski", "wempe", "breitling", "rolex", "tissot", "swatch", "chaumet", "orovivo",
+  "arko", "hussel", "bären-treff", "bärenland", "debeukelaer", "viba",
 ];
 /**
  * Every name of three letters or digits or fewer, each checked by hand: it must be the brand on bank statements, not
@@ -189,6 +201,7 @@ export const SHORT_BRANDS: readonly string[] = [
   "vgn", "rnv", "vrn", "vrs", "vbn", "gvh", "nvv", "vvo", "mdv", "vmt", "rvv", "vgf", "sbb", "atu", "a.t.u", "klm",
   "djh", "e.on", "rwe", "eon", "swm", "o2", "1&1", "axa", "r+v", "aok", "huk", "dak", "kkh", "hkk", "ikk", "bkk",
   "sbk", "lvm", "vhv", "wgv", "hdi", "atm", "obi", "mvz", "gym", "pub", "h&m", "c&a", "nkd", "vhs", "dgb", "wwf",
+  "pho", // Vietnamese noodle soup; matches only the whole word, never telephone/photo names.
   // whole merchant names
   "hit", "jet", "sky",
   // NSI brands
@@ -276,6 +289,9 @@ export const DENY: readonly string[] = [
   "bosch", "sony", "conrad", "expert", "teufel", "capi", "vivo", "media@home", "lg", "ep:",
   // shopping and gifts
   "action", "tiger", "tgr", "jawoll", "stolz", "nuance", "m&s outlet", "marks & spencer outlet",
+  // Personal names and vague aliases from the newly included NSI jewellery/watch types.
+  "thomas sabo", "dinh van", "dinh van paris", "roger dubuis", "patek philippe", "indian accessories brand",
+  "indian watch co", "indian watch company",
   // names that read as people, words or other things (review 2026-10-27)
   "levi's", "levis", "colin's", "wendy's", "denny's", "chili's", "tod's", "max mara", "gina laura", "vanessa bruno",
   "marc jacobs", "rolf benz", "thomas cook", "thomas philipps", "tom ford", "anika schuh", "super 8", "as 24",
@@ -350,6 +366,19 @@ export const RULES: readonly Block[] = [
     "ertragsausschüttung", "ausschüttung"], "in"],
   // Buy-back services: money out to them is a purchase in their shop (momox sells books too).
   ["selling-things", ["momox", "wirkaufens", "zoxs"], "in"],
+  // Explicit purchases take precedence over generic shop types in a business's trading name.
+  ["personal-care", ["haarschnitt"], "out"],
+  ["household", ["möbelkauf"], "out"],
+  ["going-out", ["cocktails"], "out"],
+  ["parents-family", ["unterstützung von eltern", "unterhalt von eltern", "taschengeld von eltern",
+    "unterstützung von familie"], "in"],
+  ["gifts", ["geschenk", "geburtstagsgeschenk", "weihnachtsgeschenk", "hochzeitsgeschenk"], "both"],
+  ["other-income", ["mieteinnahme", "mieteinnahmen"], "in"],
+  ["hobbies", ["rückzahlung buchkauf", "erstattung buchkauf"], "in"],
+  ["work", ["büromaterial", "bürobedarf", "arbeitsmittel", "hosting beruflich"], "out"],
+  ["subscriptions", ["film abo", "mail abo", "streaming abo"], "both"],
+  ["other", ["bestattung", "bestattungshaus", "bestattungskosten", "beerdigungskosten"], "out"],
+  ["friends", ["anteil gemeinsames abendessen", "anteil abendessen zurück"], "both"],
   ["subscriptions", ["netflix", "spotify", "disney+", "disney plus", "youtube premium", "amazon prime", "dazn",
     "audible", "icloud", "google one", "prime video", "primevideo", "youtube", "youtube music", "google storage",
     "apple.com/bill", "apple music", "apple tv", "itunes", "deezer", "tidal music", "sky deutschland", "sky ticket",
@@ -366,7 +395,9 @@ export const RULES: readonly Block[] = [
   ["eating-out", ["uber eats", "lieferando", "wolt", "foodora", "lieferheld", "pizza.de", "deliveroo"], "out"],
   ["eating-out", ["restaurant", "pizza", "pizzeria", "döner", "doener", "kebab", "imbiss", "bistro", "mensa", "kebap",
     "ristorante", "trattoria", "osteria", "taverna", "gasthaus", "gasthof", "wirtshaus", "steakhouse", "sushi",
-    "kantine", "cafeteria"], "out"],
+    "kantine", "cafeteria", "grill", "grillhaus", "grillrestaurant", "schnellrestaurant", "burrito", "burritos",
+    "veggie", "vegan", "ramen", "pho", "poke", "bowl", "bowls", "noodle", "noodles", "falafel", "brasserie",
+    "burger", "onigiri", "street food", "thai food", "hot dog", "ocakbaşı", "ocakbasi", "banh mi"], "out"],
   ["taxi-sharing", ["share now", "sharenow", "miles mobility", "cambio carsharing", "cambio mobilitätsservice",
     "nextbike", "call a bike", "blacklane", "moia", "clevershuttle", "sixt share", "we share", "weshare", "flinkster",
     "stadtmobil", "book-n-drive", "teilauto", "greenwheels", "zipcar", "lime bike", "limebike", "lime scooter",
@@ -379,7 +410,9 @@ export const RULES: readonly Block[] = [
   ["coffee-snacks", ["backwerk", "ditsch", "starbucks", "coffee fellows", "le crobag", "back factory", "kamps",
     "gloria jean's"], "both"],
   ["coffee-snacks", ["bäckerei", "baeckerei", "café", "cafe", "bäcker", "backstube", "konditorei", "coffee", "espresso",
-    "eiscafé", "eisdiele", "gelateria", "bakery", "boulangerie", "patisserie"], "out"],
+    "eiscafé", "eisdiele", "gelateria", "bakery", "boulangerie", "patisserie", "croissant", "croissants",
+    "croissanterie", "brotmanufaktur", "backhaus", "kaffeerösterei", "caffè", "gelato", "pasticceria",
+    "waffle", "waffeln", "confiserie", "milchbar", "fladenbrot"], "out"],
   ["groceries", ["rewe", "edeka", "aldi", "lidl", "netto marken-discount", "netto markendiscount", "netto filiale",
     "netto fil", "netto sagt danke", "netto city", "netto stiftung", "netto supermarkt", "kaufland", "tegut", "hit fil", "interspar", "eurospar",
     "spar dankt", "spar markt", "denns", "dennree", "famila", "nahkauf", "e-center", "e center", "globus sb",
@@ -391,10 +424,10 @@ export const RULES: readonly Block[] = [
   // Quick-delivery apps pay their riders.
   ["groceries", ["goflink", "gorillas technologies", "getir"], "out"],
   ["groceries", ["getränkemarkt", "metzgerei", "fleischerei", "supermarkt", "lebensmittel", "biomarkt", "bioladen",
-    "wochenmarkt", "hofladen", "asiamarkt", "asia markt"], "out"],
+    "wochenmarkt", "hofladen", "asiamarkt", "asia markt", "bauernhof", "feinkost", "helal markt", "tee contor"], "out"],
   ["drugstore", ["dm", "rossmann", "budni", "müller drogerie", "müller handels", "drogerie müller",
     "müller drogeriemarkt", "budnikowsky"], "both"],
-  ["drugstore", ["drogeriemarkt", "drogerie"], "out"],
+  ["drugstore", ["drogeriemarkt", "drogerie", "naturdrogerie"], "out"],
   ["bus-train", ["mvg", "mvv", "bvg", "hvv", "db", "deutsche bahn", "db vertrieb", "db fernverkehr", "bahn.de",
     "flixbus", "flixtrain", "öbb", "oebb", "kvb", "vvs", "rmv", "vrr", "vbb", "dvb", "lvb", "kvv", "vgn", "rnv", "vrn",
     "vrs", "vbn", "gvh", "nvv", "vvo", "mdv", "vmt", "rvv", "naldo", "nah.sh", "üstra", "rheinbahn", "hochbahn",
@@ -416,7 +449,8 @@ export const RULES: readonly Block[] = [
   ["car-fuel", ["tankstelle", "kfz-steuer", "kfz steuer", "autowäsche", "autowaesche", "parkhaus", "parken",
     "parkgebühr", "parkgebühren", "parkticket", "parkschein", "parkplatz", "tiefgarage", "handyparken", "autohaus",
     "autowerkstatt", "kfz-werkstatt", "reifen", "reifenservice", "reifenwechsel", "waschanlage", "autowaschanlage",
-    "waschstraße", "waschpark", "car wash", "carwash", "maut", "vignette", "ladestation"], "out"],
+    "waschstraße", "waschpark", "car wash", "carwash", "maut", "vignette", "ladestation", "gastankstelle",
+    "tanke", "kfz meisterbetrieb"], "out"],
   ["travel", ["ryanair", "eurowings", "lufthansa", "easyjet", "sixt", "condor flugdienst", "condor flug", "condor.com",
     "tuifly", "tui fly", "wizz air", "wizzair", "vueling", "klm", "air france", "british airways",
     "swiss international air lines", "austrian airlines", "norwegian air", "turkish airlines", "pegasus airlines",
@@ -430,7 +464,8 @@ export const RULES: readonly Block[] = [
   ["travel", ["booking.com", "airbnb", "fewo-direkt", "vrbo"], "out"],
   ["travel", ["bergbahn", "seilbahn", "hotel", "hostel", "jugendherberge", "ferienwohnung", "ferienhaus",
     "campingplatz", "camping", "reisebüro", "reisen", "flughafen", "airport", "airlines", "fähre", "ferry", "ferries",
-    "skipass", "skilift", "bergbahnen", "kurtaxe", "umbuchung flug", "flug umbuchung"], "out"],
+    "skipass", "skilift", "bergbahnen", "kurtaxe", "umbuchung flug", "flug umbuchung", "apartmenthotel",
+    "familienferienstätte"], "out"],
   ["rent", ["vonovia", "deutsche wohnen", "leg wohnen", "vivawest", "degewo", "gewobag", "howoge", "gesobau",
     "saga unternehmensgruppe", "gewofag", "grand city property", "adler group", "heimstaden", "akelius",
     "abg frankfurt holding", "nassauische heimstätte"], "both"],
@@ -455,7 +490,7 @@ export const RULES: readonly Block[] = [
     "tele columbus", "unitymedia", "kabel deutschland", "deutsche glasfaser", "ewe tel", "wilhelm.tel",
     "versatel", "easybell", "sipgate", "starlink", "simyo", "blau.de", "t-mobile", "tele2", "telenor",
     "yourphone"], "both"],
-  ["internet-phone", ["mobilfunk", "handyvertrag", "glasfaser"], "out"],
+  ["internet-phone", ["mobilfunk", "handyvertrag", "glasfaser", "internet festnetz", "festnetzanschluss"], "out"],
   ["insurance", ["allianz", "huk-coburg", "huk24", "axa", "ergo versicherung", "debeka", "signal iduna", "r+v",
     "barmer", "techniker krankenkasse", "aok", "huk", "dak", "dak-gesundheit", "kkh", "hkk", "sbk", "knappschaft",
     "viactiv", "hansemerkur", "continentale", "devk", "lvm", "vhv", "wgv", "hdi", "arag", "roland rechtsschutz",
@@ -509,35 +544,39 @@ export const RULES: readonly Block[] = [
     "medizinisches versorgungszentrum", "klinikum", "krankenhaus", "uniklinik", "universitätsklinikum",
     "physiotherapeut", "physio", "ergotherapie", "logopädie", "osteopathie", "osteopath", "heilpraktiker",
     "psychotherapie", "psychotherapeut", "psychotherapeutin", "hebamme", "optik", "optiker", "augenoptik",
-    "hörgeräte", "hörakustik", "rezeptgebühr"], "out"],
+    "hörgeräte", "hörakustik", "rezeptgebühr", "ärztehaus", "zahnärzte"], "out"],
   ["sports-fitness", ["clever fit", "cleverfit", "finion", "mcfit", "fitx", "urban sports", "body & soul", "john reed",
     "kieser training", "egym", "wellpass", "hansefit", "eversports", "boulderwelt", "freeletics", "gymondo",
     "peloton", "zwift"], "both"],
   ["sports-fitness", ["fitnessstudio", "kletterhalle", "boulder", "fitness", "gym", "yoga", "pilates", "boulderhalle",
     "kletterzentrum", "kletterwald", "schwimmbad", "hallenbad", "freibad", "bäderbetriebe", "stadtbad", "eishalle",
-    "eisstadion", "skihalle", "tennis"], "out"],
+    "eisstadion", "skihalle", "tennis", "sporthalle", "sportplatz", "schulsportplatz", "tennisclub"], "out"],
   ["personal-care", ["parfümerie douglas", "douglas parfümerie"], "both"],
   ["personal-care", ["friseur", "hairstyling", "barber", "kosmetik", "nagelstudio", "frisör", "friseursalon",
     "frisörsalon", "haarstudio", "barbershop", "barbier", "nails", "naildesign", "kosmetikstudio",
     "kosmetikinstitut", "beautysalon", "beauty", "waxing", "massage", "massagen", "sonnenstudio", "solarium",
-    "wimpern", "fußpflege", "tattoo", "piercing"], "out"],
+    "wimpern", "fußpflege", "tattoo", "piercing", "friseure", "friseurinnen", "hair design", "hairstyle"], "out"],
   ["going-out", ["berghain"], "both"],
   ["going-out", ["bar tapas", "cocktail", "brauhaus", "biergarten", "kneipe", "irish pub", "weinbar", "sports bar",
     "cocktailbar", "pub", "nachtclub", "diskothek", "disco", "shisha", "bierhalle", "bierkeller", "weinstube"], "out"],
   ["clothes", ["zalando", "h&m", "h & m", "zara deutschland", "zara.com", "zara store", "c&a", "primark", "tk maxx",
     "tkmaxx", "snipes", "about you", "aboutyou", "jack wolfskin", "humana", "bonprix", "shein", "asos", "mytheresa",
     "engelhorn", "takko", "nkd", "adler mode", "adler modemärkte", "café coton", "hennes & mauritz", "puma store",
-    "mango store", "only store", "globetrotter ausrüstung", "levi strauss", "levi's store"], "both"],
+    "mango store", "only store", "globetrotter ausrüstung", "levi strauss", "levi's store",
+    // Qualified outlet names from the pinned NSI; unlike bare Marks & Spencer these describe clothing retail.
+    "m&s outlet", "marks & spencer outlet"], "both"],
   // momox fashion buys clothes from people.
   ["clothes", ["momox fashion"], "out"],
   // Vinted (formerly Kleiderkreisel) is mainly clothes; money in is a sale, not a clothes refund.
   ["clothes", ["vinted", "kleiderkreisel"], "out"],
   ["clothes", ["schuhe", "schuhhaus", "schuhcenter", "modehaus", "boutique", "fashion", "jeans", "dessous", "lingerie",
-    "trachten"], "out"],
+    "trachten", "strumpfmoden", "schmuck", "uhren"], "out"],
   ["shopping", ["tedi", "woolworth", "kik fil", "flying tiger", "nanu-nana", "nanu nana", "euroshop", "tiger store",
     "kaufland e-commerce", "kaufland.de", "action deutschland", "pepco"], "both"],
   ["shopping", ["kaufhaus", "sonderposten", "duty free"], "out"],
   ["gifts", ["fleurop", "wunschgutschein", "jochen schweizer", "mydays", "smartbox"], "both"],
+  ["gifts", ["floristik", "florist", "blumenladen", "blumen", "blumenhaus", "geschenke", "geschenkeladen",
+    "geschenkshop"], "out"],
   ["electronics", ["apple store", "mediamarkt", "media markt", "saturn", "cyberport", "notebooksbilliger",
     "conrad electronic", "gravis", "alternate", "mindfactory", "caseking", "computeruniverse", "proshop",
     "reichelt elektronik", "pollin electronic", "berrybase", "backmarket", "back market", "refurbed", "dell",
@@ -582,8 +621,14 @@ export const MERCHANTS: readonly Block[] = [
   ["travel", ["hertz", "budget", "enterprise", "alamo", "thrifty", "adina", "aloft", "campanile", "avis"], "both"],
   ["personal-care", ["lush", "kiko", "douglas"], "both"],
   ["hobbies", ["thalia", "thomann"], "both"],
+  // Pinned NSI confectionery/chocolate chains with surname-like names: whole merchants only.
+  ["coffee-snacks", ["bahlsen", "eilles", "lindt", "läderach", "neuhaus", "storck"], "both"],
   ["clothes", ["zara", "globetrotter", "mango", "only", "next", "guess", "vans", "reserved", "converse", "columbia",
-    "champion", "gabor", "palmers", "bonita", "cecil", "salamander", "zero", "closed"], "both"],
+    "champion", "gabor", "palmers", "bonita", "cecil", "salamander", "zero", "closed",
+    // Reviewed names from the pinned NSI clothes/shoes entries. Keep their ordinary-word/surname spellings out of
+    // free-text brand matching; only a whole merchant (or a proven branch/town) establishes the chain.
+    "stradivarius", "ecco", "barbour", "o'neill", "mephisto", "parfois", "reno", "outfit", "street shoes",
+    "r.m.williams", "red wing", "we fashion", "hermès", "bvlgari", "bulgari"], "both"],
   ["shopping", ["action"], "both"],
   ["electronics", ["expert", "teufel"], "both"],
   ["insurance", ["ergo", "nürnberger", "württembergische", "mecklenburgische", "die bayerische", "gothaer",

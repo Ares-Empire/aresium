@@ -1,5 +1,5 @@
 import { BOOKING_TYPE, cardMerchant, merchantKey, payeeText, type SortingPayment } from "./merchant.js";
-import { shopSpellings, shopWords } from "./shop-words.js";
+import { foodBusinessWord, shopSpellings, shopWords, withoutShopReferences } from "./shop-words.js";
 
 /**
  * Which way the money moves for a name to count: "out" only for money going out (spending words such as "Miete":
@@ -53,12 +53,19 @@ const moneyOf = (amount: number | undefined): Money =>
   typeof amount !== "number" || !Number.isFinite(amount) || amount === 0 ? null : amount < 0 ? "out" : "in";
 const applies = (direction: Direction, money: Money) => money === null || direction === "both" || direction === money;
 
-// SEPA reference fields carry codes, not words ("EREF: DB-2026-1234", "MREF: DM-77"): they are never matched.
-// merchantKey cuts the same markers.
-const references = /\b(?:eref|mref|cred|kref|iban|bic|mandatsreferenz|mandatsref|gläubiger-id|glaeubiger-id|kundenreferenz)\s*[:+]\s*\S+/giu;
 // The text before the first number, and that number when it is a branch number: 2 to 6 digits standing alone, not
 // part of a word ("4211A"), a price ("23,50") or a time ("12:34"). "PENNY 4211 GARCHING" → "penny ", "4211".
 const branchNumber = /^((?:\D*[^\p{L}\p{N}])?)\d{2,6}(?![\p{L}\p{N}]|[.,:]\d)/u;
+
+// A processor's explicit merchant separator, never a mere mention of a payment service. Keep merchantKey itself
+// unchanged so stored learned keys still work. PayPal's bank prose/seller extraction remains merchantKey's job.
+const processorPrefix = /^(?:(?:sumup|sq|iz|izettle|zettle|stripe|adyen|klarna|nexi|worldline)\s*[*_]\s*)/iu;
+function shopPayment(payment: SortingPayment): SortingPayment {
+  const clean = (text: string) => text.replace(processorPrefix, "");
+  return { ...payment, counterparty: payment.counterparty ? clean(payment.counterparty) : payment.counterparty,
+    description: payment.description ? clean(payment.description) : payment.description,
+    bookingText: payment.bookingText ? clean(payment.bookingText) : payment.bookingText };
+}
 
 /**
  * Precompiles the list once: an index from a name's first word to the names starting with it, so a payment costs
@@ -111,7 +118,9 @@ export function compileShopList(list: ShopListData): ShopMatcher {
   function find(index: Index, words: readonly string[]): Found[] {
     const found: Found[] = [];
     for (let start = 0; start < words.length; start++) {
-      for (const entry of index.get(words[start]) ?? []) {
+      const compound = index === handWritten ? foodBusinessWord(words[start]) : null;
+      const entries = [...(index.get(words[start]) ?? []), ...(compound ? index.get(compound) ?? [] : [])];
+      for (const entry of entries) {
         const end = start + entry.words.length;
         if (end > words.length) continue;
         let same = true;
@@ -146,6 +155,7 @@ export function compileShopList(list: ShopListData): ShopMatcher {
   function townMerchant(payment: SortingPayment, towns: readonly string[]): Merchant | null {
     const card = cardMerchant(payeeText(payment)) ?? cardMerchant(payment.description ?? payment.bookingText ?? "");
     const name = shopWords(merchantKey(payment));
+    if (["de", "deu", "deutschland"].includes(name.at(-1) ?? "")) name.pop();
     if (name.length < 2) return null;
     const town = card ? shopWords(card.town) : [];
     const proven = (town.length === 1 && name.at(-1) === town[0]) || towns.some((text) => {
@@ -160,12 +170,13 @@ export function compileShopList(list: ShopListData): ShopMatcher {
     const money = moneyOf(payment.amount);
     const details = payment.description ?? payment.bookingText ?? "";
     const text = `${cardMerchant(payment.counterparty ?? "")?.merchant ?? payment.counterparty ?? ""} ${cardMerchant(details)?.merchant ?? details}`;
-    const words = shopWords(text.replace(references, " "));
+    const words = shopWords(withoutShopReferences(text));
     const written = find(handWritten, words);
     const rule = best(written, written, money);
     if (rule) return rule;
     // A merchant found for the other direction decides too: Uber's money in is a driver's payout, not a ride.
-    const merchant = merchants.get(shopWords(merchantKey(payment)).join(" ")) ?? branchMerchant(payment) ?? townMerchant(payment, towns);
+    const shop = shopPayment(payment);
+    const merchant = merchants.get(shopWords(merchantKey(shop)).join(" ")) ?? branchMerchant(shop) ?? townMerchant(shop, towns);
     if (merchant) {
       const { categoryId, direction, name } = merchant;
       return applies(direction, money) ? { categoryId, name, source: "merchant", direction, at: null } : null;

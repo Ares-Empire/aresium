@@ -82,7 +82,8 @@ flag. Do not use `other` as a replacement for uncertainty. A category's purpose 
   personal: the shop says where it belongs. Positive Vinted/eBay proceeds explicitly labelled sale: selling-things; a platform name alone
   is unclear/personal. Positive salary is salary, never work. Negative repayment of a grant needs context.
 - ATM withdrawal: cash. Cash deposit: personal/unclear unless ownership or income purpose is explicit.
-- Rundfunkbeitrag: fees or subscriptions. University semester contribution: education or fees. ADAC: memberships,
+- Rundfunkbeitrag: fees, utilities or subscriptions (it is charged per home, so many budget it with the
+  home's running costs; Claude, 2026-11-01, after the first round). University semester contribution: education or fees. ADAC: memberships,
   car-fuel or insurance when that service is explicit. Tax refund: taxes or other-income, personal.
 - Rent paid: rent. Rent received: other-income (or personal if merely money from a person without rent wording).
   Savings account transfers: own-transfers with ownership evidence; savings-investing is reasonable for an explicit
