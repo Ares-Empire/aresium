@@ -161,3 +161,17 @@ test("the readings from bytes, in Node and in the bundled engine, equal those of
   const text = csv("Datum;Text;Spalte 1;Spalte 2", "02.02.2026;Fiktiv Markt Einkauf;12,00;", "03.02.2026;Fiktiv Werke Gehalt;;100,00");
   assert.deepEqual(json(bundled.readingsOfUnknownFile(utf8(text))), json(engine.readingsOfUnknownFile(utf8(text))));
 });
+
+test("known banks with rewritten ambiguous dates offer identical readings in JavaScriptCore", async () => {
+  for (const name of ["comdirect.csv", "volksbank.csv"]) {
+    const text = (await fixture(name)).replace(/\b(\d{2})\.(\d{2})\.(\d{4})\b/g, "$2/$1/$3");
+    const readings = engine.readingsOfUnknownFile(utf8(text));
+    checkReadings(text, readings);
+    assert.deepEqual(reasons(readings), [null, "dateFormat"]);
+    assert.deepEqual(json(bundled.readingsOfUnknownFile(utf8(text))), json(readings));
+    assert.deepEqual(json(engine.readBankText(text).needsLayout?.preview), json(readings[0].preview));
+    for (const reading of readings) {
+      assert.deepEqual(json(bundled.readBankText(text, [json(reading.layout)])), json(engine.readBankText(text, [reading.layout])));
+    }
+  }
+});

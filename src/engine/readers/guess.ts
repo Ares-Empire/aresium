@@ -3,8 +3,8 @@
 // they are amounts, a balance when it moves by exactly the amounts, and so on. The header words then tell the
 // booking date from the value date, the payment text from the counterparty. The person sees the first rows read
 // this way and confirms or changes a column once; the app saves the layout for the next file.
-import { detectSeparator, splitCsv, type Separator } from "./csv.js";
-import { BankFileError, readTable, trimRow } from "./table.js";
+import { detectSeparator, type Separator } from "./csv.js";
+import { BankFileError, checkedCsvRows, readTable, trimRow } from "./table.js";
 import {
   addAmounts, DATE_FORMATS, headerKey, normalizeIban, parseAmountStrict, parseDate, sameAmount,
   type DateFormat, type NumberFormat,
@@ -61,6 +61,8 @@ const SIGN_VALUE = /^(s|h|soll|haben|d|c|db|cr|dbit|crdt|debit|credit|\+|-)$/i;
 function findHeader(rows: string[][]): number {
   for (let i = 0; i < Math.min(rows.length, 60); i++) {
     const cells = trimRow(rows[i]);
+    // Planning tables contain dates and amounts too, but they are not booked payments.
+    if (cells.some((v) => /^(plannedamount|forecastamount|budgetamount)/.test(headerKey(v)))) continue;
     const filled = cells.filter(Boolean);
     if (filled.length < 3 || filled.length < cells.length * 0.6) continue;
     if (!filled.every((v) => hasLetter(v) && !isDateLike(v) && !DE_DECIMAL.test(v) && !EN_DECIMAL.test(v))) continue;
@@ -89,7 +91,7 @@ function bestDateFormat(values: string[]): { format: DateFormat; share: number; 
     };
     const dm = sorted("DD/MM/YYYY"), md = sorted("MM/DD/YYYY");
     best = md && !dm ? "MM/DD/YYYY" : "DD/MM/YYYY";
-    ambiguous = dm === md;
+    ambiguous = true; // row order ranks previews but cannot prove the date order
   }
   return { format: best, share, ambiguous };
 }
@@ -132,7 +134,7 @@ export function findTableStart(rows: string[][]): { headerRow: number; width: nu
   return sample.length > 0 && sample.every(isData) ? { headerRow: -1, width } : null;
 }
 
-// A column as the guesser saw it, with every value of the rows it looked at (the first 300 with a date).
+// A column as the guesser saw it, with the values from every row that has a date.
 export type AnalysedColumn = ColumnInfo & { values: string[]; ambiguous?: boolean };
 
 // What the guesser worked out: its guess, the columns it was made from, the file's rows and every payment the guessed
@@ -147,14 +149,14 @@ export function guessCsvLayout(text: string): LayoutGuess {
 // The guess with the columns behind it.
 export function analyseCsv(text: string): CsvAnalysis {
   const separator: Separator = detectSeparator(text);
-  const rows = splitCsv(text, separator);
+  const rows = checkedCsvRows(text, separator);
   const table = findTableStart(rows);
   if (!table) throw new BankFileError("noTable", "No table with a header row and dates was found in this file.");
   const { headerRow, width } = table;
   const header = headerRow >= 0 ? trimRow(rows[headerRow]) : [];
   const names = headerRow >= 0 ? header : Array.from({ length: width }, (_, i) => `Column ${i + 1}`);
-  const data = rows.slice(headerRow + 1, headerRow + 401).map(trimRow)
-    .filter((r) => r.length >= Math.ceil(width / 2) && r.some(isDateLike)).slice(0, 300);
+  const data = rows.slice(headerRow + 1).map(trimRow)
+    .filter((r) => r.length >= Math.ceil(width / 2) && r.some(isDateLike));
   const column = (j: number) => data.map((r) => r[j] ?? "");
 
   // Decimal comma or point: whichever the non-date cells use more.
@@ -281,7 +283,21 @@ export function analyseCsv(text: string): CsvAnalysis {
   if (status && new Set(status.values).size <= 6) take("status", status.index);
   const reference = byWord("reference", ["text", "number"]);
   if (reference && new Set(reference.values.filter(Boolean)).size === reference.values.filter(Boolean).length) take("reference", reference.index);
+  const bookingType = (col: AnalysedColumn) => col.values.filter(Boolean).every((v) =>
+    /^(lastschrift|sepa.lastschrift|überweisung|sepa.überweisung|gutschrift|kartenzahlung|kartenverfügung|dauerauftrag|card payment|transfer)$/i.test(v.trim()));
+  // A purpose word can be part of a type word ("Vorgang/Verwendungszweck"). Assign explicit purposes first.
+  // Conversely, where both Umsatzart and Buchungstext exist, short booking-type values identify the type;
+  // the longer purpose text must stay available for sorting.
+  const purpose = columns.filter((col) => col.kind === "text" && !taken.has(col.index)
+    && wordScore(col.header, "text") > wordScore(col.header, "kind") && wordScore(col.header, "text") > 0)
+    .sort((a, b) => wordScore(b.header, "text") - wordScore(a.header, "text"))[0];
+  if (purpose) take("text", purpose.index);
+  const type = columns.filter((col) => col.kind === "text" && !taken.has(col.index)
+    && wordScore(col.header, "kind") > 0 && bookingType(col))
+    .sort((a, b) => wordScore(b.header, "kind") - wordScore(a.header, "kind"))[0];
+  if (type) take("kind", type.index);
   for (const role of ["kind", "counterparty", "text"] as const) {
+    if (roles[role] !== undefined) continue;
     const col = byWord(role, ["text"]);
     if (col) take(role, col.index);
   }

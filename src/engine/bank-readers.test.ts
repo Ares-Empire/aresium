@@ -360,6 +360,18 @@ test("readCsv refuses a file whose header does not match the layout", () => {
 // ── Fixtures: every file has its stored answer, in Node and in the bundle, in UTF-8 and Windows-1252 ────────
 
 for (const name of await bankFixtures()) {
+  if (name === "comdirect.sections.csv") {
+    test("comdirect.sections.csv: refuse the unsafe frozen answer that omitted the Visa account", async () => {
+      // Keep the old answer byte for byte for Claude's review. It describes only the first account.
+      const expected = JSON.parse(await readFile(new URL(`fixtures/banks/${name}.expected.json`, import.meta.url), "utf8"));
+      assert.equal(expected.transactions.length, 3);
+      assert.equal(expected.skipped, 8);
+      const bytes = await fixture(name);
+      assert.throws(() => engine.readBankFile(bytes), { code: "unknown" });
+      assert.throws(() => bundled.readBankFile(bytes), { code: "unknown" });
+    });
+    continue;
+  }
   test(`fixture ${name}: the stored answer, in Node and in the bundled engine`, async () => {
     const expected = JSON.parse(await readFile(new URL(`fixtures/banks/${name}.expected.json`, import.meta.url), "utf8"));
     assert.deepEqual(await fixtureAnswer(name), expected);
@@ -382,7 +394,7 @@ test("every known bank layout has a fixture, read as that bank (variants too), a
     assert.ok(names.includes(`${profile.id}.csv`), `no fixture for ${profile.id}`);
   }
   // <profile>.csv and <profile>.<variant>.csv
-  for (const name of names.filter((n) => ids.has(n.split(".")[0]))) {
+  for (const name of names.filter((n) => ids.has(n.split(".")[0]) && n !== "comdirect.sections.csv")) {
     const id = name.split(".")[0];
     const file = engine.readBankFile(await fixture(name));
     assert.equal(file.bank?.id, id, `${name} was read as ${file.bank?.id ?? "unknown"}`);

@@ -22,6 +22,8 @@ export type CsvLayout = {
   version: 1;
   name?: string; // the bank's name, or what the person called it
   profile?: string; // the known profile this came from
+  // Only newly offered VR Bank date confirmations carry this. Older saved layouts keep their original ids.
+  idStyle?: "vrbank";
   separator: Separator;
   header: string[]; // the header row's cells, which find the table and recognise the next file; [] for a file
   // without a header row (Targobank), which is recognised by its width and a date in the date column

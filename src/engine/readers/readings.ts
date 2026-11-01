@@ -2,14 +2,15 @@
 // first, then the same layout with one thing changed that the guess may have got wrong (day and month swapped, money
 // out and money in the other way round, the other party and the payment text swapped, ...). The app shows the first
 // payments of one reading; "No" shows the next. Every reading is a complete layout, ready to save, that reads every
-// payment the file has. Known banks and layouts the person confirmed before never get here: readBankFile reads them.
+// payment the file has. A known bank also gets date readings when a spreadsheet rewrote its dates ambiguously;
+// its column rules stay intact. Layouts the person confirmed before are read directly by readBankFile.
 //
 // The changes the guess itself is unsure of come first (LayoutGuess.unsure); then the ones it has no proof against
 // (a credit card that lists purchases as positive amounts, say), so a confident wrong guess can still be corrected.
 import { decodeBankFile } from "./decode.js";
 import { analyseCsv, balanceFits, complementary, type AnalysedColumn } from "./guess.js";
-import { detectBankFile } from "./read.js";
-import { findTable, readTable, signMark } from "./table.js";
+import { dateConfirmation, detectBankFile } from "./read.js";
+import { BankFileError, checkedCsvRows, findTable, readTable, signMark } from "./table.js";
 import { parseAmountStrict, type DateFormat } from "./values.js";
 import type { BankTxn, CsvLayout, LayoutGuess } from "./types.js";
 
@@ -130,18 +131,32 @@ const average = (col: AnalysedColumn) => col.values.reduce((n, v) => n + v.lengt
 const shown = (preview: BankTxn[]) => JSON.stringify(preview.map((t) => [t.bookingDate.slice(0, 10), t.counterparty ?? "", t.description, t.amount]));
 
 // The readings of an unknown CSV's text, best first; [] when the file is not an unknown CSV (CAMT, MT940, PayPal, a
-// known bank or one of `savedLayouts`: read it with readBankText) or no layout with a date and an amount was found
+// known bank with unambiguous dates or one of `savedLayouts`: read it with readBankText) or no layout with a date and an amount was found
 // (the person picks the columns from LayoutGuess.columns).
 export function readingsOfUnknownText(text: string, savedLayouts: readonly CsvLayout[] = []): FileReading[] {
   const clean = text.replace(/^\uFEFF/, "");
   const detected = detectBankFile(clean, savedLayouts);
-  if (detected.format !== "csv" || detected.layout) return [];
+  if (detected.format !== "csv") return [];
+  if (detected.layout) {
+    if (!detected.dateAmbiguous) return [];
+    const rows = checkedCsvRows(clean, detected.separator);
+    const first = dateConfirmation(rows, detected.headerRow, detected.layout).layout!;
+    return [first, { ...first, dateFormat: OTHER_DAY_ORDER[first.dateFormat]! }].map((layout, i) => ({
+      layout, reason: i === 0 ? null : "dateFormat",
+      preview: readTable(rows, detected.headerRow, layout).transactions.slice(0, PREVIEW_PAYMENTS),
+    }));
+  }
   const { guess, columns, rows, payments: guessed } = analyseCsv(clean);
   if (!guess.layout) return [];
   // Each layout read the way the import will read it once saved: its table found by its header (or shape) again.
   const read = (layout: CsvLayout): BankTxn[] => {
     const start = findTable(rows, layout);
-    return start === null ? [] : readTable(rows, start, layout).transactions;
+    if (start === null) return [];
+    try { return readTable(rows, start, layout).transactions; }
+    catch (error) {
+      if (error instanceof BankFileError) return [];
+      throw error;
+    }
   };
   const candidates = [
     { layout: guess.layout, reason: null, payments: guessed },

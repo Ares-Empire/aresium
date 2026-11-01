@@ -10,17 +10,17 @@ import { decodeBankFileWithEncoding } from "./decode.js";
 import { findTableStart, guessCsvLayout } from "./guess.js";
 import { withOccurrences } from "./ids.js";
 import { readMt940 } from "./mt940.js";
-import { BANK_PROFILES, findProfile, profileLayout, type BankProfile } from "./profiles.js";
-import { BankFileError, findTable, readTable } from "./table.js";
+import { BANK_PROFILES, findProfile, profileDateAmbiguous, profileLayout, type BankProfile } from "./profiles.js";
+import { BankFileError, checkedCsvRows, findTable, readTable } from "./table.js";
 import { DATE_FORMATS, headerKey, normalizeIban, parseAmountStrict, parseDate } from "./values.js";
-import type { BankFile, BankTxn, CsvLayout } from "./types.js";
+import type { BankFile, BankTxn, ColumnInfo, CsvLayout, LayoutGuess } from "./types.js";
 
 export type Detection =
   | { format: "camt"; message?: string } // e.g. "camt.053.001.08"
   | { format: "mt940" }
   | { format: "paypal"; separator: Separator; headerRow: number }
   // headerRow -1: a CSV without a header row
-  | { format: "csv"; separator: Separator; headerRow: number; layout?: CsvLayout; profile?: { id: string; bank: string } }
+  | { format: "csv"; separator: Separator; headerRow: number; layout?: CsvLayout; profile?: { id: string; bank: string }; dateAmbiguous?: boolean }
   | { format: "unknown"; reason: "empty" | "zip" | "xml" | "noTable" };
 
 const isPaypalHeader = (row: string[]) => {
@@ -56,15 +56,17 @@ export function detectBankFile(text: string, savedLayouts: readonly CsvLayout[] 
   if (/^:20:/m.test(head) && /^:(61|60F|60M):/m.test(head)) return { format: "mt940" };
 
   const separator = detectSeparator(head);
-  const rows = splitCsv(head.slice(0, 200000), separator);
+  // Header discovery is bounded, but date order must use the whole column, even in large exports.
+  const rows = splitCsv(head, separator);
   const paypalRow = rows.slice(0, 5).findIndex(isPaypalHeader);
   if (paypalRow >= 0) return { format: "paypal", separator, headerRow: paypalRow };
   const saved = savedLayoutFor(head, savedLayouts);
   if (saved) return { format: "csv", separator: saved.layout.separator, headerRow: saved.headerRow, layout: saved.layout };
-  const known = findProfile(rows, separator);
+  const known = findProfile(rows);
   const layout = known ? profileLayout(known.profile, rows, known.headerRow, separator) : null;
   if (known && layout) {
-    return { format: "csv", separator, headerRow: known.headerRow, layout, profile: { id: known.profile.id, bank: known.profile.bank } };
+    return { format: "csv", separator, headerRow: known.headerRow, layout, profile: { id: known.profile.id, bank: known.profile.bank },
+      ...(profileDateAmbiguous(known.profile, rows, known.headerRow, layout) ? { dateAmbiguous: true } : {}) };
   }
   const table = findTableStart(rows);
   return table ? { format: "csv", separator, headerRow: table.headerRow } : { format: "unknown", reason: "noTable" };
@@ -80,6 +82,24 @@ function isoTransactions(file: ParsedFile): BankTxn[] {
 
 const findKnown = (id: string) => BANK_PROFILES.find((p) => p.id === id);
 const bankName = (profile: BankProfile) => (profile.variant ? `${profile.bank} (${profile.variant})` : profile.bank);
+
+// A known bank with rewritten ambiguous dates keeps all its column and status rules in the confirmation.
+// Guessing the columns afresh could lose fees, currency, purpose text or pending-row rules.
+export function dateConfirmation(rows: string[][], headerRow: number, layout: CsvLayout): LayoutGuess {
+  if (layout.profile === "volksbank" && headerRow === 0) layout = { ...layout, idStyle: "vrbank" };
+  const data = rows.slice(headerRow + 1);
+  const c = layout.columns;
+  const names = layout.header.length ? layout.header : Array.from({ length: layout.columnCount ?? 0 }, (_, i) => `Column ${i + 1}`);
+  const columns: ColumnInfo[] = names.map((header, index) => ({
+    index, header, kind: index === c.date || index === c.valueDate ? "date"
+      : [c.amount, c.debit, c.credit, c.balance, ...(c.fees ?? []), ...(c.addAmounts ?? [])].includes(index) ? "amount"
+        : [c.iban, c.accountIban].includes(index) ? "iban" : index === c.currency ? "currency" : index === c.sign ? "sign" : "text",
+    samples: data.map((r) => r[index] ?? "").filter(Boolean).slice(0, 3),
+    ...(index === layout.columns.date ? { dateFormat: layout.dateFormat } : {}),
+  }));
+  return { layout, confidence: 0.7, unsure: ["dateFormat"], missing: [], separator: layout.separator,
+    header: layout.header, headerRow, columns, preview: readTable(rows, headerRow, layout).transactions.slice(0, 5) };
+}
 
 // The other party's IBAN in a CSV row kept as a record (column name → cell), from the profile's IBAN column.
 export function recordCounterpartyIban(record: unknown, profile: BankProfile): string | undefined {
@@ -149,8 +169,13 @@ export function readBankText(text: string, savedLayouts: readonly CsvLayout[] = 
     case "camt": return readCamt(text);
     case "mt940": return readMt940(text);
     case "paypal": {
+      const rows = checkedCsvRows(text, detected.separator).slice(detected.headerRow);
+      const data = rows.slice(1).filter((r) => r.some((v) => v.trim() !== ""));
+      if (data.length === 0) throw new BankFileError("noTable", "No readable booked payments were found in this file.");
+      const width = Math.min(rows[0].length, data.reduce((n, row) => Math.max(n, row.length), 0));
+      if (data.some((r) => r.length < width)) throw new BankFileError("unknown", "A payment row is cut off or has missing columns. Download the file again.");
       // The server's PayPal reader (its ids are PayPal's transaction codes); lines above the header are dropped.
-      const table = detected.headerRow === 0 ? text : text.replace(/^\uFEFF/, "").split(/\r?\n/).slice(detected.headerRow).join("\n");
+      const table = rows.map((row) => row.map((v) => `"${v.replace(/"/g, '""')}"`).join(",")).join("\n");
       const parsed = parsePaypalCsv(table);
       return {
         format: "paypal",
@@ -160,11 +185,36 @@ export function readBankText(text: string, savedLayouts: readonly CsvLayout[] = 
       };
     }
     case "csv": {
+      const rows = checkedCsvRows(text, detected.separator);
       const { layout, profile } = detected;
       const known = profile ? findKnown(profile.id) : undefined;
-      if (known?.reader === "vrbank" && detected.headerRow === 0) return readVrBank(text, known);
+      if (layout && detected.dateAmbiguous) {
+        return { format: "csv", transactions: [], needsLayout: dateConfirmation(rows, detected.headerRow, layout) };
+      }
+      if (known?.reader === "vrbank" && detected.headerRow === 0 && layout) {
+        // Apply the same coverage check as other CSVs before entering the legacy id-preserving reader.
+        const checked = readTable(rows, detected.headerRow, layout);
+        // Do not let the legacy reader's permissive date fallback or amount parser invent a payment from
+        // an invalid row. Its valid original cells, descriptions and id formula stay unchanged.
+        const c = layout.columns;
+        const kept = rows.filter((r, i) => i === 0 || (parseDate(r[c.date] ?? "", layout.dateFormat) !== null
+          && parseAmountStrict(r[c.amount!] ?? "", layout.numberFormat) !== null));
+        const changedDates = layout.dateFormat === "DD/MM/YYYY";
+        if (changedDates) for (let i = 1; i < kept.length; i++) {
+          kept[i] = [...kept[i]];
+          for (const j of [c.date, c.valueDate]) if (j !== undefined) {
+            kept[i][j] = parseDate(kept[i][j] ?? "", layout.dateFormat) ?? "";
+          }
+        }
+        // The legacy reader detects only comma/semicolon. Feed it the same cells after a spreadsheet's
+        // tab export, keeping its descriptions and id formula.
+        const compatible = changedDates || kept.length !== rows.length || detected.separator === "\t" || detected.separator === "|"
+          ? kept
+            .map((row) => row.map((v) => `"${v.replace(/"/g, '""')}"`).join(";")).join("\n")
+          : text;
+        return { ...readVrBank(compatible, known), skipped: checked.skipped };
+      }
       if (layout) {
-        const rows = splitCsv(text.replace(/^\uFEFF/, ""), layout.separator);
         const file = readTable(rows, detected.headerRow, layout);
         return known ? { ...file, bank: { id: known.id, name: bankName(known) } } : file;
       }

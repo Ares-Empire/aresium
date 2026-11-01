@@ -1,10 +1,11 @@
 // Reading a CSV export with a layout: find the table under any account details the bank puts above it, then
 // turn each row into a payment. Rows without a readable date or amount (totals, "offen", empty lines) and rows
 // that are not booked yet are skipped and counted.
-import { splitCsv } from "./csv.js";
+import { inspectCsv, type Separator } from "./csv.js";
 import { bookingIds } from "./ids.js";
+import { parseAmount as legacyAmount } from "../../import/util.js";
 import {
-  absolute, addAmounts, cleanText, headerKey, negate, normalizeIban, parseAmountStrict, parseDate, sepaPaymentText,
+  absolute, addAmounts, cleanText, DATE_FORMATS, headerKey, negate, normalizeIban, parseAmountStrict, parseDate, sepaPaymentText,
 } from "./values.js";
 import type { BankAccount, BankFile, BankTxn, CsvLayout } from "./types.js";
 
@@ -15,6 +16,13 @@ export class BankFileError extends Error {
     super(message);
     this.name = "BankFileError";
   }
+}
+
+// Unlike format detection, an import must inspect the entire file, including its final quoted field.
+export function checkedCsvRows(text: string, separator: Separator): string[][] {
+  const result = inspectCsv(text.replace(/^\uFEFF/, ""), separator);
+  if (result.damaged) throw new BankFileError("unknown", "The file has a broken or unfinished quoted field. Download it again.");
+  return result.rows;
 }
 
 // Trailing empty cells (a separator at the end of the line) do not count.
@@ -105,7 +113,7 @@ function cell(row: string[], index: number | undefined): string {
 
 // Reads the CSV text with a layout, as returned by guessCsvLayout or a known profile and confirmed by the person.
 export function readCsv(text: string, layout: CsvLayout): BankFile {
-  const rows = splitCsv(text, layout.separator);
+  const rows = checkedCsvRows(text, layout.separator);
   if (rows.length === 0) throw new BankFileError("empty", "The file is empty.");
   const headerIndex = findTable(rows, layout);
   if (headerIndex === null) throw new BankFileError("headerMismatch", "The file's header row does not match the layout.");
@@ -121,25 +129,55 @@ export function readTable(rows: string[][], headerIndex: number, layout: CsvLayo
   const idFields: string[] = [];
   const references: (string | undefined)[] = [];
   let skipped = 0;
+  let unreadable = 0;
   let ownIban: string | undefined;
-  let currency = layout.currency ?? "EUR";
+  const accountColumn = layout.header.findIndex((h) => /^(kontoname|accountname|bezeichnungauftragskonto|kontonummerauftragskonto)$/.test(headerKey(h)));
+  let ownAccount: string | undefined;
+  const amountHeader = layout.header[c.amount ?? c.debit ?? c.credit ?? -1] ?? "";
+  const headerCurrencies = [...new Set(amountHeader.toUpperCase().match(/\b(EUR|USD|GBP|CHF|JPY|CAD|AUD|CNY|DKK|NOK|SEK|PLN|CZK|HUF)\b/g) ?? [])];
+  if (headerCurrencies.length > 1 && c.currency === undefined) {
+    throw new BankFileError("unknown", "The amount column names several currencies without identifying each payment's currency.");
+  }
+  let currency = layout.currency ?? headerCurrencies[0] ?? "EUR";
   const skip = (layout.skipStatus ?? []).map((s) => s.toLowerCase());
   const keep = (layout.keepStatus ?? []).map((s) => s.toLowerCase());
-  // A file with several sections (comdirect: giro account, then card, then savings) repeats the header name of
-  // the date column at the next section's table; reading stops there, and the rest counts as skipped.
+  // BankFile holds one account. Refuse a second table rather than omit it or put its payments on the first.
   const dateHeader = headerIndex >= 0 ? headerKey(rows[headerIndex][c.date] ?? "") : "";
+  const datedRows = rows.slice(headerIndex + 1).filter((row) => DATE_FORMATS.some((f) => parseDate(cell(row, c.date), f) !== null));
+  // Some banks omit consistently empty trailing fields (C24). A shorter payment row among otherwise whole
+  // rows is damage; a final newline is optional and says nothing about whether a row is complete.
+  const expectedWidth = Math.min(layout.columnCount ?? layout.header.length,
+    datedRows.reduce((n, row) => Math.max(n, row.length), 0));
 
   for (let r = headerIndex + 1; r < rows.length; r++) {
     const row = rows[r];
     if (row.every((v) => v.trim() === "")) continue;
+    if (row.length < expectedWidth && DATE_FORMATS.some((f) => parseDate(cell(row, c.date), f) !== null)) {
+      throw new BankFileError("unknown", "A payment row is cut off or has missing columns. Download the file again.");
+    }
     if (dateHeader && headerKey(cell(row, c.date)) === dateHeader) {
-      skipped += rows.slice(r).filter((rest) => rest.some((v) => v.trim() !== "")).length;
-      break;
+      throw new BankFileError("unknown", "This file contains several payment tables or accounts. Export each account separately.");
+    }
+    const keys = row.map(headerKey);
+    if (keys.some((k) => /^(date|bookingdate|buchungstag|buchungsdatum|buchung|umsatztag|belegdatum)$/.test(k))
+      && keys.some((k) => /^(amount|amounteur|betrag|betrageur|umsatzineur|debit|soll)$/.test(k))) {
+      throw new BankFileError("unknown", "This file contains several payment tables or accounts. Export each account separately.");
     }
     const date = parseDate(cell(row, c.date), layout.dateFormat);
     const status = cell(row, c.status).toLowerCase();
-    if (!date || (c.status !== undefined && (skip.some((s) => status.includes(s)) ||
-        (keep.length > 0 && !keep.some((s) => status.includes(s)))))) { skipped++; continue; }
+    if (c.status !== undefined && (skip.some((s) => status.includes(s)) ||
+        (keep.length > 0 && !keep.some((s) => status.includes(s))))) { skipped++; continue; }
+    if (!date) {
+      skipped++;
+      const dateCell = cell(row, c.date);
+      const notice = /^(offen|pending|vorgemerkt|--)$/.test(dateCell.toLowerCase())
+        || /^(summe|total|saldo|anfangssaldo|endsaldo|alter kontostand|neuer kontostand)\b/i.test(cleanText(...row));
+      if (!notice && DATE_FORMATS.some((f) => parseDate(dateCell, f) !== null)) {
+        throw new BankFileError("unknown", "The date column mixes incompatible formats. Check how its dates are written.");
+      }
+      if (!notice) unreadable++;
+      continue;
+    }
 
     let amount: string | null = null;
     if (c.amount !== undefined) {
@@ -156,7 +194,7 @@ export function readTable(rows: string[][], headerIndex: number, layout: CsvLayo
       else if (credit) amount = absolute(credit);
       else if (debit) amount = debit;
     }
-    if (!amount) { skipped++; continue; }
+    if (!amount) { skipped++; unreadable++; continue; }
     if (layout.invertSign) amount = negate(amount);
     for (const j of c.fees ?? []) {
       const fee = parseAmountStrict(cell(row, j), layout.numberFormat);
@@ -180,12 +218,23 @@ export function readTable(rows: string[][], headerIndex: number, layout: CsvLayo
       if (labelled !== undefined) paymentText = labelled;
       else if (counterparty) paymentText = "";
     }
-    const description = paymentText || cleanText(cell(row, c.kind)) || cleanText(counterparty) || "(no description)";
+    let description = paymentText || cleanText(cell(row, c.kind)) || cleanText(counterparty) || "(no description)";
+    if (layout.idStyle === "vrbank") {
+      // Mirror the legacy reader's fields exactly, including its raw amount precision and text spacing.
+      // Canonicalising these for the hash would change ids of payments already imported from native CSVs.
+      description = (c.text ?? []).map((i) => cell(row, i)).find(Boolean) || cell(row, c.kind) || "(no description)";
+    }
     const valueDate = c.valueDate !== undefined ? parseDate(cell(row, c.valueDate), layout.dateFormat) : undefined;
     const balance = c.balance !== undefined ? parseAmountStrict(cell(row, c.balance), layout.numberFormat) : undefined;
     const rowCurrency = /^[A-Za-z]{3}$/.test(cell(row, c.currency)) ? cell(row, c.currency).toUpperCase() : currency;
     currency = rowCurrency;
-    ownIban ??= c.accountIban !== undefined ? normalizeIban(cell(row, c.accountIban)) ?? undefined : undefined;
+    const rowIban = c.accountIban !== undefined ? normalizeIban(cell(row, c.accountIban)) ?? undefined : undefined;
+    const rowAccount = accountColumn >= 0 ? cell(row, accountColumn) : "";
+    if ((ownIban && rowIban && ownIban !== rowIban) || (ownAccount && rowAccount && ownAccount !== rowAccount)) {
+      throw new BankFileError("unknown", "This file contains payments from several accounts. Export each account separately.");
+    }
+    ownIban ??= rowIban;
+    ownAccount ??= rowAccount || undefined;
     // Only a real IBAN: some banks' "Kontonummer" columns hold an old account number.
     const counterpartyIban = c.iban !== undefined ? normalizeIban(cell(row, c.iban)) : null;
 
@@ -205,10 +254,19 @@ export function readTable(rows: string[][], headerIndex: number, layout: CsvLayo
     // The booking fields identify the booking: date and amount as read, the parties' and text cells as written
     // (before any SEPA or label parsing), the other party's IBAN. Not the whole row: some banks export columns
     // the person edits in online banking (category, note, flag), which would give the booking a new id.
-    idFields.push([date, amount, ...[c.payer, c.payee, ...(c.counterparty ?? []), ...(c.text ?? [])].map((i) => cleanText(cell(row, i))),
-      cell(row, c.iban).replace(/\s/g, "")].join("|"));
+    if (layout.idStyle === "vrbank") {
+      let legacy = legacyAmount(cell(row, c.amount));
+      if (/^(s|d|soll)/i.test(cell(row, c.sign)) && !legacy.startsWith("-")) legacy = `-${legacy}`;
+      idFields.push(`${date}T00:00:00.000Z|${legacy}|${description}|${counterparty}`);
+    } else {
+      idFields.push([date, amount, ...[c.payer, c.payee, ...(c.counterparty ?? []), ...(c.text ?? [])].map((i) => cleanText(cell(row, i))),
+        cell(row, c.iban).replace(/\s/g, "")].join("|"));
+    }
     references.push(cell(row, c.reference).replace(/^'+|'+$/g, "") || undefined); // Amex writes 'AT123…'
   }
+
+  if (transactions.length === 0) throw new BankFileError("noTable", "No readable booked payments were found in this file.");
+  if (unreadable > transactions.length) throw new BankFileError("unknown", "Most payment rows could not be read. Check the file's columns and formats.");
 
   if (!ownIban) for (const row of rows.slice(0, Math.max(headerIndex, 0))) ownIban ??= findIban(row.join(" "));
   const hashed = bookingIds(idFields);
