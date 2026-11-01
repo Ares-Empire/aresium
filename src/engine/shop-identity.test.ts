@@ -187,8 +187,8 @@ test("exact learning wins, removed exact categories block fallback, and conflict
 });
 
 test("identity learning leaves structural matches and unrelated existing starter rules intact", () => {
-  const payments = [{ source: "bank" as const, counterparty: "PayPal", amount: -12 },
-    { source: "paypal" as const, counterparty: "Vinted UAB", amount: -12 },
+  const payments = [{ source: "bank" as const, counterparty: "PayPal", amount: -12, date: "2026-03-03" },
+    { source: "paypal" as const, counterparty: "Vinted UAB", amount: -12, date: "2026-03-02" },
     { counterparty: "REWE", amount: -20 }, { counterparty: "Max Mustermann", amount: -5 }];
   assert.deepEqual(sortPayments(payments, { categories: [...DEFAULT_CATEGORIES, { id: "custom" }],
     learned: { "mgp vinted - kleiderkreisel": "custom", paypal: "custom", "erika mustermann": "custom" } }), [

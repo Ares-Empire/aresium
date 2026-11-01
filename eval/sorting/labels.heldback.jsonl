@@ -456,7 +456,7 @@
 {"id":"a00577daa911ddc98e0c","accepted":["utilities"],"unsortedRight":false,"disputed":false,"fingerprint":"138fdb13ed56b48ed6ad300b4f16c0bcb46954cb093f6a70399f8092162dd1d5","basis":"majority"}
 {"id":"2d3620e5e3e2b69f1d11","accepted":["internet-phone"],"unsortedRight":false,"disputed":false,"fingerprint":"d9e214a298e87693f556a8164261797e2952f9410a1ac6c9fb6343827a598d18","basis":"majority"}
 {"id":"ad7e7623ef50016acb4a","accepted":["insurance"],"unsortedRight":false,"disputed":false,"fingerprint":"f545a299304158aaca646ab81779cb0ab26b1281098fea2a987131faa0074b40","basis":"majority"}
-{"id":"05d15043bdc12b5d1f9a","accepted":["fees","subscriptions"],"unsortedRight":false,"disputed":false,"fingerprint":"aba539839754d060bac56ccffe4f53183bddcb47cfb13d9e6fbf5f34c2966e89","basis":"majority"}
+{"id":"05d15043bdc12b5d1f9a","accepted":["fees","subscriptions","utilities"],"unsortedRight":false,"disputed":false,"fingerprint":"aba539839754d060bac56ccffe4f53183bddcb47cfb13d9e6fbf5f34c2966e89","basis":"majority"}
 {"id":"72a8895a2d5e451493fa","accepted":["fees"],"unsortedRight":false,"disputed":false,"fingerprint":"c23a7e81cebaa2a0d36d6cb41b5aa6f21ee807d8530471a6168201862e0fbc6f","basis":"majority"}
 {"id":"73dc09d513e9723d3e81","accepted":["fees"],"unsortedRight":false,"disputed":false,"fingerprint":"be818706c70eee7da69889514becf120be9391f79e1e01c38eb2a537fdbb5a80","basis":"majority"}
 {"id":"f4bc42d037d273c2383a","accepted":["interest-dividends"],"unsortedRight":false,"disputed":false,"fingerprint":"5e437b600de4f3c88a98d6147bb197c05869cb1df1bf61d636c67a031b5cdea9","basis":"majority"}
@@ -474,7 +474,7 @@
 {"id":"e6f77d111d4ccd689cbb","accepted":["rent"],"unsortedRight":false,"disputed":false,"fingerprint":"31c95ea342ae60a4874ddb9e31a31b66e97679f0ca9e7ca648fc33c0b7279127","basis":"majority"}
 {"id":"3dcb0484428266a01a88","accepted":["internet-phone"],"unsortedRight":false,"disputed":false,"fingerprint":"fe0f7643cdb429522c05179341dd68625d6eae1500c0886cd73618fb40480e35","basis":"majority"}
 {"id":"d548f85d9bc013c61230","accepted":["internet-phone"],"unsortedRight":false,"disputed":false,"fingerprint":"e45bb948833c413f1757f6186e84038f13892536bda3fa44621daa806e44b885","basis":"majority"}
-{"id":"541bb2268f7e5c60b4ee","accepted":["fees","subscriptions"],"unsortedRight":false,"disputed":false,"fingerprint":"26264a2b80857e600da917cb034ac3957a860c3035e998bf6a8cdc4826bfc652","basis":"majority"}
+{"id":"541bb2268f7e5c60b4ee","accepted":["fees","subscriptions","utilities"],"unsortedRight":false,"disputed":false,"fingerprint":"26264a2b80857e600da917cb034ac3957a860c3035e998bf6a8cdc4826bfc652","basis":"majority"}
 {"id":"0041705faababe9f0d39","accepted":["interest-dividends"],"unsortedRight":false,"disputed":false,"fingerprint":"907cc829dc66af5e46315d82342f1434f0640e5d8836e884ad1e3c711703cbb4","basis":"majority"}
 {"id":"c66eb7436f809e885928","accepted":["cash"],"unsortedRight":false,"disputed":false,"fingerprint":"f83dd4f6bcd2f5f3cb01a56471b1fb5c3333bf9164af748e5d1786d1da16e97e","basis":"majority"}
 {"id":"fd4170f08e492543ca34","accepted":["memberships"],"unsortedRight":false,"disputed":false,"fingerprint":"5e10638e582fe4b435bb77a179dc71c319036cb824a2e34e8c815734c7b5649a","basis":"majority"}
@@ -570,7 +570,7 @@
 {"id":"707c8b3b2d3314f3b417","accepted":["other-income"],"unsortedRight":true,"disputed":false,"fingerprint":"5c8ba202b5e9a96e5a5bf993a6ca98af66791372cca68d240b723cb0e2356102","basis":"majority"}
 {"id":"49d26575bb060d922f87","accepted":["bafoeg-scholarships"],"unsortedRight":false,"disputed":false,"fingerprint":"544114c82ca11f17c64b22678e48a156c39b6c00f7223557bfb583243257d8ca","basis":"majority"}
 {"id":"c1f15ba9ea881ae7ecff","accepted":["rent"],"unsortedRight":false,"disputed":false,"fingerprint":"54cb920817fa50d0c3911703b3b07c250c3ba8660c36f53a6f5121af2d1ea6df","basis":"majority"}
-{"id":"7ee6de3b089c024187e7","accepted":["fees","subscriptions"],"unsortedRight":false,"disputed":false,"fingerprint":"e1e43446602187f85300888d5f36c324c3939d77ff698307ede4f6321f2e04f2","basis":"majority"}
+{"id":"7ee6de3b089c024187e7","accepted":["fees","subscriptions","utilities"],"unsortedRight":false,"disputed":false,"fingerprint":"e1e43446602187f85300888d5f36c324c3939d77ff698307ede4f6321f2e04f2","basis":"majority"}
 {"id":"221617ea4e46f1ac47e0","accepted":["fees"],"unsortedRight":false,"disputed":false,"fingerprint":"a49bbffbf6f05339a6700350706a08b4381d6f99d4844d3bac4e2575adfe9fd4","basis":"majority"}
 {"id":"20f1a59f4d9c77d96412","accepted":["interest-dividends"],"unsortedRight":false,"disputed":false,"fingerprint":"5482015732d621692134a5a7c475330b52370a22487152a0b61475777e24c16a","basis":"majority"}
 {"id":"74e3028544b6a1171900","accepted":["selling-things"],"unsortedRight":false,"disputed":false,"fingerprint":"15f4d5233ceb01fcef0feab707d12c3dfa056d6ff902f387bb3b294a68f1df1b","basis":"majority"}

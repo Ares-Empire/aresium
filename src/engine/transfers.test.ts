@@ -34,6 +34,32 @@ test("without PayPal export rows nothing changes: the bank line is the only reco
   assert.deepEqual(ownTransfers([bankPaypalLine, bank("2026-02-05", -3, "REWE Markt")]), [null, null]);
 });
 
+test("a shorter PayPal export covers only its date range plus three settlement days", () => {
+  const bankLine = (date: string) => bank(date, -19, "PayPal Europe", "Ihr Einkauf bei REWE Markt");
+  const exports = [paypal("2026-03-01", -19, "REWE Markt"), paypal("2026-03-31T00:00:00.000Z", -19, "REWE Markt")];
+  const dates = ["2026-01-15", "2026-02-25", "2026-02-26", "2026-03-15", "2026-04-03", "2026-04-04", "2026-07-01"];
+  const payments = [...dates.map(bankLine), ...exports];
+  assert.deepEqual(ownTransfers(payments), [null, null, { rule: "paypal" }, { rule: "paypal" }, { rule: "paypal" }, null, null, null, null]);
+  assert.deepEqual(sources(payments), ["groceries", "groceries", OWN_TRANSFERS, OWN_TRANSFERS, OWN_TRANSFERS,
+    "groceries", "groceries", "groceries", "groceries"]);
+  // Order, sign and whether the bank row is explicitly tagged do not alter the coverage.
+  assert.deepEqual(ownTransfers([...payments].reverse()), [...ownTransfers(payments)].reverse());
+  assert.deepEqual(ownTransfers([{ ...bankLine("2026-04-03"), amount: 19, source: undefined }, ...exports])[0], { rule: "paypal" });
+  assert.equal(ownTransfers([{ ...bankLine("2026-04-04"), amount: 19 }, ...exports])[0], null);
+});
+
+test("missing or invalid dates cannot establish PayPal bank coverage; its own funding still stands alone", () => {
+  for (const date of [undefined, "not-a-date", "2026-02-30"]) {
+    assert.equal(ownTransfers([{ ...bankPaypalLine, date }, paypalPurchase])[0], null);
+    assert.equal(ownTransfers([bankPaypalLine, { ...paypalPurchase, date }])[0], null);
+    const funding = { ...paypalPurchase, date, description: "Bank Deposit to PP Account" };
+    assert.deepEqual(ownTransfers([funding]), [{ rule: "paypal" }]);
+  }
+  assert.deepEqual(ownTransfers([bankPaypalLine, { ...paypalPurchase, date: "bad" }, paypalPurchase]),
+    [{ rule: "paypal" }, null, null]);
+  assert.equal(ownTransfers([bank("2026-02-04", -19, "Paypalooza"), paypalPurchase])[0], null);
+});
+
 test("banks' ways of naming PayPal are recognised, in the counterparty or the text, either sign", () => {
   for (const line of [
     bank("2026-02-04", -10, "PayPal Europe S.a.r.l. et Cie S.C.A"),

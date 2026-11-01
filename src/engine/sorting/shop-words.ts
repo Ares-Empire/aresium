@@ -1,7 +1,7 @@
 // Shop names and bank texts are compared as words in one spelling, so "Müller", "MUELLER" and "Mueller" are
 // the same word. The engine (matching) and scripts/build-shop-list.ts (building the list) share these functions.
 //
-// - lower case; ä/ö/ü as ae/oe/ue and ß as ss; other accents dropped (café → cafe)
+// - lower case; ä/ö/ü as ae/oe/ue and ß as ss; ø as o; other accents dropped (café → cafe)
 // - apostrophes removed (McDonald's → mcdonalds)
 // - a word is a run of letters and digits (O2, HUK24 and DB2026101234 are one word each, so a reference code
 //   never contains "db"); "&" and "+" are words of their own (H&M → h & m, R+V → r + v); every other sign
@@ -12,7 +12,7 @@ const bareVowels: Readonly<Record<string, string>> = { ä: "a", ö: "o", ü: "u"
 function words(text: string, letters: Readonly<Record<string, string>>): string[] {
   const plain = text.normalize("NFC").toLowerCase()
     .replace(/[äöüß]/gu, (c) => letters[c])
-    .normalize("NFD").replace(/\p{M}+/gu, "")
+    .normalize("NFD").replace(/\p{M}+/gu, "").replace(/ø/gu, "o")
     .replace(/['’‘`´]/gu, "");
   return plain.match(/[\p{L}\p{N}]+|[&+]/gu) ?? [];
 }
@@ -20,6 +20,19 @@ function words(text: string, letters: Readonly<Record<string, string>>): string[
 /** The words of a bank text or a shop name. */
 export function shopWords(text: string): string[] {
   return words(text, umlauts);
+}
+
+// SEPA reference fields carry codes, not words (EREF: DB-2026-1234, MREF: DM-77).
+export function withoutShopReferences(text: string): string {
+  return text.replace(/\b(?:eref|mref|cred|kref|iban|bic|mandatsreferenz|mandatsref|gläubiger-id|glaeubiger-id|kundenreferenz)\s*[:+]\s*\S+/giu, " ");
+}
+
+// These endings describe a food business even in compounds (Stadtcafé, Fischimbiss). Deliberately no general
+// stemming: "back" would include Backup and "grill" could be equipment. Used only for hand-written word rules;
+// merchant identities and exact brand spellings keep their original words.
+const foodEndings = ["restaurant", "imbiss", "baeckerei", "cafe", "backstube", "hofladen"];
+export function foodBusinessWord(word: string): string | null {
+  return foodEndings.find((ending) => word.length >= ending.length + 2 && word.endsWith(ending)) ?? null;
 }
 
 /**
