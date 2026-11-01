@@ -1,3 +1,4 @@
 date,commit,suite,metrics,worked_total,worked_disputed,worked_sorted,worked_right,worked_wrong,worked_missed,worked_unsortedRight,heldback_total,heldback_disputed,heldback_sorted,heldback_right,heldback_wrong,heldback_missed,heldback_unsortedRight
 2026-11-01T18:37:30.594Z,41f8db73ad69b1a003327ebf9c4371c504a16857,files,"{""files"":228,""readRight"":179,""refusedExpected"":7,""refusedUnexpected"":5,""readWrong"":37,""wrongRowsWithoutError"":94,""silentlyWrongRows"":40,""reviewWrongRows"":54,""reviewFiles"":80,""reimportKept"":123,""reimportTotal"":159,""idsKept"":359,""idsTotal"":453}",,,,,,,,,,,,,,
 2026-11-01T18:37:30.877Z,41f8db73ad69b1a003327ebf9c4371c504a16857,sorting,,1415,1,766,745,21,304,345,622,1,333,322,11,138,151
+2026-11-01T19:00:13.882Z,e5485a73b81759918379c58191e608068f6272f6,sorting,,1415,1,938,934,4,135,342,622,1,395,394,1,82,145
