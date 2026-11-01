@@ -3,10 +3,26 @@ import { readBankText, detectBankFile } from "../../src/engine/readers/read.js";
 import { decodeBankFile } from "../../src/engine/readers/decode.js";
 import type { CsvLayout, BankFile } from "../../src/engine/readers/types.js";
 import type { TransferPayment } from "../../src/engine/sorting/transfers.js";
-import { hash } from "./model.js";
+import { accepted, hash, type Answer } from "./model.js";
 export const IBANS = ["DE09000000000000000001", "DE79000000000000000002", "DE52000000000000000003"];
-export const SERVICES = ["direct", "SUMUP *", "ZETTLE_", "iZ *", "SQ *", "PAYPAL *", "Klarna", "Stripe", "Adyen", "NEXI", "Worldline", "AMZN Mktp", "Lieferando", "Wolt", "Uber Eats"];
-export type RenderInput = { name: string; purpose?: string; amount: number; town?: string; booking?: string; service?: string; foreign?: boolean };
+export const DELIVERY_SERVICES: readonly string[] = ["Lieferando", "Wolt", "Uber Eats"];
+export const SERVICES = ["direct", "SUMUP *", "ZETTLE_", "iZ *", "SQ *", "PAYPAL *", "Klarna", "Stripe", "Adyen", "NEXI", "Worldline", "AMZN Mktp", ...DELIVERY_SERVICES];
+export type RenderInput = { name: string; purpose?: string; amount: number; town?: string; booking?: string; service?: string; foreign?: boolean;
+  answer?: Answer; pharmacy?: boolean };
+export function serviceAllowed(service: string, input: Pick<RenderInput, "answer" | "pharmacy">): boolean {
+  if (!DELIVERY_SERVICES.includes(service)) return true;
+  const categories = accepted(input.answer ?? {});
+  if (categories.some((category) => category === "eating-out" || category === "coffee-snacks")) return true;
+  return service !== "Lieferando" && (categories.includes("groceries") || categories.includes("health") && input.pharmacy === true);
+}
+export function chooseService(input: RenderInput, index: number, paypalExport = false): string {
+  if (paypalExport) return "PayPal export";
+  const original = input.service ?? (input.purpose ? "direct" : SERVICES[index % SERVICES.length]);
+  if (serviceAllowed(original, input)) return original;
+  // Preserve the original seeded selection for every valid case; only impossible wrappers are replaced.
+  const remaining = SERVICES.filter((service) => serviceAllowed(service, input));
+  return remaining[index % remaining.length];
+}
 type Template = { id: string; layout: CsvLayout };
 let templates: Template[] | undefined;
 export async function layouts(): Promise<Template[]> {
@@ -38,7 +54,7 @@ export async function render(input: RenderInput, index: number, forceLayout?: st
   if (variation === 3) name = name.replace(/ä/gi, "A").replace(/ö/gi, "O").replace(/ü/gi, "U").replace(/ß/g, "SS");
   if (variation === 4 || variation === 5) name = name.slice(0, 22 + index % 6);
   const paypalExport = layoutId.startsWith("paypal-");
-  const service = paypalExport ? "PayPal export" : input.service ?? (input.purpose ? "direct" : SERVICES[index % SERVICES.length]);
+  const service = chooseService(input, index, paypalExport);
   // A generic marketplace descriptor hides the item; the generator must mark these unclear/personal.
   if (!paypalExport && service === "AMZN Mktp") name = "AMZN Mktp DE";
   else if (!paypalExport && service !== "direct") name = `${service}${/[\s_*]$/.test(service) ? "" : " *"}${name}`;

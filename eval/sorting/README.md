@@ -36,7 +36,7 @@ These initial numbers are a development baseline, not a claim of independently v
 ```sh
 npm run eval:sorting -- --batches
 # Claude first reviews categories.md. Copy only these files to EACH empty judging folder:
-# judging/batch-*.jsonl, judging/JUDGING.md, judging/categories.md
+# judging/batch-[0-9][0-9].jsonl, judging/JUDGING.md, judging/categories.md
 # Run a Claude judge and a separate Codex judge. No repo or other judge access.
 npm run eval:sorting -- --merge /outside/judge-1.jsonl /outside/judge-2.jsonl
 npm run eval:sorting
@@ -44,6 +44,10 @@ npm run engine
 npm run eval:sorting -- --engine dist/aresium-engine.js
 npm run eval:sorting -- --record
 ```
+
+The supplemental batch-12-rerendered.jsonl contains only payments changed by the delivery-wrapper rendering fix;
+rerendered-ids.txt lists their IDs. Use this batch alone for selective rejudging, then replace those IDs in each
+complete judge answer file before merging. Do not combine the supplemental batch with the full numbered batches.
 
 The batches are shuffled, about 200 cases each, and contain only opaque IDs, app-visible payment fields and (for
 scenarios) the other visible payments in `context`. A scenario's sides may be in separate batches; the context is
@@ -87,7 +91,10 @@ NSI sampling takes 210 known and 210 unknown independently tagged brands; 30 aut
 synthetic rows and passes them through the existing readers; no parallel approximation of counterparty/description
 placement is used. The raw synthetic row is preserved as the app sees it. Formatting includes uppercase, umlaut
 variants, truncation, branches, terminals, towns, dates, booking kinds and payment-service wrappers. These are
-representative synthetic renderings, not evidence that every terminal uses every bank layout. PayPal exports use
+representative synthetic renderings, not evidence that every terminal uses every bank layout.
+Delivery prefixes require an eating-out or coffee-snacks answer; Wolt and Uber Eats also permit groceries and
+health with explicit pharmacy evidence. Only invalid delivery selections are redrawn, using the same seeded index
+over the remaining eligible services; all valid selections stay unchanged. PayPal exports use
 the actual name/type description behaviour, with seller names rather than bank/card processor prefixes. Scenario rows use normalised app fields directly so their ownership
 and duplicate-purchase evidence is controlled.
 

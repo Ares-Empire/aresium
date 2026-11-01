@@ -107,7 +107,9 @@ export async function make(): Promise<EvalCase[]> {
   const brandNames = new Set(brands.map((b) => nameKey(b.name)));
   const add = async (seed: string, kind: EvalCase["kind"], input: RenderInput, generator: Answer, facts: EvalCase["facts"], forced?: string) => {
     const id = opaqueId(seed), index = rows.length;
-    const rendered = await render(input, index, forced);
+    const tags = facts.tags as Record<string, string> | undefined;
+    const pharmacy = tags?.amenity === "pharmacy" || (kind === "madeup" && input.name.startsWith("Apotheke "));
+    const rendered = await render({ ...input, answer: generator, pharmacy }, index, forced);
     // A marketplace name alone conceals the actual purchase, even when the source identifies a specialist shop.
     if (rendered.rendering.service === "AMZN Mktp") generator = { ...answer("shopping"), personal: true };
     const row: EvalCase = { id, kind, ...rendered, generator, facts };

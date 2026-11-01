@@ -82,6 +82,12 @@ test("prediction uses one ordinary call and isolated scenario calls, with no lea
   const predictions = predict(cases, (payments, options) => { calls.push(payments.length); assert.deepEqual(options.learned, {}); return payments.map(() => ({ categoryId: "groceries", source: "starter" })); });
   assert.deepEqual(calls, [2, 2]); assert.equal(predictions.size, 4);
 });
+test("bank cases and PayPal-export cases are sorted as two people, so a PayPal export never hides bank PayPal lines", () => {
+  const paypal = { ...example("pp"), payment: { ...example("pp").payment, source: "paypal" as const } };
+  const seen: string[][] = [];
+  predict([example(), paypal, example("def")], (payments) => { seen.push(payments.map((p) => p.source ?? "bank")); return payments.map(() => ({ categoryId: null, source: null })); });
+  assert.deepEqual(seen, [["bank", "bank"], ["paypal"]]);
+});
 test("each fixture CSV layout plus PayPal, CAMT and MT940 produces the intended sign and bank fields", async () => {
   const names = [...(await layouts()).map((l) => l.id), "paypal-de", "paypal-en", "camt053", "mt940"];
   for (const [i, layout] of names.entries()) for (const amount of [-37.29, 51.83]) {

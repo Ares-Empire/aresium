@@ -31,13 +31,18 @@ export function predict(cases: EvalCase[], sorter: Sorter = sortPayments): Map<s
   const plain = cases.filter((c) => !c.group);
   // One fresh-person call for ordinary cases; every scenario has its own independent context.
   const sort = (rows: EvalCase[]) => {
+    if (!rows.length) return;
     let predictions;
     try { predictions = sorter(rows.map((c) => c.payment), { categories: DEFAULT_CATEGORIES, learned: {} }); }
     catch { throw new Error("Engine sorting failed; payment details withheld"); }
     if (!Array.isArray(predictions) || predictions.some((p) => !p || !(p.categoryId === null || typeof p.categoryId === "string")) || predictions.length !== rows.length) throw new Error("Engine returned wrong number of predictions");
     rows.forEach((c, i) => result.set(c.id, predictions[i].categoryId));
   };
-  sort(plain);
+  // Bank cases and PayPal-export cases are two different people: with any PayPal export present the engine takes
+  // every bank-side PayPal line as the funding of a PayPal purchase (an own transfer), which would hide all
+  // "PAYPAL *shop" bank lines here although no PayPal row of theirs is in the set.
+  sort(plain.filter((c) => c.payment.source !== "paypal"));
+  sort(plain.filter((c) => c.payment.source === "paypal"));
   for (const c of cases) if (c.group) groups.set(c.group, [...(groups.get(c.group) ?? []), c]);
   for (const rows of groups.values()) sort(rows);
   return result;

@@ -31,6 +31,15 @@ export function blindCases(cases: EvalCase[]): { id: string; payment: EvalCase["
   return cases.map((c) => ({ id: c.id, payment: payment(c.payment), ...(c.group ? { context: groups.get(c.group)!.map(payment) } : {}) }))
     .sort((a, b) => hash(`blind:${a.id}`).localeCompare(hash(`blind:${b.id}`)));
 }
+export async function rerenderedBatch(before: EvalCase[], after: EvalCase[], directory = new URL("judging/", ROOT)): Promise<string[]> {
+  const previous = new Map(before.map((c) => [c.id, c]));
+  const changed = after.filter((c) => previous.has(c.id) && JSON.stringify(previous.get(c.id)!.payment) !== JSON.stringify(c.payment));
+  const ids = changed.map((c) => c.id).sort(), selected = new Set(ids);
+  await mkdir(directory, { recursive: true });
+  await writeFile(new URL("rerendered-ids.txt", directory), ids.length ? ids.join("\n") + "\n" : "");
+  await writeLines(new URL("batch-12-rerendered.jsonl", directory), blindCases(after).filter((row) => selected.has(row.id)));
+  return ids;
+}
 export async function batches(cases: EvalCase[], directory = new URL("judging/", ROOT)): Promise<void> {
   await mkdir(directory, { recursive: true });
   for (const name of await readdir(directory)) if (/^batch-\d+\.jsonl$/.test(name)) await unlink(new URL(name, directory));

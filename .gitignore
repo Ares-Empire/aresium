@@ -29,6 +29,7 @@ bench/out/
 eval/sorting/.cache/
 eval/sorting/judging/batch-*.jsonl
 eval/sorting/judging/manifest.json
+eval/sorting/judging/rerendered-ids.txt
 eval/sorting/judging/categories.md
 eval/sorting/judging/judge-*.jsonl
 eval/sorting/disputed*.jsonl

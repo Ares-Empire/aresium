@@ -1,0 +1,52 @@
+{
+  "osm": {
+    "total": 799,
+    "allThree": 553,
+    "twoOfThreeOnly": 245,
+    "disputed": 1,
+    "exactSets": 336,
+    "allThreeRate": 0.6921151439299124,
+    "twoOfThreeOnlyRate": 0.30663329161451813,
+    "majorityRate": 0.9987484355444305
+  },
+  "brand": {
+    "total": 450,
+    "allThree": 358,
+    "twoOfThreeOnly": 91,
+    "disputed": 1,
+    "exactSets": 244,
+    "allThreeRate": 0.7955555555555556,
+    "twoOfThreeOnlyRate": 0.20222222222222222,
+    "majorityRate": 0.9977777777777778
+  },
+  "madeup": {
+    "total": 250,
+    "allThree": 250,
+    "twoOfThreeOnly": 0,
+    "disputed": 0,
+    "exactSets": 200,
+    "allThreeRate": 1,
+    "twoOfThreeOnlyRate": 0,
+    "majorityRate": 1
+  },
+  "nonshop": {
+    "total": 500,
+    "allThree": 500,
+    "twoOfThreeOnly": 0,
+    "disputed": 0,
+    "exactSets": 425,
+    "allThreeRate": 1,
+    "twoOfThreeOnlyRate": 0,
+    "majorityRate": 1
+  },
+  "scenario": {
+    "total": 40,
+    "allThree": 40,
+    "twoOfThreeOnly": 0,
+    "disputed": 0,
+    "exactSets": 28,
+    "allThreeRate": 1,
+    "twoOfThreeOnlyRate": 0,
+    "majorityRate": 1
+  }
+}
