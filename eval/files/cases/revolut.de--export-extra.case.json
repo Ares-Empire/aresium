@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "file": "revolut.de--export-extra.csv",
+  "seed": 78,
+  "bank": "revolut",
+  "kind": "empty-rows",
+  "situation": "A spreadsheet saves unused rows at the end.",
+  "change": "empty-rows",
+  "provenance": {
+    "method": "original",
+    "fixture": "revolut.de.csv",
+    "reference": "revolut.de.csv.expected.json",
+    "sha256": "6cf45aa411a5645ec4c84f5f2e6f4809a58ee02e01c490a827854f43bb9368bf"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2025-09-20",
+        "amountCents": -4250,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Restaurant",
+        "text": "Fiktiv Restaurant"
+      },
+      {
+        "date": "2025-09-19",
+        "amountCents": 50000,
+        "currency": "EUR",
+        "counterparty": "Aufladen mit *1234",
+        "text": "Aufladen mit *1234"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "d49f361c6732673d3d1f8acf",
+      "6cb077d76c21600984221e9c"
+    ]
+  }
+}

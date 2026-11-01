@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "file": "mt940--no-final-newline.sta",
+  "seed": 78,
+  "bank": "mt940",
+  "kind": "no-final-newline",
+  "situation": "A file transfer omits the final line ending.",
+  "change": "Remove only final line endings.",
+  "provenance": {
+    "method": "original",
+    "fixture": "mt940.sta",
+    "reference": "mt940.sta.expected.json",
+    "sha256": "ebc6dc3d195cc2854c91583e63c467cbbddfa197a420374ba6899f0650f33634"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2026-01-02",
+        "amountCents": -1999,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Streaming Deutschland GmbH",
+        "text": "Fiktiv Streaming Monatsabo Januar"
+      },
+      {
+        "date": "2026-01-02",
+        "amountCents": 120000,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Mieterin",
+        "text": "Miete Januar Wohnung 3"
+      },
+      {
+        "date": "2026-01-05",
+        "amountCents": -320,
+        "currency": "EUR",
+        "counterparty": null,
+        "text": "Cafe Maerchen Musterstadt girocard"
+      },
+      {
+        "date": "2026-01-05",
+        "amountCents": -320,
+        "currency": "EUR",
+        "counterparty": null,
+        "text": "Cafe Maerchen Musterstadt girocard"
+      },
+      {
+        "date": "2026-01-06",
+        "amountCents": 1999,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Streaming Deutschland GmbH",
+        "text": "Rueckgabe Lastschrift"
+      },
+      {
+        "date": "2026-01-07",
+        "amountCents": -4500,
+        "currency": "EUR",
+        "counterparty": null,
+        "text": "Bargeldauszahlung Automat Musterstadt"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "71d52c38538800a1307d7721",
+      "cc9b43f678d5cdac6b46dab1",
+      "2c502a5627b854ddb193acb4",
+      "16210cdd56a263f780a85e50",
+      "dc4f7a966c375d5fdd3c5fa4",
+      "2faa80703d147104bc916a4b"
+    ]
+  }
+}

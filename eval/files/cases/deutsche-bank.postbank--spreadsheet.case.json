@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "file": "deutsche-bank.postbank--spreadsheet.csv",
+  "seed": 78,
+  "bank": "deutsche-bank",
+  "kind": "quotes-all",
+  "situation": "Excel or Numbers saves the downloaded statement again with local CSV settings.",
+  "change": "quotes-all; cells preserved, quotes retained wherever CSV syntax requires them.",
+  "provenance": {
+    "method": "original",
+    "fixture": "deutsche-bank.postbank.csv",
+    "reference": "deutsche-bank.postbank.csv.expected.json",
+    "sha256": "4997efa7dceef6469fb954e853c9b266afca7c20c1b95f0fd15cef19bb9bae9a"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2026-02-06",
+        "amountCents": -3640,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Stadtwerke",
+        "text": "Abschlag Strom Februar"
+      },
+      {
+        "date": "2026-02-04",
+        "amountCents": -108000,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Vermietung",
+        "text": "Miete Februar"
+      },
+      {
+        "date": "2026-02-03",
+        "amountCents": 180000,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Werke GmbH",
+        "text": "Gehalt Februar 2026"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "48a09d2050a825433bc6d330",
+      "c4d2042c2072dfb740a52d2a",
+      "9ff9e62da94c532eb083622d"
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+,
+Umsätze Visa-Karte (Kreditkarte),Zeitraum: 30 Tage,
+Neuer Kontostand,"-39,89 EUR",
+
+Buchungstag,Umsatztag,Vorgang,Referenz,Buchungstext,Umsatz in EUR,
+04.02.2026,02.02.2026,Visa-Umsatz,FICT000001,FIKTIV BAHN,"-29,90",
+06.02.2026,05.02.2026,Visa-Umsatz,FICT000002,FIKTIV STREAMING,"-9,99",
+
+Alter Kontostand,"0,00 EUR",
+
+offen,07.02.2026,Visa-Umsatz,FICT000003,FIKTIV KINO,"-12,00",

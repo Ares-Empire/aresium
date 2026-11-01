@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "file": "commerzbank.2020--spreadsheet.csv",
+  "seed": 78,
+  "bank": "commerzbank",
+  "kind": "separator-tab",
+  "situation": "Excel or Numbers saves the downloaded statement again with local CSV settings.",
+  "change": "separator-tab; cells preserved, quotes retained wherever CSV syntax requires them.",
+  "provenance": {
+    "method": "original",
+    "fixture": "commerzbank.2020.csv",
+    "reference": "commerzbank.2020.csv.expected.json",
+    "sha256": "894fa17895361d3d4cb67cf37db5421ba696f2a52b09ec937b634959a43e7eeb"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2020-03-02",
+        "amountCents": -1999,
+        "currency": "EUR",
+        "counterparty": null,
+        "text": "Fiktiv Mobilfunk Rechnung Februar"
+      },
+      {
+        "date": "2020-03-02",
+        "amountCents": 150000,
+        "currency": "EUR",
+        "counterparty": null,
+        "text": "Fiktiv Werke GmbH Gehalt Februar"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "ed764e677468f56666d2db13",
+      "641824e02ed3f71f50455f9b"
+    ]
+  }
+}

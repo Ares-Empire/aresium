@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "file": "bank-trailing-minus-1.csv",
+  "seed": 78,
+  "bank": "fictional-German",
+  "kind": "trailing-minus",
+  "situation": "The bank uses another convention to mark money in and money out.",
+  "change": "trailing-minus",
+  "provenance": {
+    "method": "construction",
+    "reason": "Signed integer-cent payments exist first; sign markers and debit/credit cells encode those signs."
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2026-10-14",
+        "amountCents": -123524,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Märchenmarkt 200",
+        "text": "Öl, Süßwaren und Grüße"
+      },
+      {
+        "date": "2026-10-15",
+        "amountCents": -345,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Café 200",
+        "text": "Beleg \"Herbst\""
+      },
+      {
+        "date": "2026-10-18",
+        "amountCents": 210045,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Beispielwerke 200",
+        "text": "Gehalt Oktober"
+      }
+    ]
+  }
+}

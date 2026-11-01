@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "file": "ing.2026--export-extra.csv",
+  "seed": 78,
+  "bank": "ing",
+  "kind": "total-row",
+  "situation": "A spreadsheet appends a total below the payment table.",
+  "change": "total-row",
+  "provenance": {
+    "method": "original",
+    "fixture": "ing.2026.csv",
+    "reference": "ing.2026.csv.expected.json",
+    "sha256": "ef5b0befd3aca84deb80c56a31ae515baea70ca3e95a4e496ee846bee27a1f4d"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2026-10-06",
+        "amountCents": -3640,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Stadtwerke",
+        "text": "Abschlag Strom Oktober"
+      },
+      {
+        "date": "2026-10-05",
+        "amountCents": -2499,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Buchladen",
+        "text": "Einkauf Bücher"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "4b474f8b4b3be343b56bfe18",
+      "459a45c2f578a03831716c4c"
+    ]
+  }
+}

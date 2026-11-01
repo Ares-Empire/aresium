@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "file": "refuse-shopping-list.csv",
+  "seed": 78,
+  "bank": "non-bank",
+  "kind": "must-refuse",
+  "situation": "A shopping list has prices but no bookings.",
+  "change": "refuse-shopping-list",
+  "provenance": {
+    "method": "hand",
+    "reason": "A shopping list has prices but no bookings."
+  },
+  "expected": {
+    "outcome": "refuse",
+    "code": "noTable",
+    "reason": "A shopping list has prices but no bookings."
+  }
+}

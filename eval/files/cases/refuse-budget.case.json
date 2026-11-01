@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "file": "refuse-budget.csv",
+  "seed": 78,
+  "bank": "non-bank",
+  "kind": "must-refuse",
+  "situation": "A budget plan has dates and planned amounts, but no booked payments.",
+  "change": "refuse-budget",
+  "provenance": {
+    "method": "hand",
+    "reason": "A budget plan has dates and planned amounts, but no booked payments."
+  },
+  "expected": {
+    "outcome": "refuse",
+    "code": "noTable",
+    "reason": "A budget plan has dates and planned amounts, but no booked payments."
+  }
+}

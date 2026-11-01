@@ -24,3 +24,6 @@ codex-runs/
 
 # Sorting measurements: raw input and aggregate reports stay local.
 bench/out/
+
+# Generated bank-file score reports (the synthetic cases and eval/history.csv are tracked).
+eval/files/out/

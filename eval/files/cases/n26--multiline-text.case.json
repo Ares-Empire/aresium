@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "file": "n26--multiline-text.csv",
+  "seed": 78,
+  "bank": "n26",
+  "kind": "multiline-text",
+  "situation": "A bank purpose contains pasted line breaks, quotation marks or a very long reference.",
+  "change": "multiline-text",
+  "provenance": {
+    "method": "construction",
+    "reason": "Invented payments are serialized under the real N26 header; expected text folds whitespace as payment text does."
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2026-10-14",
+        "amountCents": -123465,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Märchenmarkt 300",
+        "text": "Erste Zeile Zweite Zeile Grüße zum Herbst"
+      },
+      {
+        "date": "2026-10-15",
+        "amountCents": -345,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Café 300",
+        "text": "Beleg \"Herbst\""
+      },
+      {
+        "date": "2026-10-18",
+        "amountCents": 210045,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Beispielwerke 300",
+        "text": "Gehalt Oktober"
+      }
+    ]
+  }
+}

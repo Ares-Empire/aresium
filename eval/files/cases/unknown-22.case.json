@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "file": "unknown-22.csv",
+  "seed": 78,
+  "bank": "fictional-English",
+  "kind": "unknown-bank",
+  "situation": "A tester brings an export from a bank without a built-in profile.",
+  "change": "Invented English headers; reordered columns; date style 1; amount style 1; currency per row.",
+  "provenance": {
+    "method": "construction",
+    "reason": "Payments are generated first; headers, order and localized cells are then written from them."
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2026-10-14",
+        "amountCents": -123458,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Märchenmarkt 22",
+        "text": "Öl, Süßwaren und Grüße"
+      },
+      {
+        "date": "2026-10-15",
+        "amountCents": -345,
+        "currency": "USD",
+        "counterparty": "Fiktiv Café 22",
+        "text": "Beleg \"Herbst\""
+      },
+      {
+        "date": "2026-10-18",
+        "amountCents": 210045,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Beispielwerke 22",
+        "text": "Gehalt Oktober"
+      }
+    ]
+  }
+}

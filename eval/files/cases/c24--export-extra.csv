@@ -1,0 +1,8 @@
+Account,Fictional test account
+Period,2026-02-01 to 2026-02-28
+Opening balance,"500,00 EUR"
+Transaktionstyp,Buchungsdatum,Karteneinsatz,Betrag,Zahlungsempfänger,IBAN,BIC,Verwendungszweck,Beschreibung,Kontonummer,Kontoname,Kategorie,Unterkategorie,Bargeldabhebung
+Kartenzahlung,05.02.2026,05.02.2026 08:10,"-3,20 €",Café Märchen,,,,Café Märchen Musterstadt,0000262728,C24 Smartkonto,Essen & Trinken,Café
+Kartenzahlung,05.02.2026,05.02.2026 08:10,"-3,20 €",Café Märchen,,,,Café Märchen Musterstadt,0000262728,C24 Smartkonto,Essen & Trinken,Café
+SEPA-Überweisung,04.02.2026,,"-650,00 €",Fiktiv Vermietung,DE25100900000000202122,BEVODEBBXXX,Miete Februar,,0000262728,C24 Smartkonto,Wohnen,Miete
+SEPA-Überweisung,03.02.2026,,"1800,00 €",Fiktiv Werke GmbH,DE96100500000000123456,BELADEBEXXX,Gehalt Februar 2026,,0000262728,C24 Smartkonto,Einkommen,Gehalt

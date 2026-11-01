@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "file": "partial-invalid-date.csv",
+  "seed": 78,
+  "bank": "n26",
+  "kind": "partial-with-warning",
+  "situation": "A spreadsheet contains one invalid booking cell after intact payment rows.",
+  "change": "An impossible date in one appended row.",
+  "provenance": {
+    "method": "hand",
+    "reason": "Only the three intact constructed payments may be read, and the skipped row must be reported."
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2026-10-14",
+        "amountCents": -123465,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Märchenmarkt 400",
+        "text": "Öl, Süßwaren und Grüße"
+      },
+      {
+        "date": "2026-10-15",
+        "amountCents": -345,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Café 400",
+        "text": "Beleg \"Herbst\""
+      },
+      {
+        "date": "2026-10-18",
+        "amountCents": 210045,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Beispielwerke 400",
+        "text": "Gehalt Oktober"
+      }
+    ],
+    "warning": {
+      "skipped": 1,
+      "reason": "One row cannot be read; the skipped count must make that visible."
+    }
+  }
+}

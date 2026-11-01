@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "file": "refuse-contacts.csv",
+  "seed": 78,
+  "bank": "non-bank",
+  "kind": "must-refuse",
+  "situation": "The wrong CSV was selected: this is an address book.",
+  "change": "refuse-contacts",
+  "provenance": {
+    "method": "hand",
+    "reason": "The wrong CSV was selected: this is an address book."
+  },
+  "expected": {
+    "outcome": "refuse",
+    "code": "noTable",
+    "reason": "The wrong CSV was selected: this is an address book."
+  }
+}

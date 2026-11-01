@@ -1,0 +1,4 @@
+Booking Date;Value Date;Partner Name;Partner Iban;Type;Payment Reference;Account Name;Amount (EUR);Original Amount;Original Currency;Exchange Rate
+06.02.26;06.02.26;Fiktiv Stadtwerke;DE34701500000000246810;Direct Debit;Abschlag Strom Februar;Main Account;-36,40;;;
+05.02.26;05.02.26;Fiktiv Hotel London;;Presentment;;Main Account;-110,46;95.00;GBP;0.8600
+03.02.26;03.02.26;Fiktiv Werke GmbH;DE96100500000000123456;Credit Transfer;Gehalt Februar 2026;Main Account;1800,00;;;

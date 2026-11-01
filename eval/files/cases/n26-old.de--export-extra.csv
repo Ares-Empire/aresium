@@ -1,0 +1,6 @@
+Account,Fictional test account
+Period,2026-02-01 to 2026-02-28
+Opening balance,"500,00 EUR"
+"Datum","Empfänger","Kontonummer","Transaktionstyp","Verwendungszweck","Kategorie","Betrag (EUR)","Betrag (Fremdwährung)","Fremdwährung","Wechselkurs"
+"2017-10-06","Fiktiv Markt","","MasterCard Zahlung","","Lebensmittel","-3.4","-3.4","EUR","1.0"
+"2017-10-02","Fiktiv Werke GmbH","DE96100500000000123456","Gutschrift","Gehalt Oktober","Einkommen","1800.0","","",""

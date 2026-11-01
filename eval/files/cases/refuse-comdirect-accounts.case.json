@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "file": "refuse-comdirect-accounts.csv",
+  "seed": 78,
+  "bank": "comdirect",
+  "kind": "account-sections",
+  "situation": "One export contains giro and Visa account sections; this single-account import must refuse rather than omit the second account.",
+  "change": "refuse-comdirect-accounts",
+  "provenance": {
+    "method": "hand",
+    "reason": "One export contains giro and Visa account sections; this single-account import must refuse rather than omit the second account."
+  },
+  "expected": {
+    "outcome": "refuse",
+    "code": "unknown",
+    "reason": "One export contains giro and Visa account sections; this single-account import must refuse rather than omit the second account."
+  }
+}

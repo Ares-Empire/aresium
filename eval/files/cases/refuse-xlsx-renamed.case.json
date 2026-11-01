@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "file": "refuse-xlsx-renamed.csv",
+  "seed": 78,
+  "bank": "non-bank",
+  "kind": "must-refuse",
+  "situation": "An actual XLSX workbook was renamed .csv instead of exported as CSV.",
+  "change": "refuse-xlsx-renamed",
+  "provenance": {
+    "method": "hand",
+    "reason": "An actual XLSX workbook was renamed .csv instead of exported as CSV."
+  },
+  "expected": {
+    "outcome": "refuse",
+    "code": "zip",
+    "reason": "An actual XLSX workbook was renamed .csv instead of exported as CSV."
+  }
+}

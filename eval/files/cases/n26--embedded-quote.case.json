@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "file": "n26--embedded-quote.csv",
+  "seed": 78,
+  "bank": "n26",
+  "kind": "embedded-quote",
+  "situation": "A bank purpose contains pasted line breaks, quotation marks or a very long reference.",
+  "change": "embedded-quote",
+  "provenance": {
+    "method": "construction",
+    "reason": "Invented payments are serialized under the real N26 header; expected text folds whitespace as payment text does."
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2026-10-14",
+        "amountCents": -123464,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Märchenmarkt 300",
+        "text": "Bestellung \"Öl und Süßwaren\", Beleg 78"
+      },
+      {
+        "date": "2026-10-15",
+        "amountCents": -345,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Café 300",
+        "text": "Beleg \"Herbst\""
+      },
+      {
+        "date": "2026-10-18",
+        "amountCents": 210045,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Beispielwerke 300",
+        "text": "Gehalt Oktober"
+      }
+    ]
+  }
+}

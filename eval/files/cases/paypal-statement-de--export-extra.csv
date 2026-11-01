@@ -1,0 +1,6 @@
+Account,Fictional test account
+Period,2026-02-01 to 2026-02-28
+Opening balance,"500,00 EUR"
+"Datum","Uhrzeit","Zeitzone","Beschreibung","Währung","Brutto","Entgelt","Netto","Guthaben","Transaktionscode","Absender E-Mail-Adresse","Name","Name der Bank","Bankkonto","Versand- und Bearbeitungsgebühr","Umsatzsteuer","Rechnungsnummer","Zugehöriger Transaktionscode"
+"03.02.2026","10:00:00","Europe/Berlin","Allgemeine Zahlung","EUR","-18,90","0,00","-18,90","-18,90","FICTIONAL-DE-1","","Fiktiv Onlineshop","","","0,00","0,00","",""
+"04.02.2026","09:00:00","Europe/Berlin","Rückzahlung","EUR","3,50","0,00","3,50","-15,40","FICTIONAL-DE-2","","Fiktiv Buchladen","","","0,00","0,00","",""

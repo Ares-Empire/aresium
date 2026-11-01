@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "file": "comdirect-visa--encoding.csv",
+  "seed": 78,
+  "bank": "comdirect-visa",
+  "kind": "encoding-utf8",
+  "situation": "A bank download or spreadsheet uses a different text encoding and line ending.",
+  "change": "utf8; \"\\r\\n\" record endings; unchanged cells.",
+  "provenance": {
+    "method": "original",
+    "fixture": "comdirect-visa.csv",
+    "reference": "comdirect-visa.csv.expected.json",
+    "sha256": "f7f85b3f2c12f9ce54748c8f1bf47477cccd585bb7951d0959ebdaeaea6c01ba"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2026-02-02",
+        "amountCents": -2990,
+        "currency": "EUR",
+        "counterparty": "FIKTIV BAHN",
+        "text": "FIKTIV BAHN"
+      },
+      {
+        "date": "2026-02-05",
+        "amountCents": -999,
+        "currency": "EUR",
+        "counterparty": "FIKTIV STREAMING",
+        "text": "FIKTIV STREAMING"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "3ceba33dfac6111745f0afbb",
+      "6f6569416cd4fab663025317"
+    ]
+  }
+}

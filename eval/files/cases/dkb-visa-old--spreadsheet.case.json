@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "file": "dkb-visa-old--spreadsheet.csv",
+  "seed": 78,
+  "bank": "dkb-visa-old",
+  "kind": "trailing-columns",
+  "situation": "Excel or Numbers saves the downloaded statement again with local CSV settings.",
+  "change": "trailing-columns; cells preserved, quotes retained wherever CSV syntax requires them.",
+  "provenance": {
+    "method": "original",
+    "fixture": "dkb-visa-old.csv",
+    "reference": "dkb-visa-old.csv.expected.json",
+    "sha256": "f8e9c7b37a1417d9ac1646d1e7a121ea8e82fdc4e3606ae955e5cf69e61cac41"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2023-03-04",
+        "amountCents": -11046,
+        "currency": "EUR",
+        "counterparty": "FIKTIV HOTEL LONDON",
+        "text": "FIKTIV HOTEL LONDON"
+      },
+      {
+        "date": "2023-03-02",
+        "amountCents": -2990,
+        "currency": "EUR",
+        "counterparty": "FIKTIV BAHN",
+        "text": "FIKTIV BAHN"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "ab8c906de984f6ae9cd08000",
+      "8bd29e9d6a510df3f78ce073"
+    ]
+  }
+}

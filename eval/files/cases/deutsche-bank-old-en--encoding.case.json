@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "file": "deutsche-bank-old-en--encoding.csv",
+  "seed": 78,
+  "bank": "deutsche-bank-old-en",
+  "kind": "encoding-utf8",
+  "situation": "A bank download or spreadsheet uses a different text encoding and line ending.",
+  "change": "utf8; \"\\r\" record endings; unchanged cells.",
+  "provenance": {
+    "method": "original",
+    "fixture": "deutsche-bank-old-en.csv",
+    "reference": "deutsche-bank-old-en.csv.expected.json",
+    "sha256": "0dcc1dd0c37b94cbdb6036e92d93bbd43eb4838d345f24e91e7cd53e1f2f2aae"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2024-01-30",
+        "amountCents": -5400,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Stadtwerke",
+        "text": "Abschlag Strom Januar"
+      },
+      {
+        "date": "2024-01-26",
+        "amountCents": 180000,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Werke GmbH",
+        "text": "Gehalt Januar"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "d44748000bae62ed74f64f88",
+      "3b077f8fa6c1cadd80bcfd00"
+    ]
+  }
+}

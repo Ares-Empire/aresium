@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "file": "refuse-header-only.csv",
+  "seed": 78,
+  "bank": "n26",
+  "kind": "must-refuse",
+  "situation": "A bank export contains its header but no payments.",
+  "change": "refuse-header-only",
+  "provenance": {
+    "method": "hand",
+    "reason": "A bank export contains its header but no payments."
+  },
+  "expected": {
+    "outcome": "refuse",
+    "code": "noTable",
+    "reason": "A bank export contains its header but no payments."
+  }
+}

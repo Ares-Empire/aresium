@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "file": "dkb--excel-iso.csv",
+  "seed": 78,
+  "bank": "dkb",
+  "kind": "excel-iso",
+  "situation": "Numbers saves ISO dates and decimal points.",
+  "change": "iso dates; en-plain amounts; comma CSV.",
+  "provenance": {
+    "method": "original",
+    "fixture": "dkb.csv",
+    "reference": "dkb.csv.expected.json",
+    "sha256": "6354371e00721f0d9a9f8f748c9a248c7cd7882072f70424ad421a8c0da50ceb"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2026-02-06",
+        "amountCents": -3640,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Stadtwerke",
+        "text": "Abschlag Strom Februar"
+      },
+      {
+        "date": "2026-02-04",
+        "amountCents": -108000,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Vermietung",
+        "text": "Miete Februar"
+      },
+      {
+        "date": "2026-02-03",
+        "amountCents": 180000,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Werke GmbH",
+        "text": "Gehalt Februar 2026"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "77cc273609985dd3229359da",
+      "1110f38dc2314938554a0fcd",
+      "ce6fd1aed2223c5c5108f4d4"
+    ]
+  }
+}

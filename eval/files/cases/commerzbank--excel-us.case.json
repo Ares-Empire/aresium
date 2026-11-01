@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "file": "commerzbank--excel-us.csv",
+  "seed": 78,
+  "bank": "commerzbank",
+  "kind": "excel-us",
+  "situation": "Excel with US settings rewrites dates and thousands separators.",
+  "change": "us dates; en-grouped amounts; comma CSV.",
+  "provenance": {
+    "method": "original",
+    "fixture": "commerzbank.csv",
+    "reference": "commerzbank.csv.expected.json",
+    "sha256": "47cde0e23c43d713fcbf4ef0f5b9c5604928776a198c4b7f809b07d573c979b9"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2026-02-06",
+        "amountCents": -3640,
+        "currency": "EUR",
+        "counterparty": null,
+        "text": "Fiktiv Stadtwerke Abschlag Strom Februar"
+      },
+      {
+        "date": "2026-02-04",
+        "amountCents": -65000,
+        "currency": "EUR",
+        "counterparty": null,
+        "text": "Fiktiv Vermietung Miete Februar"
+      },
+      {
+        "date": "2026-02-03",
+        "amountCents": 180000,
+        "currency": "EUR",
+        "counterparty": null,
+        "text": "Fiktiv Werke GmbH Gehalt Februar 2026"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "b679ae18306b2234add57532",
+      "27adbb0e82bf918cf3db1168",
+      "dccc09736b98cbe3b921c10a"
+    ]
+  }
+}

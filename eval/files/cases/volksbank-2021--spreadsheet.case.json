@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "file": "volksbank-2021--spreadsheet.csv",
+  "seed": 78,
+  "bank": "volksbank-2021",
+  "kind": "quotes-all",
+  "situation": "Excel or Numbers saves the downloaded statement again with local CSV settings.",
+  "change": "quotes-all; cells preserved, quotes retained wherever CSV syntax requires them.",
+  "provenance": {
+    "method": "original",
+    "fixture": "volksbank-2021.csv",
+    "reference": "volksbank-2021.csv.expected.json",
+    "sha256": "697c6cbe502475787227907dc94ffa2a42cc7e7c7679b25d880f43eca4488b50"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2022-01-03",
+        "amountCents": 180000,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Werke GmbH",
+        "text": "GUTSCHRIFT Gehalt Dezember"
+      },
+      {
+        "date": "2022-01-04",
+        "amountCents": -4195,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Markt",
+        "text": "KARTENZAHLUNG Einkauf Fiktiv Markt Musterstadt"
+      },
+      {
+        "date": "2022-01-05",
+        "amountCents": -3640,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Stadtwerke",
+        "text": "LASTSCHRIFT Abschlag Strom Januar"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "bf10c69041ed7b5b3929fd15",
+      "048fb678d73810bf51f3aef9",
+      "2266bbdcee6fb8fbd3c27000"
+    ]
+  }
+}
