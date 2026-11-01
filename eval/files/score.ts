@@ -181,7 +181,8 @@ export async function recordHistory(path: string, commit: string, metrics: Retur
     try { await handle.writeFile(HISTORY_HEADER); } finally { await handle.close(); }
   } catch (error) { if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error; }
   const existing = await readFile(path, "utf8");
-  if (!existing.startsWith(HISTORY_HEADER) || !existing.endsWith("\n")) throw new Error(`Unexpected history format in ${path}; expected ${HISTORY_HEADER.trim()}.`);
+  // The sorting suite widens the header with its own columns after these four; a files row fills the first four.
+  if (!existing.startsWith(HISTORY_HEADER.trim()) || !existing.endsWith("\n")) throw new Error(`Unexpected history format in ${path}; expected ${HISTORY_HEADER.trim()}.`);
   const cell = (v: string) => `"${v.replace(/"/g, '""')}"`;
   await appendFile(path, [date, commit, "files", JSON.stringify(metrics)].map(cell).join(",") + "\n");
 }
