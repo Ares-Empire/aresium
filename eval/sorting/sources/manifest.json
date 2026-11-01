@@ -1,0 +1,127 @@
+{
+  "version": 1,
+  "seed": "aresium-sorting-v1",
+  "nsi": {
+    "version": "8.0.20260918",
+    "url": "https://cdn.jsdelivr.net/npm/name-suggestion-index@8.0.20260918/dist/json/nsi.min.json",
+    "sha256": "85752fb28977082f6e631636f1e9b8f97513947f75aaf1338c47ffa87207f513"
+  },
+  "counts": {
+    "osm": 799,
+    "brand": 450,
+    "madeup": 250,
+    "nonshop": 500,
+    "scenario": 40
+  },
+  "places": [
+    {
+      "name": "Garching",
+      "lat": 48.249,
+      "lon": 11.652,
+      "radius": 3500,
+      "count": 75
+    },
+    {
+      "name": "München Schwabing",
+      "lat": 48.164,
+      "lon": 11.585,
+      "radius": 2200,
+      "count": 125
+    },
+    {
+      "name": "Köln",
+      "lat": 50.938,
+      "lon": 6.955,
+      "radius": 2200,
+      "count": 125
+    },
+    {
+      "name": "Berlin Kreuzberg",
+      "lat": 52.499,
+      "lon": 13.423,
+      "radius": 1200,
+      "count": 125
+    },
+    {
+      "name": "Leipzig",
+      "lat": 51.34,
+      "lon": 12.375,
+      "radius": 2500,
+      "count": 110
+    },
+    {
+      "name": "Hamburg",
+      "lat": 53.555,
+      "lon": 9.981,
+      "radius": 2300,
+      "count": 125
+    },
+    {
+      "name": "Wernigerode",
+      "lat": 51.834,
+      "lon": 10.786,
+      "radius": 3000,
+      "count": 90
+    },
+    {
+      "name": "Wacken",
+      "lat": 54.02,
+      "lon": 9.375,
+      "radius": 3500,
+      "count": 24
+    }
+  ],
+  "brandMembership": {
+    "known": 231,
+    "unknown": 219
+  },
+  "layouts": {
+    "amex.csv": 47,
+    "barclays.csv": 47,
+    "c24.csv": 46,
+    "comdirect-visa.csv": 47,
+    "comdirect.csv": 46,
+    "comdirect.sections.csv": 47,
+    "commerzbank.2020.csv": 46,
+    "commerzbank.csv": 47,
+    "consorsbank.2018.csv": 46,
+    "consorsbank.csv": 47,
+    "deutsche-bank-old-en.csv": 46,
+    "deutsche-bank-old.csv": 47,
+    "deutsche-bank.csv": 45,
+    "deutsche-bank.postbank.csv": 46,
+    "dkb-old.csv": 45,
+    "dkb-visa-old.csv": 46,
+    "dkb-visa.csv": 45,
+    "dkb.2023.csv": 46,
+    "dkb.2024-comma.csv": 46,
+    "dkb.csv": 47,
+    "ing.2026.csv": 46,
+    "ing.csv": 107,
+    "n26-old.csv": 46,
+    "n26-old.de.csv": 47,
+    "n26.csv": 45,
+    "postbank-old.csv": 46,
+    "revolut.csv": 45,
+    "revolut.de.csv": 46,
+    "sparkasse-camt.csv": 45,
+    "sparkasse-mt940.csv": 46,
+    "targobank.csv": 46,
+    "targobank.point.csv": 47,
+    "trade-republic.csv": 47,
+    "trade-republic.semicolon.csv": 48,
+    "volksbank-2021.csv": 47,
+    "volksbank-classic.csv": 48,
+    "volksbank.2022.csv": 47,
+    "volksbank.csv": 48,
+    "paypal-de": 44,
+    "paypal-en": 45,
+    "camt053": 54,
+    "mt940": 34,
+    "bank": 33,
+    "paypal": 7
+  },
+  "workedOn": 1416,
+  "heldback": 623,
+  "corpusHash": "8fc4e255e3e4446b41f1c4a8beb5163206d9e70d53f8611487d73b5927584204"
+}

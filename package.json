@@ -28,7 +28,8 @@
     "sample": "tsx scripts/build-sample.ts",
     "test": "tsx --test src/**/*.test.ts",
     "engine": "tsx scripts/build-engine.ts",
-    "shops": "tsx scripts/build-shop-list.ts"
+    "shops": "tsx scripts/build-shop-list.ts",
+    "eval:sorting": "tsx eval/sorting/score.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.2.1",

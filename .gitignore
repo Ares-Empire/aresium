@@ -24,3 +24,12 @@ codex-runs/
 
 # Sorting measurements: raw input and aggregate reports stay local.
 bench/out/
+
+# Sorting evaluation downloads and local score reports
+eval/sorting/.cache/
+eval/sorting/judging/batch-*.jsonl
+eval/sorting/judging/manifest.json
+eval/sorting/judging/categories.md
+eval/sorting/judging/judge-*.jsonl
+eval/sorting/disputed*.jsonl
+eval/history.csv.lock
