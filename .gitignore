@@ -27,3 +27,13 @@ bench/out/
 
 # Generated bank-file score reports (the synthetic cases and eval/history.csv are tracked).
 eval/files/out/
+
+# Sorting evaluation downloads and local score reports
+eval/sorting/.cache/
+eval/sorting/judging/batch-*.jsonl
+eval/sorting/judging/manifest.json
+eval/sorting/judging/rerendered-ids.txt
+eval/sorting/judging/categories.md
+eval/sorting/judging/judge-*.jsonl
+eval/sorting/disputed*.jsonl
+eval/history.csv.lock
