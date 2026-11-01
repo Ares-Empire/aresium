@@ -173,6 +173,100 @@
       "in"
     ],
     [
+      "personal-care",
+      [
+        "haarschnitt"
+      ],
+      "out"
+    ],
+    [
+      "household",
+      [
+        "möbelkauf"
+      ],
+      "out"
+    ],
+    [
+      "going-out",
+      [
+        "cocktails"
+      ],
+      "out"
+    ],
+    [
+      "parents-family",
+      [
+        "unterstützung von eltern",
+        "unterhalt von eltern",
+        "taschengeld von eltern",
+        "unterstützung von familie"
+      ],
+      "in"
+    ],
+    [
+      "gifts",
+      [
+        "geschenk",
+        "geburtstagsgeschenk",
+        "weihnachtsgeschenk",
+        "hochzeitsgeschenk"
+      ],
+      "both"
+    ],
+    [
+      "other-income",
+      [
+        "mieteinnahme",
+        "mieteinnahmen"
+      ],
+      "in"
+    ],
+    [
+      "hobbies",
+      [
+        "rückzahlung buchkauf",
+        "erstattung buchkauf"
+      ],
+      "in"
+    ],
+    [
+      "work",
+      [
+        "büromaterial",
+        "bürobedarf",
+        "arbeitsmittel",
+        "hosting beruflich"
+      ],
+      "out"
+    ],
+    [
+      "subscriptions",
+      [
+        "film abo",
+        "mail abo",
+        "streaming abo"
+      ],
+      "both"
+    ],
+    [
+      "other",
+      [
+        "bestattung",
+        "bestattungshaus",
+        "bestattungskosten",
+        "beerdigungskosten"
+      ],
+      "out"
+    ],
+    [
+      "friends",
+      [
+        "anteil gemeinsames abendessen",
+        "anteil abendessen zurück"
+      ],
+      "both"
+    ],
+    [
       "subscriptions",
       [
         "netflix",
@@ -312,7 +406,32 @@
         "steakhouse",
         "sushi",
         "kantine",
-        "cafeteria"
+        "cafeteria",
+        "grill",
+        "grillhaus",
+        "grillrestaurant",
+        "schnellrestaurant",
+        "burrito",
+        "burritos",
+        "veggie",
+        "vegan",
+        "ramen",
+        "pho",
+        "poke",
+        "bowl",
+        "bowls",
+        "noodle",
+        "noodles",
+        "falafel",
+        "brasserie",
+        "burger",
+        "onigiri",
+        "street food",
+        "thai food",
+        "hot dog",
+        "ocakbaşı",
+        "ocakbasi",
+        "banh mi"
       ],
       "out"
     ],
@@ -417,7 +536,21 @@
         "gelateria",
         "bakery",
         "boulangerie",
-        "patisserie"
+        "patisserie",
+        "croissant",
+        "croissants",
+        "croissanterie",
+        "brotmanufaktur",
+        "backhaus",
+        "kaffeerösterei",
+        "caffè",
+        "gelato",
+        "pasticceria",
+        "waffle",
+        "waffeln",
+        "confiserie",
+        "milchbar",
+        "fladenbrot"
       ],
       "out"
     ],
@@ -505,7 +638,11 @@
         "wochenmarkt",
         "hofladen",
         "asiamarkt",
-        "asia markt"
+        "asia markt",
+        "bauernhof",
+        "feinkost",
+        "helal markt",
+        "tee contor"
       ],
       "out"
     ],
@@ -527,7 +664,8 @@
       "drugstore",
       [
         "drogeriemarkt",
-        "drogerie"
+        "drogerie",
+        "naturdrogerie"
       ],
       "out"
     ],
@@ -716,7 +854,10 @@
         "carwash",
         "maut",
         "vignette",
-        "ladestation"
+        "ladestation",
+        "gastankstelle",
+        "tanke",
+        "kfz meisterbetrieb"
       ],
       "out"
     ],
@@ -825,7 +966,9 @@
         "bergbahnen",
         "kurtaxe",
         "umbuchung flug",
-        "flug umbuchung"
+        "flug umbuchung",
+        "apartmenthotel",
+        "familienferienstätte"
       ],
       "out"
     ],
@@ -1016,7 +1159,9 @@
       [
         "mobilfunk",
         "handyvertrag",
-        "glasfaser"
+        "glasfaser",
+        "internet festnetz",
+        "festnetzanschluss"
       ],
       "out"
     ],
@@ -1409,7 +1554,9 @@
         "augenoptik",
         "hörgeräte",
         "hörakustik",
-        "rezeptgebühr"
+        "rezeptgebühr",
+        "ärztehaus",
+        "zahnärzte"
       ],
       "out"
     ],
@@ -1458,7 +1605,11 @@
         "eishalle",
         "eisstadion",
         "skihalle",
-        "tennis"
+        "tennis",
+        "sporthalle",
+        "sportplatz",
+        "schulsportplatz",
+        "tennisclub"
       ],
       "out"
     ],
@@ -1498,7 +1649,11 @@
         "wimpern",
         "fußpflege",
         "tattoo",
-        "piercing"
+        "piercing",
+        "friseure",
+        "friseurinnen",
+        "hair design",
+        "hairstyle"
       ],
       "out"
     ],
@@ -1566,7 +1721,9 @@
         "only store",
         "globetrotter ausrüstung",
         "levi strauss",
-        "levi's store"
+        "levi's store",
+        "m&s outlet",
+        "marks & spencer outlet"
       ],
       "both"
     ],
@@ -1597,7 +1754,10 @@
         "jeans",
         "dessous",
         "lingerie",
-        "trachten"
+        "trachten",
+        "strumpfmoden",
+        "schmuck",
+        "uhren"
       ],
       "out"
     ],
@@ -1638,6 +1798,20 @@
         "smartbox"
       ],
       "both"
+    ],
+    [
+      "gifts",
+      [
+        "floristik",
+        "florist",
+        "blumenladen",
+        "blumen",
+        "blumenhaus",
+        "geschenke",
+        "geschenkeladen",
+        "geschenkshop"
+      ],
+      "out"
     ],
     [
       "electronics",
@@ -1845,6 +2019,18 @@
       "both"
     ],
     [
+      "coffee-snacks",
+      [
+        "bahlsen",
+        "eilles",
+        "lindt",
+        "läderach",
+        "neuhaus",
+        "storck"
+      ],
+      "both"
+    ],
+    [
       "household",
       [
         "bauhaus",
@@ -1940,7 +2126,22 @@
         "cecil",
         "salamander",
         "zero",
-        "closed"
+        "closed",
+        "stradivarius",
+        "ecco",
+        "barbour",
+        "o'neill",
+        "mephisto",
+        "parfois",
+        "reno",
+        "outfit",
+        "street shoes",
+        "r.m.williams",
+        "red wing",
+        "we fashion",
+        "hermès",
+        "bvlgari",
+        "bulgari"
       ],
       "both"
     ],
@@ -2103,10 +2304,6 @@
         "60 seconds to napoli",
         "aposto",
         "applebee's",
-        "applebee's neighborhood grill & bar",
-        "applebees bar and grill",
-        "applebees grill and bar",
-        "applebees neighborhood bar and grill",
         "asiahung",
         "auntie anne's",
         "auntie annes pretzels",
@@ -2119,7 +2316,6 @@
         "burgerheart",
         "burgerme",
         "burguer king",
-        "burrito company",
         "carl's jr.",
         "checkers drive-in restaurants, inc",
         "chipotle",
@@ -2164,7 +2360,6 @@
         "mr. sub",
         "nobu",
         "o'tacos",
-        "oakberry açaí bowls",
         "old chang kee",
         "olive garden",
         "olive garden italian kitchen",
@@ -2198,7 +2393,6 @@
         "schweinske",
         "shake shack",
         "shakey's",
-        "shiso burger",
         "shoo loong kan",
         "sticks'n'sushi",
         "swing kitchen",
@@ -2206,10 +2400,8 @@
         "telepizza",
         "tgi fridays",
         "the chicken rice shop",
-        "tommi's burger joint",
         "tony roma",
         "tony roma's",
-        "veggie pret",
         "wagamama",
         "wahlburgers",
         "wayback burgers",
@@ -2224,16 +2416,18 @@
       [
         "allwörden",
         "amorino",
-        "backhaus hackner",
-        "backhaus hennig",
-        "backhaus nahrstedt",
+        "arko",
+        "bahlsen outlet",
         "barbarossa brotkultur",
         "baskin-robbins",
+        "bears & friends",
         "ben & jerry's",
+        "ben's cookies",
         "brioche dorée",
         "brothaus",
+        "bären-treff",
+        "bärenland",
         "cadera",
-        "caffè pascucci",
         "campus suite",
         "chatime",
         "coco fresh tea & juice",
@@ -2244,6 +2438,8 @@
         "costa drive thru",
         "dallmeyers backhus",
         "dat backhus",
+        "debeukelaer",
+        "debeukelaer factory outlet",
         "die lohner's",
         "ding tea",
         "délifrance",
@@ -2252,8 +2448,6 @@
         "erster wiener",
         "espressolab",
         "familienbäcker musswessels",
-        "familienbäckerei grimminger",
-        "familienbäckerei musswessels",
         "gilgen's",
         "goeken backen",
         "grimminger",
@@ -2265,21 +2459,21 @@
         "hinnerbäcker",
         "hofpfisterei",
         "hosselmann",
+        "hussel",
         "häagen-dazs",
         "ihle",
         "ihr landbäcker",
         "janny's",
         "janny's eis",
+        "jeff de bruges",
         "joe & the juice",
         "julius meinl",
         "kf tea",
         "kolls",
-        "kolls familienbäckerei",
         "kung fu tea",
         "la romana",
-        "landbäckerei ihle",
-        "landbäckerei stinges",
         "lavazza",
+        "le chocolat alain ducasse",
         "le pain quotidien",
         "leifert",
         "lieblingsbäcker",
@@ -2289,7 +2483,6 @@
         "machi machi",
         "malzers",
         "marble slab creamery",
-        "mccafé",
         "mein lieblingsbäcker",
         "milkau",
         "millie's cookies",
@@ -2308,30 +2501,26 @@
         "pekara",
         "pinkberry",
         "rischart",
-        "rischarts backhaus",
         "rose bakeshop",
         "royaltea",
         "schwälmer brotladen",
         "second cup",
         "segafredo",
         "sipl",
-        "stadtbäckerei kamp",
-        "stangengrüner mühlenbäckerei",
         "steinecke",
         "steiskal",
         "sternenbäck",
         "stinges",
-        "stinges landbäckerei",
+        "storck welt outlet",
         "tcby",
         "teeamo",
         "tiger sugar",
         "tim hortons",
         "uncle tetsu's cheesecake",
+        "viba",
         "von allwörden",
         "wiener feinbäcker",
         "wiener feinbäcker heberer",
-        "wiener feinbäckerei",
-        "wiener feinbäckerei heberer",
         "wonderwaffel",
         "xing fu tang",
         "yi fang fruit tea",
@@ -2401,6 +2590,7 @@
         "sherwin williams paints",
         "sherwin-williams",
         "siematic",
+        "søstrene grene",
         "tedox",
         "tefal",
         "tempur",
@@ -2578,6 +2768,7 @@
         "everfuel",
         "evgateway",
         "fastned",
+        "grønn kontakt",
         "intermarché contact",
         "intermarché super",
         "ionity",
@@ -3042,6 +3233,8 @@
       [
         "& other stories",
         "5.11 tactical",
+        "585 gold",
+        "a. lange & söhne",
         "abc schuh-center",
         "abercrombie & fitch",
         "abercrombie kids",
@@ -3055,12 +3248,15 @@
         "allbirds",
         "amo's style",
         "anson's",
+        "apm monaco",
         "ara shoes",
+        "aristocrazy",
         "arket",
         "armani exchange",
         "asics",
         "athletes world",
         "aubade",
+        "audemars piguet",
         "awg-modecenter",
         "ba&sh",
         "balenciaga",
@@ -3069,9 +3265,11 @@
         "banana republic",
         "banana republic factory",
         "bata",
+        "baume & mercier",
         "ben sherman",
         "bershka",
         "betty barclay",
+        "bijou brigitte",
         "billabong",
         "bimba & lola",
         "bimba y lola",
@@ -3085,6 +3283,7 @@
         "bottega veneta",
         "brandy melville",
         "brax",
+        "breitling",
         "breuninger",
         "brooks brothers",
         "brunello cucinelli",
@@ -3103,6 +3302,7 @@
         "catimini",
         "celio",
         "charles vögele",
+        "chaumet",
         "claire's stores",
         "claires accessories",
         "claudie pierlot",
@@ -3191,17 +3391,22 @@
         "hunkemöller",
         "hush puppies",
         "iblues",
+        "international watch co",
+        "international watch company",
         "intimissimi",
         "intimissimi uomo",
         "intrend",
         "izod",
         "jacadi",
         "jack & jones",
+        "jaeger-lecoultre",
         "jd sports",
         "jil sander",
         "jimmy choo",
+        "juwelier kraemer",
         "k und k schuh-center",
         "k+k schuh-center",
+        "kalyan jewellers",
         "karl lagerfeld",
         "kate spade new york",
         "kate spade ny",
@@ -3249,6 +3454,7 @@
         "moser trachtenwelt",
         "mountain warehouse",
         "mulberry",
+        "my jewellery",
         "myshoes",
         "naf naf",
         "napapijri",
@@ -3266,6 +3472,7 @@
         "olymp & hades",
         "omoda",
         "only & sons",
+        "orovivo",
         "orsay",
         "oshkosh",
         "oshkosh b'gosh",
@@ -3302,11 +3509,13 @@
         "riu paris",
         "roberto cavalli",
         "rockport",
+        "rolex",
         "s.oliver",
         "saint laurent",
         "salvatore ferragamo",
         "samsoe&samsoe",
         "samsonite",
+        "samsøe samsøe",
         "san antonio shoe",
         "sas shoes",
         "schiesser",
@@ -3333,8 +3542,11 @@
         "stuart weitzman",
         "suitsupply",
         "superdry",
+        "swarovski",
+        "swatch",
         "sweaty betty",
         "sézane",
+        "tag heuer",
         "tally weijl",
         "tamaris",
         "tartine et chocolat",
@@ -3346,7 +3558,9 @@
         "the north face",
         "the walking company",
         "thom browne",
+        "tiffany & company",
         "timberland",
+        "tissot",
         "tom tailor",
         "tommy hilfiger",
         "tommy hilfiger kids",
@@ -3367,6 +3581,7 @@
         "uniqlo",
         "united colors of benetton",
         "urban outfitters",
+        "vacheron constantin",
         "van heusen",
         "van laack",
         "vaude",
@@ -3380,6 +3595,7 @@
         "walbusch",
         "weekend max mara",
         "wellensteyn",
+        "wempe",
         "witt weiden",
         "wolford",
         "women's secret",
@@ -3443,12 +3659,15 @@
         "karstadt warenhaus gmbh",
         "krümet",
         "manufactum",
+        "mcarthurglen",
+        "mcarthurglen designer outlet",
         "miniso",
         "muji",
         "mäc-geiz",
         "pfennigpfeiffer",
         "postenbörse",
         "rusta",
+        "westfield",
         "wreesmann",
         "wreesmann sonderpostenmarkt"
       ]

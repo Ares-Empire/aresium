@@ -43,10 +43,10 @@ const fixtureCategories: SourceCategory[] = DEFAULT_CATEGORIES.map((c) => ({
   name: nameAtHash(c), icon: "Tag", color: "#123456", excludeFromTotals: c.kind === "transfer",
 }));
 const sha256 = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
-// Full dashboard after direction-based counting (brief 71) and unsorted money in under "Uncategorised" instead of
-// "Other" (2026-11-01); the source remains byte-identical to brief 68.
-const DASHBOARD_HASH = "66bde09a3ac35268682f29efa0d4c929541b8ca6859fb0e28eb29414abea8321";
-const SOURCE_HASH_BEFORE_SIDES = "9142fa1a3d8ceda53a989d06dff88c68a8c11b129d4053f306e522b3ef5de90d";
+// Brief 84 recognises the compound bakery name on two invented fixture payments (CAMT and VR Bank): unsorted →
+// Coffee & snacks. Compared against the original sorting rules: those are the only changes; totals stay identical.
+const DASHBOARD_HASH = "388c0d4e7f4d0e9589896a2c190b1ddf6218f570d1f0b8bd14b5595aa07dea18";
+const SOURCE_HASH_BEFORE_SIDES = "736b388d6c1308e85ed0b44d559f62cd357a9c4b5163524b50f5edc5e799af07";
 
 function assertFixtureDashboard(dashboard: ReturnType<typeof buildDashboard>) {
   assert.equal(sha256(dashboard), DASHBOARD_HASH);
