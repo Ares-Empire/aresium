@@ -12,7 +12,8 @@
    - Each topic option: data-placeholder (the message box's), data-note (the line under the address), data-optional
      (no message needed, as when asking for the app).
    - [data-topic-icon=<kind>] shows the chosen topic's icon, [data-optional-mark] says "(optional)", [data-topic-note] is the
-     line under the address, [data-language-link] (the other language's page) keeps the topic.
+     line under the address, [data-language-link] (the other language's page) keeps the topic. Both it and the page's
+     address keep every other parameter the page was opened with (a `look` passed by the page that linked here).
    - [data-counter] with data-words ("%1 of %2 characters"): shown near the limit, as on the iPhone.
    - [data-problem=<name>]: empty, long, noemail, email, many, offline, failed; one is shown at a time.
    - The submit button: data-sending and data-again (its words while sending and after a failure), [data-label] inside.
@@ -65,12 +66,14 @@
     document.querySelectorAll("[data-topic-icon]").forEach((icon) => {
       icon.toggleAttribute("hidden", icon.getAttribute("data-topic-icon") !== topic.value);   // SVG has no .hidden
     });
+    const here = new URLSearchParams(location.search);
+    here.set("topic", topic.value);
     if (languageLink) {
       const url = new URL(languageLink.href, location.href);
-      url.searchParams.set("topic", topic.value);
+      here.forEach((value, key) => url.searchParams.set(key, value));
       languageLink.href = url.pathname + url.search;
     }
-    if (remember) history.replaceState(null, "", location.pathname + "?topic=" + encodeURIComponent(topic.value));
+    if (remember) history.replaceState(null, "", location.pathname + "?" + here.toString());
   }
 
   // Near the limit: "4,812 / 5,000", in the problem colour once over it.

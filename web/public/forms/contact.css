@@ -52,7 +52,7 @@ html[data-theme="light"] {
   --glow1: radial-gradient(72% 52% at 50% -12%, rgba(216, 26, 52, 0.13), transparent 60%);
   --glow2: radial-gradient(58% 50% at 90% 120%, rgba(216, 26, 52, 0.07), transparent 56%);
   --bust: url("/brand/hermes-profile.webp");
-  --bust-opacity: 0.11;
+  --bust-opacity: 0.18;
   --highlight: #525a69;
   --focus: rgba(82, 90, 105, 0.55);
   --soft-fill: rgba(82, 90, 105, 0.10);

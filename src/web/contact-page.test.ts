@@ -15,7 +15,7 @@ const LOOK = readFileSync(new URL("contact.css", FORMS), "utf8");
 // made there, then copied here with the new hashes (ares-empire web/shared/forms/README.md).
 const SHARED_FORM_SHA256: Record<string, string> = {
   "contact-form.css": "f3f79bb613a5d103897c5a478664b2a5086529a081863a9d18bc1da604db9a92",
-  "contact-form.js": "889a149898c69f13458e76509307907a40f5ef941a76d2150571938b1e34c58d",
+  "contact-form.js": "c50fa7cb8ea3437fb95fcf2c5b0dda65f7ab4dc9704c7cbfdae8067740876822",
 };
 const pages = { en: contactPage("en"), de: contactPage("de") };
 const count = (text: string, part: string) => text.split(part).length - 1;
@@ -179,15 +179,16 @@ test("every class the shared layout styles is on the page", () => {
   }
 });
 
-// web/public/app/appearance.js in a made-up browser: `stored` is what localStorage holds, `blocked` makes it throw.
-function appearance(stored: Record<string, string> = {}, blocked = false) {
+// web/public/app/appearance.js in a made-up browser: `stored` is what localStorage holds, `blocked` makes it throw,
+// `search` is the address's query.
+function appearance(stored: Record<string, string> = {}, blocked = false, search = "") {
   const theme: { value?: string } = {};
   const storage = {
     getItem: (key: string) => { if (blocked) throw new Error("blocked"); return key in stored ? stored[key] : null; },
     setItem: (key: string, value: string) => { if (blocked) throw new Error("blocked"); stored[key] = value; },
     removeItem: (key: string) => { if (blocked) throw new Error("blocked"); delete stored[key]; },
   };
-  const window: Record<string, unknown> = { localStorage: storage };
+  const window: Record<string, unknown> = { localStorage: storage, location: { search } };
   const document = { documentElement: { setAttribute: (name: string, value: string) => { if (name === "data-theme") theme.value = value; } } };
   runInNewContext(readFileSync(new URL("../../web/public/app/appearance.js", import.meta.url), "utf8"), { window, document });
   return { api: window.AresiumAppearance as { load(): string; save(look: string): void }, theme, stored };
@@ -207,4 +208,15 @@ test("appearance.js: dark until switched, then the last light or dark; red and b
   const blocked = appearance({}, true);
   assert.equal(blocked.theme.value, "dark");
   assert.doesNotThrow(() => blocked.api.save("light"));
+});
+
+test("appearance.js: a look passed in the address (patrikbreeck.com's links) wins for the visit and is not remembered", () => {
+  const stored = { "aresium-appearance": "light" };
+  const passedDark = appearance(stored, false, "?topic=access&look=dark");
+  assert.equal(passedDark.theme.value, "dark");
+  assert.deepEqual(stored, { "aresium-appearance": "light" });
+  assert.equal(appearance({}, false, "?look=light").theme.value, "light");
+  assert.equal(appearance({}, true, "?look=light").theme.value, "light");
+  assert.equal(appearance(stored, false, "?look=red").theme.value, "light");
+  assert.equal(appearance(stored, false, "?looking=dark").theme.value, "light");
 });
