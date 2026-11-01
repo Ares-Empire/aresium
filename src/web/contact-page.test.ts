@@ -14,7 +14,7 @@ const LOOK = readFileSync(new URL("contact.css", FORMS), "utf8");
 // contact pages (www.ares-empire.de/contact, /arestemis/contact). These are the hashes of its SHA256SUMS: a change is
 // made there, then copied here with the new hashes (ares-empire web/shared/forms/README.md).
 const SHARED_FORM_SHA256: Record<string, string> = {
-  "contact-form.css": "11b940f4e001bf2093d9ef626fd5d95c8b3369c9abc29fd232a478a2ed345cbc",
+  "contact-form.css": "f3f79bb613a5d103897c5a478664b2a5086529a081863a9d18bc1da604db9a92",
   "contact-form.js": "889a149898c69f13458e76509307907a40f5ef941a76d2150571938b1e34c58d",
 };
 const pages = { en: contactPage("en"), de: contactPage("de") };

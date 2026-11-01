@@ -30,8 +30,27 @@ body {
 }
 /* the wall's light: the app's colour from the top and the far corner (ProvinceWall) */
 body::before, body::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; }
-body::before { background: var(--glow1); }
-body::after { background: var(--glow2); }
+body::before { background: var(--glow1), var(--glow2); }
+/* the app's god sunk into the wall (EmpireStyle's backdrop), faint so the form stays the subject: on a wide screen at
+   the left edge, fading out before the form; narrower, behind the header as in the app, fading out before the topic.
+   --bust is the picture (a statue's head in profile, facing right, on a transparent ground; or none), --bust-opacity
+   how faint it is. In the light look it is pressed into the wall as a grey relief. */
+body::after {
+  background: var(--bust) no-repeat left -24px bottom / auto min(80vh, 720px);
+  opacity: var(--bust-opacity);
+  /* faded on every side: the picture's own edges never show, and it ends before the form */
+  -webkit-mask-image: radial-gradient(min(30vw, 420px) min(42vh, 380px) at min(13vw, 190px) calc(100% - min(38vh, 340px)), #000 40%, transparent 100%);
+  mask-image: radial-gradient(min(30vw, 420px) min(42vh, 380px) at min(13vw, 190px) calc(100% - min(38vh, 340px)), #000 40%, transparent 100%);
+}
+html[data-theme="light"] body::after { mix-blend-mode: multiply; filter: grayscale(1); }
+@media (max-width: 1179px) {
+  body::after {
+    position: absolute; bottom: auto; height: 420px;
+    background-position: -80px -10px; background-size: auto 420px;
+    -webkit-mask-image: linear-gradient(180deg, #000 30%, transparent 88%);
+    mask-image: linear-gradient(180deg, #000 30%, transparent 88%);
+  }
+}
 
 .page {
   position: relative; z-index: 1; flex: 1; width: min(100%, 560px); margin: 0 auto;

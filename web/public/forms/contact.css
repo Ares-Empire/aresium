@@ -20,6 +20,8 @@
   --spec: radial-gradient(130% 90% at 0% 0%, rgba(255, 255, 255, 0.07), transparent 46%);
   --glow1: radial-gradient(72% 52% at 50% -12%, rgba(216, 26, 52, 0.36), transparent 60%);
   --glow2: radial-gradient(58% 50% at 90% 120%, rgba(150, 14, 38, 0.24), transparent 56%);
+  --bust: url("/brand/hermes-profile.webp");   /* Hermes, god of trade, as on the app icon, in profile */
+  --bust-opacity: 0.17;
   /* no accent: the topic's icon, the focused box and the sent mark in the secondary ink, as the iPhone form */
   --highlight: #b3b9c6;
   --focus: rgba(179, 185, 198, 0.55);
@@ -49,6 +51,8 @@ html[data-theme="light"] {
   --spec: radial-gradient(130% 90% at 0% 0%, rgba(255, 255, 255, 0.6), transparent 46%);
   --glow1: radial-gradient(72% 52% at 50% -12%, rgba(216, 26, 52, 0.13), transparent 60%);
   --glow2: radial-gradient(58% 50% at 90% 120%, rgba(216, 26, 52, 0.07), transparent 56%);
+  --bust: url("/brand/hermes-profile.webp");
+  --bust-opacity: 0.11;
   --highlight: #525a69;
   --focus: rgba(82, 90, 105, 0.55);
   --soft-fill: rgba(82, 90, 105, 0.10);
