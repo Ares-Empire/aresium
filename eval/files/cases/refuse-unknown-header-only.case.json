@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "file": "refuse-unknown-header-only.csv",
+  "seed": 78,
+  "bank": "non-bank",
+  "kind": "must-refuse",
+  "situation": "An unknown export contains column headings but no payment rows.",
+  "change": "refuse-unknown-header-only",
+  "provenance": {
+    "method": "hand",
+    "reason": "An unknown export contains column headings but no payment rows."
+  },
+  "expected": {
+    "outcome": "refuse",
+    "code": "noTable",
+    "reason": "An unknown export contains column headings but no payment rows."
+  }
+}

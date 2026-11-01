@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "file": "amex--encoding.csv",
+  "seed": 78,
+  "bank": "amex",
+  "kind": "encoding-utf8",
+  "situation": "A bank download or spreadsheet uses a different text encoding and line ending.",
+  "change": "utf8; \"\\n\" record endings; unchanged cells.",
+  "provenance": {
+    "method": "original",
+    "fixture": "amex.csv",
+    "reference": "amex.csv.expected.json",
+    "sha256": "30efe02356c6286aa6c0e593a608e748e6861f6ac4bf48d77ee2154ea2472d99"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2026-02-05",
+        "amountCents": 15000,
+        "currency": "EUR",
+        "counterparty": "ZAHLUNG/ÜBERWEISUNG ERHALTEN BESTEN DANK",
+        "text": "ZAHLUNG/ÜBERWEISUNG ERHALTEN BESTEN DANK"
+      },
+      {
+        "date": "2026-02-04",
+        "amountCents": -11046,
+        "currency": "EUR",
+        "counterparty": "FIKTIV HOTEL LONDON",
+        "text": "FIKTIV HOTEL LONDON"
+      },
+      {
+        "date": "2026-02-03",
+        "amountCents": -4290,
+        "currency": "EUR",
+        "counterparty": "FIKTIV ONLINESHOP",
+        "text": "FIKTIV ONLINESHOP"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "AT260360000000000000003",
+      "AT260350000000000000002",
+      "AT260340000000000000001"
+    ]
+  }
+}

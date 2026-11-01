@@ -1,0 +1,3 @@
+Booking Date,Value Date,Partner Name,Partner Iban,Type,Payment Reference,Account Name,Amount (EUR),Original Amount,Original Currency,Exchange Rate
+2026-10-14,2026-10-14,Fiktiv Laden,,Transfer,Complete row,Test,-12.00,,,
+2026-10-15,2026-10-15,"Fiktiv broken merchant,,Transfer,Unclosed quote,Test,-23.00,,,

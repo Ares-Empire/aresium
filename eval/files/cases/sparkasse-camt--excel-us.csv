@@ -1,0 +1,6 @@
+Auftragskonto,Buchungstag,Valutadatum,Buchungstext,Verwendungszweck,Glaeubiger ID,Mandatsreferenz,Kundenreferenz (End-to-End),Sammlerreferenz,Lastschrift Ursprungsbetrag,Auslagenersatz Ruecklastschrift,Beguenstigter/Zahlungspflichtiger,Kontonummer/IBAN,BIC (SWIFT-Code),Betrag,Waehrung,Info
+DE45760501010000987654,02/07/2026,02/07/2026,KARTENZAHLUNG,Fiktiv Markt Musterstadt,,,,,,,Fiktiv Markt,,,-23.17,EUR,Umsatz vorgemerkt
+DE45760501010000987654,02/06/2026,02/06/2026,FOLGELASTSCHRIFT,Abschlag Strom Februar Kundennr. 0000,DE98ZZZ09999999999,FICT-MANDAT-7,FICT-E2E-0001,,,,Fiktiv Stadtwerke,DE34701500000000246810,SSKMDEMMXXX,-36.40,EUR,Umsatz gebucht
+DE45760501010000987654,02/05/2026,02/05/2026,KARTENZAHLUNG,Café Märchen Musterstadt,,,,,,,Café Märchen,,,-3.20,EUR,Umsatz gebucht
+DE45760501010000987654,02/05/2026,02/05/2026,KARTENZAHLUNG,Café Märchen Musterstadt,,,,,,,Café Märchen,,,-3.20,EUR,Umsatz gebucht
+DE45760501010000987654,02/03/2026,02/03/2026,GUTSCHR. UEBERWEISUNG,Gehalt Februar 2026,,,LOHN-2026-02,,,,Fiktiv Werke GmbH,DE96100500000000123456,BELADEBEXXX,"1,800.00",EUR,Umsatz gebucht

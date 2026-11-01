@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "file": "paypal-statement-de--encoding.csv",
+  "seed": 78,
+  "bank": "paypal",
+  "kind": "encoding-utf16le",
+  "situation": "A bank download or spreadsheet uses a different text encoding and line ending.",
+  "change": "utf16le; \"\\r\\n\" record endings; unchanged cells.",
+  "provenance": {
+    "method": "original",
+    "fixture": "paypal-statement-de.csv",
+    "reference": "paypal-statement-de.csv.expected.json",
+    "sha256": "3f4b3ad094fadddf3061336d6e8dd2a0548e7b6e1a7a9ee2e05dbcc2b947149d"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2026-02-03",
+        "amountCents": -1890,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Onlineshop",
+        "text": "Fiktiv Onlineshop"
+      },
+      {
+        "date": "2026-02-04",
+        "amountCents": 350,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Buchladen",
+        "text": "Fiktiv Buchladen"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "FICTIONAL-DE-1",
+      "FICTIONAL-DE-2"
+    ]
+  }
+}

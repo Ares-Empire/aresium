@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "file": "volksbank.2022--export-extra.csv",
+  "seed": 78,
+  "bank": "volksbank",
+  "kind": "no-final-newline",
+  "situation": "A CSV editor omits the final record ending.",
+  "change": "no-final-newline",
+  "provenance": {
+    "method": "original",
+    "fixture": "volksbank.2022.csv",
+    "reference": "volksbank.2022.csv.expected.json",
+    "sha256": "6379701f32c8774afc23faa4d44410df5bae0adf5eed18d7ab5187193335f232"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2024-03-01",
+        "amountCents": -65000,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Vermietung",
+        "text": "Miete März"
+      },
+      {
+        "date": "2024-03-02",
+        "amountCents": -4195,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Markt",
+        "text": "Einkauf"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "66d8658053e5747db37948bd",
+      "8c746e54c9b5d828e8123e8a"
+    ]
+  }
+}

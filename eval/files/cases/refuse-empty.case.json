@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "file": "refuse-empty.csv",
+  "seed": 78,
+  "bank": "non-bank",
+  "kind": "must-refuse",
+  "situation": "The selected download is empty after a failed transfer.",
+  "change": "refuse-empty",
+  "provenance": {
+    "method": "hand",
+    "reason": "The selected download is empty after a failed transfer."
+  },
+  "expected": {
+    "outcome": "refuse",
+    "code": "empty",
+    "reason": "The selected download is empty after a failed transfer."
+  }
+}

@@ -1,0 +1,14 @@
+Fiktive Volksbank eG;;;;;;;;;;;;;
+;;;;;;;;;;;;;
+Umsatzanzeige;;;;;;;;;;;;;
+;;;;;;;;;;;;;
+BLZ:;10090000;;Datum:;10.01.2022;;;;;;;;;
+Konto:;0000202122;;Uhrzeit:;10:00:00;;;;;;;;;
+;;;;;;;;;;;;;
+Buchungstag;Valuta;Textschlüssel;Primanota;Zahlungsempfänger;ZahlungsempfängerKto;ZahlungsempfängerIBAN;ZahlungsempfängerBLZ;ZahlungsempfängerBIC;Vorgang/Verwendungszweck;Kundenreferenz;Währung;Umsatz;Soll/Haben
+03.01.2022;03.01.2022;051;0931;Fiktiv Werke GmbH;0000123456;DE96100500000000123456;10050000;BELADEBEXXX;GUTSCHRIFT Gehalt Dezember;NONREF;EUR;1.800,00;H
+04.01.2022;04.01.2022;005;9248;Fiktiv Markt;;;;;KARTENZAHLUNG Einkauf Fiktiv Markt Musterstadt;NONREF;EUR;41,95;S
+05.01.2022;05.01.2022;105;0931;Fiktiv Stadtwerke;0000246810;DE34701500000000246810;70150000;SSKMDEMMXXX;LASTSCHRIFT Abschlag Strom Januar;FICT-E2E-0002;EUR;36,40;S
+;;;;;;;;;;;;;
+01.01.2022;;;;;;;;;;Anfangssaldo;EUR;500,00;H
+10.01.2022;;;;;;;;;;Endsaldo;EUR;2.221,65;H

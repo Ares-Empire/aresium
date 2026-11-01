@@ -1,0 +1,3 @@
+Buchungstag;Wertstellung;Umsatzart;Buchungstext;Betrag;Währung;Auftraggeberkonto;Bankleitzahl Auftraggeberkonto;IBAN Auftraggeberkonto;Kategorie
+02.03.2020;02.03.2020;Lastschrift;Fiktiv Mobilfunk Rechnung Februar End-to-End-Ref.: FICT-E2E-0004;-19,99;EUR;0000334455;50040000;DE73500400000000334455;Telefon
+02.03.2020;02.03.2020;Gutschrift;Fiktiv Werke GmbH Gehalt Februar;1500,00;EUR;0000334455;50040000;DE73500400000000334455;Einkommen

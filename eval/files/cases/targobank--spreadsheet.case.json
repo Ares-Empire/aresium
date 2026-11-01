@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "file": "targobank--spreadsheet.csv",
+  "seed": 78,
+  "bank": "targobank",
+  "kind": "trailing-columns",
+  "situation": "Excel or Numbers saves the downloaded statement again with local CSV settings.",
+  "change": "trailing-columns; cells preserved, quotes retained wherever CSV syntax requires them.",
+  "provenance": {
+    "method": "original",
+    "fixture": "targobank.csv",
+    "reference": "targobank.csv.expected.json",
+    "sha256": "e1d231b11c4691f087357556c9b5d1cb8c7c20f8b8a9c4ea2de85fdab037f608"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2026-02-06",
+        "amountCents": -3640,
+        "currency": "EUR",
+        "counterparty": null,
+        "text": "LASTSCHRIFT FIKTIV STADTWERKE DE34701500000000246810 SSKMDEMMXXX ABSCHLAG STROM FEBRUAR"
+      },
+      {
+        "date": "2026-02-04",
+        "amountCents": -2317,
+        "currency": "EUR",
+        "counterparty": null,
+        "text": "KARTENZAHLUNG FIKTIV MARKT MUSTERSTADT"
+      },
+      {
+        "date": "2026-02-03",
+        "amountCents": 180000,
+        "currency": "EUR",
+        "counterparty": null,
+        "text": "GUTSCHRIFT FIKTIV WERKE GMBH DE96100500000000123456 BELADEBEXXX GEHALT FEBRUAR 2026"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "b07ca2cb3738010e380acc2e",
+      "6a4f7e3daa01427455249889",
+      "03658c17dcec32704504e834"
+    ]
+  }
+}

@@ -1,0 +1,5 @@
+Buchungstag;Wertstellung;Umsatzart;Buchungstext;Betrag;Währung;IBAN Kontoinhaber;Kategorie
+06.02.2026;06.02.2026;Lastschrift;Fiktiv Stadtwerke Abschlag Strom Februar End-to-End-Ref.: FICT-E2E-0001 Mandatsref: FICT-MANDAT-7 Gläubiger-ID: DE98ZZZ09999999999;-36,4;EUR;DE73500400000000334455;Wohnen
+05.02.2026;05.02.2026;Sonstige;Änderung der Allgemeinen Geschäftsbedingungen;0;EUR;DE73500400000000334455;
+04.02.2026;04.02.2026;Überweisung;Fiktiv Vermietung Miete Februar End-to-End-Ref.: NOTPROVIDED;-650;EUR;DE73500400000000334455;Wohnen
+03.02.2026;03.02.2026;Überweisung;Fiktiv Werke GmbH Gehalt Februar 2026 End-to-End-Ref.: LOHN-2026-02;1800;EUR;DE73500400000000334455;Einkommen

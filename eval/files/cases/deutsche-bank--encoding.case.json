@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "file": "deutsche-bank--encoding.csv",
+  "seed": 78,
+  "bank": "deutsche-bank",
+  "kind": "encoding-windows1252",
+  "situation": "A bank download or spreadsheet uses a different text encoding and line ending.",
+  "change": "windows1252; \"\\r\" record endings; unchanged cells.",
+  "provenance": {
+    "method": "original",
+    "fixture": "deutsche-bank.csv",
+    "reference": "deutsche-bank.csv.expected.json",
+    "sha256": "c9b0a381fdad262e45bdc6b00160c534b59a303e2d56928e6ee31d6fbbc31852"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2026-02-06",
+        "amountCents": -3640,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Stadtwerke",
+        "text": "Abschlag Strom Februar"
+      },
+      {
+        "date": "2026-02-04",
+        "amountCents": -108000,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Vermietung",
+        "text": "Miete Februar"
+      },
+      {
+        "date": "2026-02-03",
+        "amountCents": 180000,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Werke GmbH",
+        "text": "Gehalt Februar 2026"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "48a09d2050a825433bc6d330",
+      "c4d2042c2072dfb740a52d2a",
+      "9ff9e62da94c532eb083622d"
+    ]
+  }
+}

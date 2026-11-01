@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "file": "sparkasse-mt940--spreadsheet.csv",
+  "seed": 78,
+  "bank": "sparkasse-mt940",
+  "kind": "quotes-minimal",
+  "situation": "Excel or Numbers saves the downloaded statement again with local CSV settings.",
+  "change": "quotes-minimal; cells preserved, quotes retained wherever CSV syntax requires them.",
+  "provenance": {
+    "method": "original",
+    "fixture": "sparkasse-mt940.csv",
+    "reference": "sparkasse-mt940.csv.expected.json",
+    "sha256": "d96a11a0376ed3b369259da23f74fc5ec51be234748541c8ed89d6fa8f728381"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2026-02-06",
+        "amountCents": -3640,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Stadtwerke",
+        "text": "Abschlag Strom Februar"
+      },
+      {
+        "date": "2026-02-04",
+        "amountCents": -65000,
+        "currency": "EUR",
+        "counterparty": "Erika Mustermann",
+        "text": "Miete Februar Wohnung 3 DATUM 04.02.2026, 09.12 UHR"
+      },
+      {
+        "date": "2026-02-03",
+        "amountCents": 180000,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Werke GmbH",
+        "text": "Gehalt Februar 2026"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "c71fce3df1c79e4d3b4c8ad4",
+      "2a7805c1c5ed2598c667b2c4",
+      "e27f985b8ddbdc138ad57b51"
+    ]
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "file": "dkb.2024-comma--encoding.csv",
+  "seed": 78,
+  "bank": "dkb",
+  "kind": "encoding-windows1252",
+  "situation": "A bank download or spreadsheet uses a different text encoding and line ending.",
+  "change": "windows1252; \"\\n\" record endings; unchanged cells.",
+  "provenance": {
+    "method": "original",
+    "fixture": "dkb.2024-comma.csv",
+    "reference": "dkb.2024-comma.csv.expected.json",
+    "sha256": "9116b8b326dc38240864fd18b1ef9152aa6cd6703fcd8cac70a1a67b3fb6d278"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2024-10-30",
+        "amountCents": -870,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Markt",
+        "text": "Einkauf"
+      },
+      {
+        "date": "2024-10-29",
+        "amountCents": 100000,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Werke GmbH",
+        "text": "Gehalt Oktober"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "1e1df6cefe121f41085bff97",
+      "1858c86fc0efdaffb0df6c22"
+    ]
+  }
+}

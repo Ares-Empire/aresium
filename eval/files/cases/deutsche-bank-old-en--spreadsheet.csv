@@ -1,0 +1,8 @@
+Transactions persönliches Konto (00),,,Customer number: 100 0232425
+01/01/2024 - 01/31/2024
+Old balance:,,,,"1,000.00",EUR
+Transactions pending are not included in this report.
+Booking date,Value date,Transaction Type,Beneficiary / Originator,Payment Details,IBAN,BIC,Customer Reference,Mandate Reference,Creditor ID,Compensation amount,Original Amount,Ultimate creditor,Number of transactions,Number of cheques,Debit,Credit,Currency
+01/30/2024,01/30/2024,SEPA-Direct Debit,Fiktiv Stadtwerke,Abschlag Strom Januar,DE34701500000000246810,SSKMDEMMXXX,FICT-E2E-0005,FICT-MANDAT-7,DE98ZZZ09999999999,,,,,,-54.00,,EUR
+01/26/2024,01/26/2024,SEPA-Credit Transfer,Fiktiv Werke GmbH,Gehalt Januar,DE96100500000000123456,BELADEBEXXX,LOHN-2024-01,,,,,,,,,"1,800.00",EUR
+Account balance,01/31/2024,,,"2,746.00",EUR

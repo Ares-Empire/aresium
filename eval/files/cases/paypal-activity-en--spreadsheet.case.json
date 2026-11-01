@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "file": "paypal-activity-en--spreadsheet.csv",
+  "seed": 78,
+  "bank": "paypal",
+  "kind": "quotes-minimal",
+  "situation": "Excel or Numbers saves the downloaded statement again with local CSV settings.",
+  "change": "quotes-minimal; cells preserved, quotes retained wherever CSV syntax requires them.",
+  "provenance": {
+    "method": "original",
+    "fixture": "paypal-activity-en.csv",
+    "reference": "paypal-activity-en.csv.expected.json",
+    "sha256": "71e6d56bd90a455319d8eee41f8645b522102ecc0a456f92f0e3e66d1d9d62c0"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2026-02-03",
+        "amountCents": -1890,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Online Shop",
+        "text": "Fiktiv Online Shop"
+      },
+      {
+        "date": "2026-02-03",
+        "amountCents": 1890,
+        "currency": "EUR",
+        "counterparty": null,
+        "text": "Bank Deposit to PP Account"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "FICTIONAL-EN-1",
+      "FICTIONAL-EN-2"
+    ]
+  }
+}

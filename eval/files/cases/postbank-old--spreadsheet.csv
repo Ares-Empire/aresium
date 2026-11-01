@@ -1,0 +1,16 @@
+Umsatzauskunft,
+Name,Erika Mustermann,
+BLZ,10010010,
+Kontonummer,0000667788,
+IBAN,DE50100100100000667788,
+Aktueller Kontostand,"2.257,20 €",
+Summe der Umsätze in den nächsten 14 Tagen,"-650,00 €",
+
+Umsätze in den nächsten 14 Tagen,
+Buchungsdatum,Umsatzart,Buchungsdetails,Auftraggeber,Empfänger,Betrag (€),
+15.12.2021,Dauerauftrag,Miete Januar,Erika Mustermann,Fiktiv Vermietung,"-650,00 €",
+
+gebuchte Umsätze,
+Buchungsdatum,Wertstellung,Umsatzart,Buchungsdetails,Auftraggeber,Empfänger,Betrag (€),Saldo (€),
+06.12.2021,06.12.2021,Lastschrift,Abschlag Strom Dezember,Erika Mustermann,Fiktiv Stadtwerke,"-36,40 €","2.257,20 €",
+03.12.2021,03.12.2021,Gutschrift,Gehalt Dezember,Fiktiv Werke GmbH,Erika Mustermann,"1.800,00 €","2.293,60 €",

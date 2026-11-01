@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "file": "postbank-old--encoding.csv",
+  "seed": 78,
+  "bank": "postbank-old",
+  "kind": "encoding-utf8",
+  "situation": "A bank download or spreadsheet uses a different text encoding and line ending.",
+  "change": "utf8; \"\\r\" record endings; unchanged cells.",
+  "provenance": {
+    "method": "original",
+    "fixture": "postbank-old.csv",
+    "reference": "postbank-old.csv.expected.json",
+    "sha256": "1cebb56efc6fdce0a1a608766cbfd97f2126b0bd51f9e218081ac70d14d42266"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2021-12-06",
+        "amountCents": -3640,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Stadtwerke",
+        "text": "Abschlag Strom Dezember"
+      },
+      {
+        "date": "2021-12-03",
+        "amountCents": 180000,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Werke GmbH",
+        "text": "Gehalt Dezember"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "176b2a7b350b35008d5800b4",
+      "abb96a0e4adfd602db2c9cc2"
+    ]
+  }
+}

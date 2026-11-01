@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "file": "trade-republic.semicolon--encoding.csv",
+  "seed": 78,
+  "bank": "trade-republic",
+  "kind": "encoding-windows1252",
+  "situation": "A bank download or spreadsheet uses a different text encoding and line ending.",
+  "change": "windows1252; \"\\n\" record endings; unchanged cells.",
+  "provenance": {
+    "method": "original",
+    "fixture": "trade-republic.semicolon.csv",
+    "reference": "trade-republic.semicolon.csv.expected.json",
+    "sha256": "4834678fa901139c39cbe3251ea655475047ab4dd04af8388ab9e8afbf7c4717"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2026-04-30",
+        "amountCents": 91,
+        "currency": "EUR",
+        "counterparty": null,
+        "text": "Zinsen"
+      },
+      {
+        "date": "2026-04-29",
+        "amountCents": -10000,
+        "currency": "EUR",
+        "counterparty": null,
+        "text": "Erika Mustermann DE96100500000000123456"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "3f2b1c4d-0000-4000-8000-000000000004",
+      "3f2b1c4d-0000-4000-8000-000000000005"
+    ]
+  }
+}

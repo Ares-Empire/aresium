@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "file": "c24--spreadsheet.csv",
+  "seed": 78,
+  "bank": "c24",
+  "kind": "separator-tab",
+  "situation": "Excel or Numbers saves the downloaded statement again with local CSV settings.",
+  "change": "separator-tab; cells preserved, quotes retained wherever CSV syntax requires them.",
+  "provenance": {
+    "method": "original",
+    "fixture": "c24.csv",
+    "reference": "c24.csv.expected.json",
+    "sha256": "120b5fe35b39dc68b861e3228aeca70ee1669f67025b66e202e093b5fe2d1904"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2026-02-05",
+        "amountCents": -320,
+        "currency": "EUR",
+        "counterparty": "Café Märchen",
+        "text": "Café Märchen Musterstadt"
+      },
+      {
+        "date": "2026-02-05",
+        "amountCents": -320,
+        "currency": "EUR",
+        "counterparty": "Café Märchen",
+        "text": "Café Märchen Musterstadt"
+      },
+      {
+        "date": "2026-02-04",
+        "amountCents": -65000,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Vermietung",
+        "text": "Miete Februar"
+      },
+      {
+        "date": "2026-02-03",
+        "amountCents": 180000,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Werke GmbH",
+        "text": "Gehalt Februar 2026"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "2783bfe26e108c1958454cd5",
+      "943138bdbd4af6be19d6c7c6",
+      "b7a3289c86f0276bcbfe009f",
+      "6208c94a7753abd727822adc"
+    ]
+  }
+}

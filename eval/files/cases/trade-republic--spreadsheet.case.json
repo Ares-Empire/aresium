@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "file": "trade-republic--spreadsheet.csv",
+  "seed": 78,
+  "bank": "trade-republic",
+  "kind": "separator-semicolon",
+  "situation": "Excel or Numbers saves the downloaded statement again with local CSV settings.",
+  "change": "separator-semicolon; cells preserved, quotes retained wherever CSV syntax requires them.",
+  "provenance": {
+    "method": "original",
+    "fixture": "trade-republic.csv",
+    "reference": "trade-republic.csv.expected.json",
+    "sha256": "2bb3c79e65fece3854fec3147fb9a2fb31e84ef0ad30710548ce802aaf858d17"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2026-04-20",
+        "amountCents": 50000,
+        "currency": "EUR",
+        "counterparty": "Erika Mustermann",
+        "text": "Sparen Einzahlung"
+      },
+      {
+        "date": "2026-04-21",
+        "amountCents": -26596,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Welt ETF",
+        "text": "Kauf Fiktiv Welt ETF"
+      },
+      {
+        "date": "2026-04-22",
+        "amountCents": -2727,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Restaurant",
+        "text": "Fiktiv Restaurant"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "3f2b1c4d-0000-4000-8000-000000000001",
+      "3f2b1c4d-0000-4000-8000-000000000002",
+      "3f2b1c4d-0000-4000-8000-000000000003"
+    ]
+  }
+}

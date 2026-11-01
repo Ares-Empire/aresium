@@ -1,0 +1,12 @@
+Umsätze
+Konto;Filial-/Kontonummer;IBAN;Währung
+AktivKonto;100 0323334 00;DE33100700000000323334;EUR
+
+1.2.2026 - 7.2.2026
+Letzter Kontostand;;;;2.257,20;EUR
+Vorgemerkte und noch nicht gebuchte Umsätze sind nicht Bestandteil dieser Übersicht.
+Buchungstag;Wert;Umsatzart;Begünstigter / Auftraggeber;Verwendungszweck;IBAN / Kontonummer;BIC;Kundenreferenz;Mandatsreferenz;Gläubiger ID;Fremde Gebühren;Betrag;Abweichender Empfänger;Anzahl der Aufträge;Anzahl der Schecks;Soll;Haben;Währung
+6.2.2026;6.2.2026;SEPA-Lastschrift;Fiktiv Stadtwerke;Abschlag Strom Februar;DE34701500000000246810;SSKMDEMMXXX;FICT-E2E-0001;FICT-MANDAT-7;DE98ZZZ09999999999;;-36,4;;;;-36,4;;EUR
+4.2.2026;4.2.2026;SEPA-Überweisung;Fiktiv Vermietung;Miete Februar;DE25100900000000202122;BEVODEBBXXX;;;;;-1.080;;;;-1.080;;EUR
+3.2.2026;3.2.2026;SEPA-Überweisung;Fiktiv Werke GmbH;Gehalt Februar 2026;DE96100500000000123456;BELADEBEXXX;LOHN-2026-02;;;;1.800;;;;;1.800;EUR
+Kontostand;7.2.2026;;;2.257,20;EUR

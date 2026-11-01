@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "file": "refuse-mixed-currencies.csv",
+  "seed": 78,
+  "bank": "fictional-German",
+  "kind": "must-refuse",
+  "situation": "An export mixes EUR and USD without identifying the currency per amount; it must not silently default to EUR.",
+  "change": "refuse-mixed-currencies",
+  "provenance": {
+    "method": "hand",
+    "reason": "An export mixes EUR and USD without identifying the currency per amount; it must not silently default to EUR."
+  },
+  "expected": {
+    "outcome": "refuse",
+    "code": "unknown",
+    "reason": "An export mixes EUR and USD without identifying the currency per amount; it must not silently default to EUR."
+  }
+}

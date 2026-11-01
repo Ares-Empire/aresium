@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "file": "refuse-whitespace.csv",
+  "seed": 78,
+  "bank": "non-bank",
+  "kind": "must-refuse",
+  "situation": "A spreadsheet saved only empty cells.",
+  "change": "refuse-whitespace",
+  "provenance": {
+    "method": "hand",
+    "reason": "A spreadsheet saved only empty cells."
+  },
+  "expected": {
+    "outcome": "refuse",
+    "code": "empty",
+    "reason": "A spreadsheet saved only empty cells."
+  }
+}

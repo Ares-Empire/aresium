@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "file": "volksbank--excel-short.csv",
+  "seed": 78,
+  "bank": "volksbank",
+  "kind": "excel-short",
+  "situation": "German Excel shortens years and removes thousands separators.",
+  "change": "short dates; de-plain amounts; semicolon CSV.",
+  "provenance": {
+    "method": "original",
+    "fixture": "volksbank.csv",
+    "reference": "volksbank.csv.expected.json",
+    "sha256": "97a2c98548763a447cea9ba21a3b2b5eb617b76dd41c7beb94571d0f4f50391f"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2026-02-03",
+        "amountCents": 180000,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Werke GmbH",
+        "text": "Gehalt Februar 2026"
+      },
+      {
+        "date": "2026-02-04",
+        "amountCents": -320,
+        "currency": "EUR",
+        "counterparty": "Café Märchen",
+        "text": "Kartenzahlung girocard"
+      },
+      {
+        "date": "2026-02-04",
+        "amountCents": -320,
+        "currency": "EUR",
+        "counterparty": "Café Märchen",
+        "text": "Kartenzahlung girocard"
+      },
+      {
+        "date": "2026-02-06",
+        "amountCents": -3640,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Stadtwerke",
+        "text": "Abschlag Strom Februar"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "0b75121c6c0407c10abd9144",
+      "8969d092dab6da71f66c166d",
+      "10d6e24d93d9f091e2619319",
+      "dc45b8ca6516999a0f4b7f5d"
+    ]
+  }
+}

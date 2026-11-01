@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "file": "barclays--export-extra.csv",
+  "seed": 78,
+  "bank": "barclays",
+  "kind": "preamble",
+  "situation": "The bank adds account, period and balance lines above its table.",
+  "change": "preamble",
+  "provenance": {
+    "method": "original",
+    "fixture": "barclays.csv",
+    "reference": "barclays.csv.expected.json",
+    "sha256": "680736b42a3b68546092024aeb49c964a8cf8295ade4f9af4b4a436c5a18f7c7"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2026-02-04",
+        "amountCents": 10000,
+        "currency": "EUR",
+        "counterparty": "Gutschrift",
+        "text": "Gutschrift"
+      },
+      {
+        "date": "2026-02-02",
+        "amountCents": -161925,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Reisebüro",
+        "text": "FIKTIV REISEBUERO HAMBURG DE"
+      },
+      {
+        "date": "2026-02-01",
+        "amountCents": -2317,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Markt",
+        "text": "FIKTIV MARKT MUSTERSTADT DE"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "FICT0000000003",
+      "FICT0000000002",
+      "FICT0000000001"
+    ]
+  }
+}
