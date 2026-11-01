@@ -4,6 +4,8 @@ import { relative, resolve, isAbsolute, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { sortPayments, learn, type Learned } from "../../src/engine/sorting/sort.js";
 import type { TransferPayment } from "../../src/engine/sorting/transfers.js";
+import type { LocalPlacesData } from "../../src/engine/sorting/local-places.js";
+import { readLocalPlaces } from "./local-places-file.js";
 import { DEFAULT_CATEGORIES, BUILT_IN_CATEGORIES } from "../../src/engine/categories.js";
 
 type LedgerAccount = { id: string; iban?: string };
@@ -17,7 +19,7 @@ export function parseExport(value: unknown): LedgerExport {
   const fail = () => { throw new Error("Invalid Aresium export; details withheld"); };
   if (!value || typeof value !== "object") return fail();
   const data = value as LedgerExport;
-  if (data.app !== "Aresium" || !Number.isInteger(data.schema) || data.schema < 1 || data.schema > 5
+  if (data.app !== "Aresium" || !Number.isInteger(data.schema) || data.schema < 1 || data.schema > 6
     || !Array.isArray(data.accounts) || !Array.isArray(data.payments) || !Array.isArray(data.categories)) return fail();
   const ids = (list: { id: string }[]) => list.every((row) => row && text(row.id)) && new Set(list.map((row) => row.id)).size === list.length;
   if (!ids(data.accounts) || !ids(data.payments) || !ids(data.categories)) return fail();
@@ -40,14 +42,14 @@ export function parseExport(value: unknown): LedgerExport {
   }
   return data;
 }
-export function ownCounts(data: LedgerExport) {
+export function ownCounts(data: LedgerExport, localPlaces?: LocalPlacesData) {
   const accounts = new Map(data.accounts.map((a) => [a.id, a]));
   const sortedRows = data.payments.map((p, index) => ({ p, index })).sort((a, b) => a.p.bookingDate.localeCompare(b.p.bookingDate) || a.p.sequence - b.p.sequence || a.index - b.index);
   const originals = sortedRows.map(({ p }) => p);
   const payments: TransferPayment[] = originals.map((p) => ({ source: p.source, account: p.account, accountIban: accounts.get(p.account)?.iban,
     counterparty: p.counterparty, counterpartyIban: p.counterpartyIban, description: p.text, amount: Number(p.amount),
     date: p.bookingDate, currency: p.currency, externalId: p.externalId, raw: p.raw }));
-  const predictions = sortPayments(payments, { categories: data.categories, learned: {} });
+  const predictions = sortPayments(payments, { categories: data.categories, learned: {}, localPlaces });
   const summary = { payments: payments.length, sorted: predictions.filter((p) => p.categoryId !== null).length,
     unsorted: predictions.filter((p) => p.categoryId === null).length,
     manual: { total: 0, agreement: 0 }, kept: { total: 0, agreement: 0 }, unlabelled: 0 };
@@ -68,7 +70,7 @@ export function ownCounts(data: LedgerExport) {
   const months = new Map<string, { month: number; payments: number; labelled: number; sorted: number; right: number; fixes: number }>();
   let fixes = 0, first100 = 0, firstMonth = 0;
   originals.forEach((p, i) => {
-    const predicted = sortPayments(payments.slice(0, i + 1), { categories: data.categories, learned })[i].categoryId;
+    const predicted = sortPayments(payments.slice(0, i + 1), { categories: data.categories, learned, localPlaces })[i].categoryId;
     const month = p.bookingDate.slice(0, 7), counts = months.get(month) ?? { month: months.size + 1, payments: 0, labelled: 0, sorted: 0, right: 0, fixes: 0 };
     counts.payments++; counts.sorted += Number(predicted !== null);
     if (p.category) {
@@ -81,17 +83,18 @@ export function ownCounts(data: LedgerExport) {
   return { ...summary, confusion: [...cells.values()].sort((a, b) => a.engine.localeCompare(b.engine) || a.chosen.localeCompare(b.chosen)),
     replay: { fixes, first100, firstMonth, months: [...months.values()] } };
 }
-export async function readOwnData(path: string, repo = fileURLToPath(new URL("../../", import.meta.url))) {
+export async function readOwnData(path: string, repo = fileURLToPath(new URL("../../", import.meta.url)), localPlaces?: LocalPlacesData) {
   // Reject lexical traversal into the repository as well as symlinks into it. realpath handles /private on macOS.
   const inside = (root: string, input: string) => { const part = relative(root, input); return part === "" || (part !== ".." && !part.startsWith(`..${sep}`) && !isAbsolute(part)); };
   if (inside(resolve(repo), resolve(path))) throw new Error("Export must stay outside the repository");
   const [actualRepo, actualInput] = await Promise.all([realpath(repo), realpath(path)]);
   if (inside(actualRepo, actualInput) || (await stat(actualInput)).nlink > 1) throw new Error("Export must stay outside the repository");
-  return ownCounts(parseExport(JSON.parse(await readFile(actualInput, "utf8"))));
+  return ownCounts(parseExport(JSON.parse(await readFile(actualInput, "utf8"))), localPlaces);
 }
 if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
   try {
-    if (process.argv.length !== 3) throw new Error();
-    console.log(JSON.stringify(await readOwnData(process.argv[2]), null, 2));
-  } catch { console.error("Own-data evaluation failed. Supply a valid Aresium schema 1–5 export outside the repository. Details withheld."); process.exitCode = 1; }
+    if (process.argv.length !== 3 && !(process.argv.length === 5 && process.argv[3] === "--local-places")) throw new Error();
+    const localPlaces = process.argv[4] ? await readLocalPlaces(process.argv[4]) : undefined;
+    console.log(JSON.stringify(await readOwnData(process.argv[2], undefined, localPlaces), null, 2));
+  } catch { console.error("Own-data evaluation failed. Supply a valid Aresium schema 1–6 export outside the repository. Details withheld."); process.exitCode = 1; }
 }

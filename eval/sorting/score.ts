@@ -8,6 +8,8 @@ import { splitCsv } from "../../src/engine/readers/csv.js";
 import { sortPayments } from "../../src/engine/sorting/sort.js";
 import { ROOT, heldback, loadCases, initialLabel, fingerprint, readLines, type EvalCase, type Label } from "./model.js";
 import { batches, merge } from "./judge.js";
+import type { LocalPlacesData } from "../../src/engine/sorting/local-places.js";
+import { readLocalPlaces } from "./local-places-file.js";
 export type Sorter = typeof sortPayments;
 export type Counts = { total: number; disputed: number; sorted: number; right: number; wrong: number; missed: number; unsortedRight: number };
 export type Outcome = "right" | "wrong" | "missed" | "unsortedRight" | "disputed";
@@ -130,11 +132,16 @@ export async function main(args = process.argv.slice(2)): Promise<void> {
     await merge(cases, paths[0], paths[1]); return;
   }
   const engineIndex = args.indexOf("--engine");
+  const localIndex = args.indexOf("--local-places");
   if (engineIndex >= 0 && (!args[engineIndex + 1] || args[engineIndex + 1].startsWith("--"))) throw new Error("--engine requires a bundle path");
-  if (args.some((arg, i) => !["--record", "--engine"].includes(arg) && !(engineIndex >= 0 && i === engineIndex + 1))) throw new Error("Unknown evaluation argument");
+  if (localIndex >= 0 && (!args[localIndex + 1] || args[localIndex + 1].startsWith("--"))) throw new Error("--local-places requires a data path");
+  if (localIndex >= 0 && args.includes("--record")) throw new Error("Experimental local-place scores must not be recorded as the default baseline");
+  if (args.some((arg, i) => !["--record", "--engine", "--local-places"].includes(arg) && ![engineIndex, localIndex].some((index) => index >= 0 && i === index + 1))) throw new Error("Unknown evaluation argument");
   const { labels, judged } = await loadLabels(cases);
   console.log(judged ? "Labels: majority of generator and two independent judges" : "PROVISIONAL: scoring against generator first answers alone; independent judging has not run.");
-  const predictions = predict(cases, await loadSorter(engineIndex >= 0 ? args[engineIndex + 1] : undefined));
+  const sorter = await loadSorter(engineIndex >= 0 ? args[engineIndex + 1] : undefined);
+  const localPlaces = localIndex >= 0 ? await readLocalPlaces(args[localIndex + 1]) : undefined;
+  const predictions = predict(cases, (payments, options) => sorter(payments, { ...options, ...(localPlaces ? { localPlaces } : {}) }));
   const result = report(cases, labels, predictions);
   console.log(result.text);
   if (args.includes("--record")) await record(result.worked, result.held);

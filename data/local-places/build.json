@@ -1,0 +1,47 @@
+{
+  "source": "https://download.geofabrik.de/europe/germany-latest.osm.pbf",
+  "dataDate": "2026-10-31T21:23:06.000Z",
+  "pbfSha256": "222a05d46bb704deb48fc809cdc33e15ffef23b4dd5c593e390f0a69e90419f7",
+  "pbfBytes": 4873293791,
+  "parser": "osm-pbf-parser@2.3.0",
+  "nsi": "85752fb28977082f6e631636f1e9b8f97513947f75aaf1338c47ffa87207f513",
+  "extract": {
+    "nodes": 1232641,
+    "ways": 550669,
+    "relations": 12222,
+    "missingWayGeometry": 0
+  },
+  "variants": {
+    "de": {
+      "sourcePlaces": 1795532,
+      "sourceNames": 1201918,
+      "places": 264744,
+      "names": 223550,
+      "nameOnly": 205261,
+      "townRequired": 18289,
+      "towns": 16920,
+      "dropped": {
+        "noSafeCategoryOrAddress": 682664,
+        "unsafeName": 125014,
+        "chain": 44052,
+        "personName": 126638
+      }
+    },
+    "left-out": {
+      "sourcePlaces": 1795532,
+      "sourceNames": 1201918,
+      "places": 249786,
+      "names": 216191,
+      "nameOnly": 199535,
+      "townRequired": 16656,
+      "towns": 16825,
+      "dropped": {
+        "noSafeCategoryOrAddress": 664281,
+        "unsafeName": 125014,
+        "chain": 44052,
+        "excludedAreaOrUnknownGeometry": 25742,
+        "personName": 126638
+      }
+    }
+  }
+}

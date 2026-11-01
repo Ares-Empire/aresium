@@ -1,0 +1,1930 @@
+{
+  "dataDate": "2026-10-31T21:23:06.000Z",
+  "baselineCommit": "400754e5e0ad17557042a0c39725f909a0fb12dd",
+  "judged": true,
+  "defaultParityChanges": 0,
+  "build": {
+    "source": "https://download.geofabrik.de/europe/germany-latest.osm.pbf",
+    "dataDate": "2026-10-31T21:23:06.000Z",
+    "pbfSha256": "222a05d46bb704deb48fc809cdc33e15ffef23b4dd5c593e390f0a69e90419f7",
+    "pbfBytes": 4873293791,
+    "parser": "osm-pbf-parser@2.3.0",
+    "nsi": "85752fb28977082f6e631636f1e9b8f97513947f75aaf1338c47ffa87207f513",
+    "extract": {
+      "nodes": 1232641,
+      "ways": 550669,
+      "relations": 12222,
+      "missingWayGeometry": 0
+    },
+    "variants": {
+      "de": {
+        "sourcePlaces": 1795532,
+        "sourceNames": 1201918,
+        "places": 264744,
+        "names": 223550,
+        "nameOnly": 205261,
+        "townRequired": 18289,
+        "towns": 16920,
+        "dropped": {
+          "noSafeCategoryOrAddress": 682664,
+          "unsafeName": 125014,
+          "chain": 44052,
+          "personName": 126638
+        }
+      },
+      "left-out": {
+        "sourcePlaces": 1795532,
+        "sourceNames": 1201918,
+        "places": 249786,
+        "names": 216191,
+        "nameOnly": 199535,
+        "townRequired": 16656,
+        "towns": 16825,
+        "dropped": {
+          "noSafeCategoryOrAddress": 664281,
+          "unsafeName": 125014,
+          "chain": 44052,
+          "excludedAreaOrUnknownGeometry": 25742,
+          "personName": 126638
+        }
+      }
+    }
+  },
+  "sizes": {
+    "baselineBundle": {
+      "raw": 502070,
+      "gzip": 118516,
+      "brotli": 100521
+    },
+    "optionalCodeBundle": {
+      "raw": 506631,
+      "gzip": 120174,
+      "brotli": 101750
+    },
+    "codeAdded": {
+      "raw": 4561,
+      "gzip": 1658,
+      "brotli": 1229
+    },
+    "fullData": {
+      "raw": 10503935,
+      "gzip": 3428315,
+      "brotli": 2408592
+    },
+    "leftOutData": {
+      "raw": 10089124,
+      "gzip": 3292557,
+      "brotli": 2310499
+    },
+    "dataBundledByDefault": false
+  },
+  "timing": {
+    "runtime": "v26.4.0",
+    "platform": "darwin/arm64",
+    "samples": 20,
+    "warmups": 2,
+    "method": "Fresh Node vm contexts; alternating baseline and optional bundle; separate JSON.parse for supplied data; no file I/O or JSON bridge serialization; first sort is 500 rendered payments; code compiled separately.",
+    "baselineStartup": {
+      "medianMs": 8.469540999999936,
+      "p95Ms": 10.250833000000057,
+      "minMs": 7.318916000000172,
+      "maxMs": 10.935249999999996
+    },
+    "optionalStartupWithData": {
+      "medianMs": 40.04495799999995,
+      "p95Ms": 48.38441699999976,
+      "minMs": 37.338583999999855,
+      "maxMs": 75.72245800000019
+    },
+    "dataParse": {
+      "medianMs": 31.4135839999999,
+      "p95Ms": 37.317041999999674,
+      "minMs": 29.518417,
+      "maxMs": 52.146749999999884
+    },
+    "addedStartupMedianMs": 31.575417000000016,
+    "addedStartupPaired": {
+      "medianMs": 31.98366599999963,
+      "p95Ms": 39.87241699999959,
+      "minMs": 28.86904299999992,
+      "maxMs": 65.52525000000014
+    },
+    "gzipDecode": {
+      "medianMs": 13.136666999999761,
+      "p95Ms": 14.55966699999999,
+      "minMs": 12.97229199999947,
+      "maxMs": 14.775625000000218
+    },
+    "optionalStartupWithGzip": {
+      "medianMs": 76.67095800000061,
+      "p95Ms": 79.6702909999999,
+      "minMs": 50.73291700000027,
+      "maxMs": 79.97216599999956
+    },
+    "addedGzipStartupMedianMs": 68.20141700000067,
+    "baselineFirstSort500": {
+      "medianMs": 15.054959000000053,
+      "p95Ms": 16.221042000000125,
+      "minMs": 13.353166000000101,
+      "maxMs": 17.113542000000052
+    },
+    "optionalFirstSort500": {
+      "medianMs": 22.152417000000014,
+      "p95Ms": 25.319124999999985,
+      "minMs": 18.11029099999996,
+      "maxMs": 70.99095899999975
+    },
+    "baselineCompile": {
+      "medianMs": 4.226624999999785,
+      "p95Ms": 4.506249999999909,
+      "minMs": 3.931750000000193,
+      "maxMs": 4.656542000000172
+    },
+    "optionalCompile": {
+      "medianMs": 4.0844999999999345,
+      "p95Ms": 4.6519170000001395,
+      "minMs": 4.000958999999966,
+      "maxMs": 4.678457999999864
+    },
+    "simulator": "Not measured through PhoneEngineTests: the app host has no optional-list input; app changes are outside this brief. See simulator.json if the separate standalone simulator harness was run. Node timings alone do not establish the 200 ms simulator budget."
+  },
+  "benchmark": {
+    "worked": {
+      "before": {
+        "total": 1415,
+        "disputed": 1,
+        "sorted": 938,
+        "right": 934,
+        "wrong": 4,
+        "missed": 135,
+        "unsortedRight": 342
+      },
+      "after": {
+        "total": 1415,
+        "disputed": 1,
+        "sorted": 938,
+        "right": 934,
+        "wrong": 4,
+        "missed": 135,
+        "unsortedRight": 342
+      },
+      "byKind": {
+        "osm": {
+          "before": {
+            "total": 564,
+            "disputed": 1,
+            "sorted": 280,
+            "right": 279,
+            "wrong": 1,
+            "missed": 88,
+            "unsortedRight": 196
+          },
+          "after": {
+            "total": 564,
+            "disputed": 1,
+            "sorted": 280,
+            "right": 279,
+            "wrong": 1,
+            "missed": 88,
+            "unsortedRight": 196
+          }
+        },
+        "brand": {
+          "before": {
+            "total": 312,
+            "disputed": 0,
+            "sorted": 213,
+            "right": 210,
+            "wrong": 3,
+            "missed": 47,
+            "unsortedRight": 52
+          },
+          "after": {
+            "total": 312,
+            "disputed": 0,
+            "sorted": 213,
+            "right": 210,
+            "wrong": 3,
+            "missed": 47,
+            "unsortedRight": 52
+          }
+        },
+        "madeup": {
+          "before": {
+            "total": 178,
+            "disputed": 0,
+            "sorted": 132,
+            "right": 132,
+            "wrong": 0,
+            "missed": 0,
+            "unsortedRight": 46
+          },
+          "after": {
+            "total": 178,
+            "disputed": 0,
+            "sorted": 132,
+            "right": 132,
+            "wrong": 0,
+            "missed": 0,
+            "unsortedRight": 46
+          }
+        },
+        "nonshop": {
+          "before": {
+            "total": 343,
+            "disputed": 0,
+            "sorted": 295,
+            "right": 295,
+            "wrong": 0,
+            "missed": 0,
+            "unsortedRight": 48
+          },
+          "after": {
+            "total": 343,
+            "disputed": 0,
+            "sorted": 295,
+            "right": 295,
+            "wrong": 0,
+            "missed": 0,
+            "unsortedRight": 48
+          }
+        },
+        "scenario": {
+          "before": {
+            "total": 18,
+            "disputed": 0,
+            "sorted": 18,
+            "right": 18,
+            "wrong": 0,
+            "missed": 0,
+            "unsortedRight": 0
+          },
+          "after": {
+            "total": 18,
+            "disputed": 0,
+            "sorted": 18,
+            "right": 18,
+            "wrong": 0,
+            "missed": 0,
+            "unsortedRight": 0
+          }
+        }
+      },
+      "changed": 0,
+      "newWrong": 0
+    },
+    "heldback": {
+      "before": {
+        "total": 622,
+        "disputed": 1,
+        "sorted": 395,
+        "right": 394,
+        "wrong": 1,
+        "missed": 82,
+        "unsortedRight": 145
+      },
+      "after": {
+        "total": 622,
+        "disputed": 1,
+        "sorted": 395,
+        "right": 394,
+        "wrong": 1,
+        "missed": 82,
+        "unsortedRight": 145
+      },
+      "byKind": {
+        "osm": {
+          "before": {
+            "total": 234,
+            "disputed": 0,
+            "sorted": 91,
+            "right": 91,
+            "wrong": 0,
+            "missed": 58,
+            "unsortedRight": 85
+          },
+          "after": {
+            "total": 234,
+            "disputed": 0,
+            "sorted": 91,
+            "right": 91,
+            "wrong": 0,
+            "missed": 58,
+            "unsortedRight": 85
+          }
+        },
+        "brand": {
+          "before": {
+            "total": 137,
+            "disputed": 1,
+            "sorted": 93,
+            "right": 92,
+            "wrong": 1,
+            "missed": 23,
+            "unsortedRight": 21
+          },
+          "after": {
+            "total": 137,
+            "disputed": 1,
+            "sorted": 93,
+            "right": 92,
+            "wrong": 1,
+            "missed": 23,
+            "unsortedRight": 21
+          }
+        },
+        "madeup": {
+          "before": {
+            "total": 72,
+            "disputed": 0,
+            "sorted": 55,
+            "right": 55,
+            "wrong": 0,
+            "missed": 0,
+            "unsortedRight": 17
+          },
+          "after": {
+            "total": 72,
+            "disputed": 0,
+            "sorted": 55,
+            "right": 55,
+            "wrong": 0,
+            "missed": 0,
+            "unsortedRight": 17
+          }
+        },
+        "nonshop": {
+          "before": {
+            "total": 157,
+            "disputed": 0,
+            "sorted": 134,
+            "right": 134,
+            "wrong": 0,
+            "missed": 1,
+            "unsortedRight": 22
+          },
+          "after": {
+            "total": 157,
+            "disputed": 0,
+            "sorted": 134,
+            "right": 134,
+            "wrong": 0,
+            "missed": 1,
+            "unsortedRight": 22
+          }
+        },
+        "scenario": {
+          "before": {
+            "total": 22,
+            "disputed": 0,
+            "sorted": 22,
+            "right": 22,
+            "wrong": 0,
+            "missed": 0,
+            "unsortedRight": 0
+          },
+          "after": {
+            "total": 22,
+            "disputed": 0,
+            "sorted": 22,
+            "right": 22,
+            "wrong": 0,
+            "missed": 0,
+            "unsortedRight": 0
+          }
+        }
+      },
+      "changed": 0,
+      "newWrong": 0
+    }
+  },
+  "elsewhere": {
+    "worked": {
+      "brand": {
+        "before": {
+          "total": 312,
+          "disputed": 0,
+          "sorted": 213,
+          "right": 210,
+          "wrong": 3,
+          "missed": 47,
+          "unsortedRight": 52
+        },
+        "leftOut": {
+          "total": 312,
+          "disputed": 0,
+          "sorted": 213,
+          "right": 210,
+          "wrong": 3,
+          "missed": 47,
+          "unsortedRight": 52
+        },
+        "full": {
+          "total": 312,
+          "disputed": 0,
+          "sorted": 213,
+          "right": 210,
+          "wrong": 3,
+          "missed": 47,
+          "unsortedRight": 52
+        },
+        "newWrongWithFull": 0
+      },
+      "madeup": {
+        "before": {
+          "total": 178,
+          "disputed": 0,
+          "sorted": 132,
+          "right": 132,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 46
+        },
+        "leftOut": {
+          "total": 178,
+          "disputed": 0,
+          "sorted": 132,
+          "right": 132,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 46
+        },
+        "full": {
+          "total": 178,
+          "disputed": 0,
+          "sorted": 132,
+          "right": 132,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 46
+        },
+        "newWrongWithFull": 0
+      },
+      "nonshop": {
+        "before": {
+          "total": 343,
+          "disputed": 0,
+          "sorted": 295,
+          "right": 295,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 48
+        },
+        "leftOut": {
+          "total": 343,
+          "disputed": 0,
+          "sorted": 295,
+          "right": 295,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 48
+        },
+        "full": {
+          "total": 343,
+          "disputed": 0,
+          "sorted": 295,
+          "right": 295,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 48
+        },
+        "newWrongWithFull": 0
+      },
+      "scenario": {
+        "before": {
+          "total": 18,
+          "disputed": 0,
+          "sorted": 18,
+          "right": 18,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        },
+        "leftOut": {
+          "total": 18,
+          "disputed": 0,
+          "sorted": 18,
+          "right": 18,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        },
+        "full": {
+          "total": 18,
+          "disputed": 0,
+          "sorted": 18,
+          "right": 18,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        },
+        "newWrongWithFull": 0
+      }
+    },
+    "heldback": {
+      "brand": {
+        "before": {
+          "total": 137,
+          "disputed": 1,
+          "sorted": 93,
+          "right": 92,
+          "wrong": 1,
+          "missed": 23,
+          "unsortedRight": 21
+        },
+        "leftOut": {
+          "total": 137,
+          "disputed": 1,
+          "sorted": 93,
+          "right": 92,
+          "wrong": 1,
+          "missed": 23,
+          "unsortedRight": 21
+        },
+        "full": {
+          "total": 137,
+          "disputed": 1,
+          "sorted": 93,
+          "right": 92,
+          "wrong": 1,
+          "missed": 23,
+          "unsortedRight": 21
+        },
+        "newWrongWithFull": 0
+      },
+      "madeup": {
+        "before": {
+          "total": 72,
+          "disputed": 0,
+          "sorted": 55,
+          "right": 55,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 17
+        },
+        "leftOut": {
+          "total": 72,
+          "disputed": 0,
+          "sorted": 55,
+          "right": 55,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 17
+        },
+        "full": {
+          "total": 72,
+          "disputed": 0,
+          "sorted": 55,
+          "right": 55,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 17
+        },
+        "newWrongWithFull": 0
+      },
+      "nonshop": {
+        "before": {
+          "total": 157,
+          "disputed": 0,
+          "sorted": 134,
+          "right": 134,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 22
+        },
+        "leftOut": {
+          "total": 157,
+          "disputed": 0,
+          "sorted": 134,
+          "right": 134,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 22
+        },
+        "full": {
+          "total": 157,
+          "disputed": 0,
+          "sorted": 134,
+          "right": 134,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 22
+        },
+        "newWrongWithFull": 0
+      },
+      "scenario": {
+        "before": {
+          "total": 22,
+          "disputed": 0,
+          "sorted": 22,
+          "right": 22,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        },
+        "leftOut": {
+          "total": 22,
+          "disputed": 0,
+          "sorted": 22,
+          "right": 22,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        },
+        "full": {
+          "total": 22,
+          "disputed": 0,
+          "sorted": 22,
+          "right": 22,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        },
+        "newWrongWithFull": 0
+      }
+    }
+  },
+  "known": {
+    "seed": "aresium-86-known-places-2026-11-01-v1",
+    "sampleSize": 500,
+    "pool": 258197,
+    "sourceIdHash": "39c076a462e5b6fe652b0fb6b47d2ad39dffbd2a3350ee3831e1ee45c66eaa6e",
+    "method": "Unjudged OSM-kind agreement, not independent accuracy; fresh source places outside all eight exclusion circles; direct/explicit processor renderings; original renderer truncations and bank layouts retained.",
+    "before": {
+      "total": 500,
+      "disputed": 0,
+      "sorted": 197,
+      "right": 187,
+      "wrong": 10,
+      "missed": 303,
+      "unsortedRight": 0
+    },
+    "after": {
+      "total": 500,
+      "disputed": 0,
+      "sorted": 447,
+      "right": 437,
+      "wrong": 10,
+      "missed": 53,
+      "unsortedRight": 0
+    },
+    "localMatched": 412,
+    "newWrong": 0,
+    "examples": [
+      {
+        "anonymisedName": "Local place 1",
+        "category": "travel",
+        "layout": "amex.csv",
+        "match": "name alone"
+      },
+      {
+        "anonymisedName": "Local place 2",
+        "category": "eating-out",
+        "layout": "c24.csv",
+        "match": "name and town"
+      },
+      {
+        "anonymisedName": "Local place 3",
+        "category": "eating-out",
+        "layout": "comdirect.sections.csv",
+        "match": "name and town"
+      },
+      {
+        "anonymisedName": "Local place 4",
+        "category": "household",
+        "layout": "consorsbank.csv",
+        "match": "name and town"
+      },
+      {
+        "anonymisedName": "Local place 5",
+        "category": "electronics",
+        "layout": "deutsche-bank-old-en.csv",
+        "match": "name and town"
+      }
+    ],
+    "byCategory": {
+      "car-fuel": {
+        "before": {
+          "total": 29,
+          "disputed": 0,
+          "sorted": 11,
+          "right": 11,
+          "wrong": 0,
+          "missed": 18,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 29,
+          "disputed": 0,
+          "sorted": 25,
+          "right": 25,
+          "wrong": 0,
+          "missed": 4,
+          "unsortedRight": 0
+        }
+      },
+      "clothes": {
+        "before": {
+          "total": 22,
+          "disputed": 0,
+          "sorted": 4,
+          "right": 3,
+          "wrong": 1,
+          "missed": 18,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 22,
+          "disputed": 0,
+          "sorted": 19,
+          "right": 18,
+          "wrong": 1,
+          "missed": 3,
+          "unsortedRight": 0
+        }
+      },
+      "coffee-snacks": {
+        "before": {
+          "total": 31,
+          "disputed": 0,
+          "sorted": 18,
+          "right": 17,
+          "wrong": 1,
+          "missed": 13,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 31,
+          "disputed": 0,
+          "sorted": 29,
+          "right": 28,
+          "wrong": 1,
+          "missed": 2,
+          "unsortedRight": 0
+        }
+      },
+      "eating-out": {
+        "before": {
+          "total": 105,
+          "disputed": 0,
+          "sorted": 50,
+          "right": 48,
+          "wrong": 2,
+          "missed": 55,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 105,
+          "disputed": 0,
+          "sorted": 97,
+          "right": 95,
+          "wrong": 2,
+          "missed": 8,
+          "unsortedRight": 0
+        }
+      },
+      "education": {
+        "before": {
+          "total": 14,
+          "disputed": 0,
+          "sorted": 8,
+          "right": 7,
+          "wrong": 1,
+          "missed": 6,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 14,
+          "disputed": 0,
+          "sorted": 12,
+          "right": 11,
+          "wrong": 1,
+          "missed": 2,
+          "unsortedRight": 0
+        }
+      },
+      "electronics": {
+        "before": {
+          "total": 5,
+          "disputed": 0,
+          "sorted": 0,
+          "right": 0,
+          "wrong": 0,
+          "missed": 5,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 5,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 5,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "entertainment": {
+        "before": {
+          "total": 10,
+          "disputed": 0,
+          "sorted": 1,
+          "right": 1,
+          "wrong": 0,
+          "missed": 9,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 10,
+          "disputed": 0,
+          "sorted": 9,
+          "right": 9,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "going-out": {
+        "before": {
+          "total": 22,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 1,
+          "wrong": 4,
+          "missed": 17,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 22,
+          "disputed": 0,
+          "sorted": 19,
+          "right": 15,
+          "wrong": 4,
+          "missed": 3,
+          "unsortedRight": 0
+        }
+      },
+      "groceries": {
+        "before": {
+          "total": 43,
+          "disputed": 0,
+          "sorted": 15,
+          "right": 15,
+          "wrong": 0,
+          "missed": 28,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 43,
+          "disputed": 0,
+          "sorted": 37,
+          "right": 37,
+          "wrong": 0,
+          "missed": 6,
+          "unsortedRight": 0
+        }
+      },
+      "health": {
+        "before": {
+          "total": 66,
+          "disputed": 0,
+          "sorted": 38,
+          "right": 38,
+          "wrong": 0,
+          "missed": 28,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 66,
+          "disputed": 0,
+          "sorted": 62,
+          "right": 62,
+          "wrong": 0,
+          "missed": 4,
+          "unsortedRight": 0
+        }
+      },
+      "hobbies": {
+        "before": {
+          "total": 11,
+          "disputed": 0,
+          "sorted": 2,
+          "right": 2,
+          "wrong": 0,
+          "missed": 9,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 11,
+          "disputed": 0,
+          "sorted": 10,
+          "right": 10,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "household": {
+        "before": {
+          "total": 22,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 5,
+          "wrong": 0,
+          "missed": 17,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 22,
+          "disputed": 0,
+          "sorted": 19,
+          "right": 19,
+          "wrong": 0,
+          "missed": 3,
+          "unsortedRight": 0
+        }
+      },
+      "insurance": {
+        "before": {
+          "total": 4,
+          "disputed": 0,
+          "sorted": 2,
+          "right": 2,
+          "wrong": 0,
+          "missed": 2,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 4,
+          "disputed": 0,
+          "sorted": 4,
+          "right": 4,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "personal-care": {
+        "before": {
+          "total": 30,
+          "disputed": 0,
+          "sorted": 12,
+          "right": 12,
+          "wrong": 0,
+          "missed": 18,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 30,
+          "disputed": 0,
+          "sorted": 26,
+          "right": 26,
+          "wrong": 0,
+          "missed": 4,
+          "unsortedRight": 0
+        }
+      },
+      "pets": {
+        "before": {
+          "total": 8,
+          "disputed": 0,
+          "sorted": 3,
+          "right": 3,
+          "wrong": 0,
+          "missed": 5,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 8,
+          "disputed": 0,
+          "sorted": 7,
+          "right": 7,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "shopping": {
+        "before": {
+          "total": 7,
+          "disputed": 0,
+          "sorted": 0,
+          "right": 0,
+          "wrong": 0,
+          "missed": 7,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 7,
+          "disputed": 0,
+          "sorted": 4,
+          "right": 4,
+          "wrong": 0,
+          "missed": 3,
+          "unsortedRight": 0
+        }
+      },
+      "sports-fitness": {
+        "before": {
+          "total": 28,
+          "disputed": 0,
+          "sorted": 6,
+          "right": 6,
+          "wrong": 0,
+          "missed": 22,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 28,
+          "disputed": 0,
+          "sorted": 23,
+          "right": 23,
+          "wrong": 0,
+          "missed": 5,
+          "unsortedRight": 0
+        }
+      },
+      "taxi-sharing": {
+        "before": {
+          "total": 2,
+          "disputed": 0,
+          "sorted": 1,
+          "right": 1,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 2,
+          "disputed": 0,
+          "sorted": 2,
+          "right": 2,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "travel": {
+        "before": {
+          "total": 41,
+          "disputed": 0,
+          "sorted": 16,
+          "right": 15,
+          "wrong": 1,
+          "missed": 25,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 41,
+          "disputed": 0,
+          "sorted": 38,
+          "right": 37,
+          "wrong": 1,
+          "missed": 3,
+          "unsortedRight": 0
+        }
+      }
+    },
+    "byLayout": {
+      "amex.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 5,
+          "wrong": 0,
+          "missed": 7,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 12,
+          "right": 12,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "barclays.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 4,
+          "right": 4,
+          "wrong": 0,
+          "missed": 8,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 10,
+          "right": 10,
+          "wrong": 0,
+          "missed": 2,
+          "unsortedRight": 0
+        }
+      },
+      "c24.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 5,
+          "wrong": 0,
+          "missed": 7,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 11,
+          "right": 11,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "camt053": {
+        "before": {
+          "total": 11,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 5,
+          "wrong": 0,
+          "missed": 6,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 11,
+          "disputed": 0,
+          "sorted": 11,
+          "right": 11,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "comdirect-visa.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 5,
+          "wrong": 0,
+          "missed": 7,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 11,
+          "right": 11,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "comdirect.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 6,
+          "right": 6,
+          "wrong": 0,
+          "missed": 6,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 12,
+          "right": 12,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "comdirect.sections.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 1,
+          "right": 1,
+          "wrong": 0,
+          "missed": 11,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 11,
+          "right": 11,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "commerzbank.2020.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 5,
+          "wrong": 0,
+          "missed": 7,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 5,
+          "wrong": 0,
+          "missed": 7,
+          "unsortedRight": 0
+        }
+      },
+      "commerzbank.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 4,
+          "right": 4,
+          "wrong": 0,
+          "missed": 8,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 4,
+          "right": 4,
+          "wrong": 0,
+          "missed": 8,
+          "unsortedRight": 0
+        }
+      },
+      "consorsbank.2018.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 5,
+          "wrong": 0,
+          "missed": 7,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 10,
+          "right": 10,
+          "wrong": 0,
+          "missed": 2,
+          "unsortedRight": 0
+        }
+      },
+      "consorsbank.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 8,
+          "right": 7,
+          "wrong": 1,
+          "missed": 4,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 12,
+          "right": 11,
+          "wrong": 1,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "deutsche-bank-old-en.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 4,
+          "right": 4,
+          "wrong": 0,
+          "missed": 8,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 11,
+          "right": 11,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "deutsche-bank-old.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 7,
+          "right": 7,
+          "wrong": 0,
+          "missed": 5,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 12,
+          "right": 12,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "deutsche-bank.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 3,
+          "right": 3,
+          "wrong": 0,
+          "missed": 9,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 11,
+          "right": 11,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "deutsche-bank.postbank.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 4,
+          "right": 4,
+          "wrong": 0,
+          "missed": 8,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 11,
+          "right": 11,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "dkb-old.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 5,
+          "wrong": 0,
+          "missed": 7,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 11,
+          "right": 11,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "dkb-visa-old.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 3,
+          "right": 3,
+          "wrong": 0,
+          "missed": 9,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 11,
+          "right": 11,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "dkb-visa.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 7,
+          "right": 7,
+          "wrong": 0,
+          "missed": 5,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 11,
+          "right": 11,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "dkb.2023.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 3,
+          "right": 3,
+          "wrong": 0,
+          "missed": 9,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 12,
+          "right": 12,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "dkb.2024-comma.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 4,
+          "wrong": 1,
+          "missed": 7,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 12,
+          "right": 11,
+          "wrong": 1,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "dkb.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 4,
+          "right": 3,
+          "wrong": 1,
+          "missed": 8,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 12,
+          "right": 11,
+          "wrong": 1,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "ing.2026.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 6,
+          "right": 5,
+          "wrong": 1,
+          "missed": 6,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 12,
+          "right": 11,
+          "wrong": 1,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "ing.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 6,
+          "right": 5,
+          "wrong": 1,
+          "missed": 6,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 11,
+          "right": 10,
+          "wrong": 1,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "mt940": {
+        "before": {
+          "total": 11,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 5,
+          "wrong": 0,
+          "missed": 6,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 11,
+          "disputed": 0,
+          "sorted": 10,
+          "right": 10,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "n26-old.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 4,
+          "right": 4,
+          "wrong": 0,
+          "missed": 8,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 12,
+          "right": 12,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "n26-old.de.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 5,
+          "wrong": 0,
+          "missed": 7,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 12,
+          "right": 12,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "n26.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 4,
+          "right": 4,
+          "wrong": 0,
+          "missed": 8,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 10,
+          "right": 10,
+          "wrong": 0,
+          "missed": 2,
+          "unsortedRight": 0
+        }
+      },
+      "paypal-de": {
+        "before": {
+          "total": 11,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 5,
+          "wrong": 0,
+          "missed": 6,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 11,
+          "disputed": 0,
+          "sorted": 9,
+          "right": 9,
+          "wrong": 0,
+          "missed": 2,
+          "unsortedRight": 0
+        }
+      },
+      "paypal-en": {
+        "before": {
+          "total": 11,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 5,
+          "wrong": 0,
+          "missed": 6,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 11,
+          "disputed": 0,
+          "sorted": 10,
+          "right": 10,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "postbank-old.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 3,
+          "right": 2,
+          "wrong": 1,
+          "missed": 9,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 10,
+          "right": 9,
+          "wrong": 1,
+          "missed": 2,
+          "unsortedRight": 0
+        }
+      },
+      "revolut.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 4,
+          "right": 3,
+          "wrong": 1,
+          "missed": 8,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 11,
+          "right": 10,
+          "wrong": 1,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "revolut.de.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 4,
+          "right": 4,
+          "wrong": 0,
+          "missed": 8,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 11,
+          "right": 11,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "sparkasse-camt.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 6,
+          "right": 6,
+          "wrong": 0,
+          "missed": 6,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 12,
+          "right": 12,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "sparkasse-mt940.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 7,
+          "right": 6,
+          "wrong": 1,
+          "missed": 5,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 11,
+          "right": 10,
+          "wrong": 1,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "targobank.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 5,
+          "wrong": 0,
+          "missed": 7,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 10,
+          "right": 10,
+          "wrong": 0,
+          "missed": 2,
+          "unsortedRight": 0
+        }
+      },
+      "targobank.point.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 4,
+          "right": 4,
+          "wrong": 0,
+          "missed": 8,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 9,
+          "right": 9,
+          "wrong": 0,
+          "missed": 3,
+          "unsortedRight": 0
+        }
+      },
+      "trade-republic.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 4,
+          "right": 4,
+          "wrong": 0,
+          "missed": 8,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 11,
+          "right": 11,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "trade-republic.semicolon.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 5,
+          "wrong": 0,
+          "missed": 7,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 12,
+          "right": 12,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "volksbank-2021.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 2,
+          "right": 2,
+          "wrong": 0,
+          "missed": 10,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 9,
+          "right": 9,
+          "wrong": 0,
+          "missed": 3,
+          "unsortedRight": 0
+        }
+      },
+      "volksbank-classic.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 4,
+          "right": 3,
+          "wrong": 1,
+          "missed": 8,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 11,
+          "right": 10,
+          "wrong": 1,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "volksbank.2022.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 7,
+          "right": 6,
+          "wrong": 1,
+          "missed": 5,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 12,
+          "right": 11,
+          "wrong": 1,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "volksbank.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 4,
+          "right": 4,
+          "wrong": 0,
+          "missed": 8,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 9,
+          "right": 9,
+          "wrong": 0,
+          "missed": 3,
+          "unsortedRight": 0
+        }
+      }
+    }
+  }
+}

@@ -3,14 +3,17 @@ import { shopWords } from "./shop-words.js";
 import { shopIdentities } from "./shop-identity.js";
 import { starterCategory } from "./starter-rules.js";
 import { OWN_TRANSFERS, ownTransfers, type TransferPayment } from "./transfers.js";
+import { findLocalPlace, type LocalPlacesData } from "./local-places.js";
+import { DEFAULT_CATEGORIES, BUILT_IN_CATEGORIES } from "../categories.js";
 export type Learned = Readonly<Record<string, string>>;
 export type SortResult = { categoryId: string | null; source: "structural" | "learned" | "starter" | null };
 // Order: structural (own transfers, ./transfers.ts; the built-in category, whatever the list), then learned (the
 // person's own choice), then starter rules. Pass all of the person's payments: the transfer rules look across them.
 export function sortPayments(payments: readonly TransferPayment[], options: {
-  categories: readonly { id: string }[]; learned?: Learned;
+  categories: readonly { id: string }[]; learned?: Learned; localPlaces?: LocalPlacesData;
 }): SortResult[] {
   const allowed = new Set(options.categories.map((c) => c.id));
+  const starterCategories = options.localPlaces ? [...DEFAULT_CATEGORIES, ...BUILT_IN_CATEGORIES, ...options.categories] : options.categories;
   const transfers = ownTransfers(payments);
   const provenTowns = new Set<string>();
   for (const payment of payments) for (const text of [payment.counterparty, payment.description, payment.bookingText]) {
@@ -38,7 +41,11 @@ export function sortPayments(payments: readonly TransferPayment[], options: {
     const remembered = !key ? null : Object.hasOwn(learned, key) ? learned[key]
       : rememberedShops.get(identities.get(key)!);
     if (remembered && allowed.has(remembered)) return { categoryId: remembered, source: "learned" };
-    const categoryId = starterCategory(payment, options.categories, towns);
+    // Preserve every existing decision, including a match to a disabled category. Local knowledge fills gaps only.
+    const existing = starterCategory(payment, starterCategories, towns);
+    const local = existing === null && options.localPlaces ? findLocalPlace(payment, options.localPlaces)?.categoryId : null;
+    const proposed = existing ?? local ?? null;
+    const categoryId = proposed && allowed.has(proposed) ? proposed : null;
     return { categoryId, source: categoryId ? "starter" : null };
   });
 }

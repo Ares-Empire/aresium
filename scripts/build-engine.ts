@@ -11,7 +11,7 @@ import { parsePaypalCsv } from "../src/import/paypal-csv.js";
 const root = new URL("../", import.meta.url);
 const dist = new URL("dist/", root);
 
-export async function bundleEngine(): Promise<string> {
+export async function bundleEngine(sourceOverrides: ReadonlyMap<string, string> = new Map()): Promise<string> {
   const builtins = new Set(builtinModules.map((name) => name.replace(/^node:/, "")));
   const result = await build({
     absWorkingDir: fileURLToPath(root),
@@ -26,6 +26,14 @@ export async function bundleEngine(): Promise<string> {
     // Same CSV parser, using its self-contained browser distribution (no Node Buffer).
     alias: { "csv-parse/sync": "csv-parse/browser/esm/sync" },
     plugins: [{
+      name: "measurement-source-overrides",
+      setup(build) {
+        if (sourceOverrides.size) build.onLoad({ filter: /\.ts$/ }, ({ path }) => {
+          const contents = sourceOverrides.get(path);
+          return contents === undefined ? undefined : { contents, loader: "ts" };
+        });
+      },
+    }, {
       name: "reject-node-builtins",
       setup(build) {
         build.onResolve({ filter: /.*/ }, ({ path }) => {
