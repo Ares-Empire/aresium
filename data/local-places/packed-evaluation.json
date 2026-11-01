@@ -1,0 +1,1942 @@
+{
+  "dataDate": "2026-10-31T21:23:06.000Z",
+  "baselineCommit": "400754e5e0ad17557042a0c39725f909a0fb12dd",
+  "judged": true,
+  "defaultParityChanges": 0,
+  "build": {
+    "source": "https://download.geofabrik.de/europe/germany-latest.osm.pbf",
+    "dataDate": "2026-10-31T21:23:06.000Z",
+    "pbfSha256": "222a05d46bb704deb48fc809cdc33e15ffef23b4dd5c593e390f0a69e90419f7",
+    "pbfBytes": 4873293791,
+    "parser": "osm-pbf-parser@2.3.0",
+    "nsi": "85752fb28977082f6e631636f1e9b8f97513947f75aaf1338c47ffa87207f513",
+    "extract": {
+      "nodes": 1232641,
+      "ways": 550669,
+      "relations": 12222,
+      "missingWayGeometry": 0
+    },
+    "variants": {
+      "de": {
+        "sourcePlaces": 1795532,
+        "sourceNames": 1201918,
+        "places": 264744,
+        "names": 223550,
+        "nameOnly": 205261,
+        "townRequired": 18289,
+        "towns": 16920,
+        "dropped": {
+          "noSafeCategoryOrAddress": 682664,
+          "unsafeName": 125014,
+          "chain": 44052,
+          "personName": 126638
+        }
+      },
+      "left-out": {
+        "sourcePlaces": 1795532,
+        "sourceNames": 1201918,
+        "places": 249786,
+        "names": 216191,
+        "nameOnly": 199535,
+        "townRequired": 16656,
+        "towns": 16825,
+        "dropped": {
+          "noSafeCategoryOrAddress": 664281,
+          "unsafeName": 125014,
+          "chain": 44052,
+          "excludedAreaOrUnknownGeometry": 25742,
+          "personName": 126638
+        }
+      }
+    }
+  },
+  "packedParity": {
+    "jsonComparisonCommit": "641c773951284ef392d975ed2ab114ee43036719",
+    "leftOutChanges": 0,
+    "fullChanges": 0,
+    "knownChanges": 0,
+    "localMatchChanges": 0,
+    "checkoutJsonChanges": {
+      "leftOut": 0,
+      "full": 0,
+      "known": 0
+    }
+  },
+  "sizes": {
+    "baselineBundle": {
+      "raw": 510806,
+      "gzip": 120622,
+      "brotli": 102426
+    },
+    "optionalCodeBundle": {
+      "raw": 524873,
+      "gzip": 124669,
+      "brotli": 105522
+    },
+    "codeAdded": {
+      "raw": 14067,
+      "gzip": 4047,
+      "brotli": 3096
+    },
+    "fullData": {
+      "raw": 10503935,
+      "gzip": 3428315,
+      "brotli": 2408592
+    },
+    "leftOutData": {
+      "raw": 10089124,
+      "gzip": 3292557,
+      "brotli": 2310499
+    },
+    "dataBundledByDefault": false
+  },
+  "timing": {
+    "runtime": "v26.4.0",
+    "platform": "darwin/arm64",
+    "samples": 20,
+    "warmups": 2,
+    "method": "Fresh Node vm contexts; alternating baseline and optional bundle; separate JSON.parse for supplied data; no file I/O or JSON bridge serialization; first sort is 500 rendered payments; code compiled separately.",
+    "baselineStartup": {
+      "medianMs": 14.547583000000031,
+      "p95Ms": 15.200666000000183,
+      "minMs": 13.248540999999932,
+      "maxMs": 46.112708999999995
+    },
+    "optionalStartupWithData": {
+      "medianMs": 43.87170799999967,
+      "p95Ms": 46.98583299999973,
+      "minMs": 42.42241700000022,
+      "maxMs": 48.79533300000003
+    },
+    "dataParse": {
+      "medianMs": 29.233999999999924,
+      "p95Ms": 32.706874999999854,
+      "minMs": 27.91449999999986,
+      "maxMs": 32.9536250000001
+    },
+    "addedStartupMedianMs": 29.32412499999964,
+    "addedStartupPaired": {
+      "medianMs": 29.156332999999904,
+      "p95Ms": 32.84283400000004,
+      "minMs": -0.5436680000002525,
+      "maxMs": 33.792875000000095
+    },
+    "gzipDecode": {
+      "medianMs": 12.782791000000543,
+      "p95Ms": 14.688250000000153,
+      "minMs": 12.585665999999947,
+      "maxMs": 15.169834000000264
+    },
+    "optionalStartupWithGzip": {
+      "medianMs": 78.13345899999968,
+      "p95Ms": 84.76312499999949,
+      "minMs": 58.592249999999694,
+      "maxMs": 85.95649999999978
+    },
+    "addedGzipStartupMedianMs": 63.585875999999644,
+    "baselineFirstSort500": {
+      "medianMs": 16.43591699999979,
+      "p95Ms": 16.72066700000005,
+      "minMs": 15.966459000000214,
+      "maxMs": 17.010041
+    },
+    "optionalFirstSort500": {
+      "medianMs": 23.212375000000065,
+      "p95Ms": 25.958082999999988,
+      "minMs": 21.495832999999948,
+      "maxMs": 26.024999999999864
+    },
+    "baselineCompile": {
+      "medianMs": 4.019583000000239,
+      "p95Ms": 4.198333000000275,
+      "minMs": 3.830916999999772,
+      "maxMs": 4.520582999999988
+    },
+    "optionalCompile": {
+      "medianMs": 4.142583999999715,
+      "p95Ms": 4.255167000000256,
+      "minMs": 3.970959000000221,
+      "maxMs": 4.352334000000155
+    },
+    "simulator": "Not measured through PhoneEngineTests: the app host has no optional-list input; app changes are outside this brief. See simulator.json if the separate standalone simulator harness was run. Node timings alone do not establish the 200 ms simulator budget."
+  },
+  "benchmark": {
+    "worked": {
+      "before": {
+        "total": 1415,
+        "disputed": 1,
+        "sorted": 973,
+        "right": 971,
+        "wrong": 2,
+        "missed": 100,
+        "unsortedRight": 342
+      },
+      "after": {
+        "total": 1415,
+        "disputed": 1,
+        "sorted": 973,
+        "right": 971,
+        "wrong": 2,
+        "missed": 100,
+        "unsortedRight": 342
+      },
+      "byKind": {
+        "osm": {
+          "before": {
+            "total": 564,
+            "disputed": 1,
+            "sorted": 294,
+            "right": 294,
+            "wrong": 0,
+            "missed": 74,
+            "unsortedRight": 196
+          },
+          "after": {
+            "total": 564,
+            "disputed": 1,
+            "sorted": 294,
+            "right": 294,
+            "wrong": 0,
+            "missed": 74,
+            "unsortedRight": 196
+          }
+        },
+        "brand": {
+          "before": {
+            "total": 312,
+            "disputed": 0,
+            "sorted": 234,
+            "right": 232,
+            "wrong": 2,
+            "missed": 26,
+            "unsortedRight": 52
+          },
+          "after": {
+            "total": 312,
+            "disputed": 0,
+            "sorted": 234,
+            "right": 232,
+            "wrong": 2,
+            "missed": 26,
+            "unsortedRight": 52
+          }
+        },
+        "madeup": {
+          "before": {
+            "total": 178,
+            "disputed": 0,
+            "sorted": 132,
+            "right": 132,
+            "wrong": 0,
+            "missed": 0,
+            "unsortedRight": 46
+          },
+          "after": {
+            "total": 178,
+            "disputed": 0,
+            "sorted": 132,
+            "right": 132,
+            "wrong": 0,
+            "missed": 0,
+            "unsortedRight": 46
+          }
+        },
+        "nonshop": {
+          "before": {
+            "total": 343,
+            "disputed": 0,
+            "sorted": 295,
+            "right": 295,
+            "wrong": 0,
+            "missed": 0,
+            "unsortedRight": 48
+          },
+          "after": {
+            "total": 343,
+            "disputed": 0,
+            "sorted": 295,
+            "right": 295,
+            "wrong": 0,
+            "missed": 0,
+            "unsortedRight": 48
+          }
+        },
+        "scenario": {
+          "before": {
+            "total": 18,
+            "disputed": 0,
+            "sorted": 18,
+            "right": 18,
+            "wrong": 0,
+            "missed": 0,
+            "unsortedRight": 0
+          },
+          "after": {
+            "total": 18,
+            "disputed": 0,
+            "sorted": 18,
+            "right": 18,
+            "wrong": 0,
+            "missed": 0,
+            "unsortedRight": 0
+          }
+        }
+      },
+      "changed": 0,
+      "newWrong": 0
+    },
+    "heldback": {
+      "before": {
+        "total": 622,
+        "disputed": 1,
+        "sorted": 404,
+        "right": 403,
+        "wrong": 1,
+        "missed": 73,
+        "unsortedRight": 145
+      },
+      "after": {
+        "total": 622,
+        "disputed": 1,
+        "sorted": 404,
+        "right": 403,
+        "wrong": 1,
+        "missed": 73,
+        "unsortedRight": 145
+      },
+      "byKind": {
+        "osm": {
+          "before": {
+            "total": 234,
+            "disputed": 0,
+            "sorted": 93,
+            "right": 93,
+            "wrong": 0,
+            "missed": 56,
+            "unsortedRight": 85
+          },
+          "after": {
+            "total": 234,
+            "disputed": 0,
+            "sorted": 93,
+            "right": 93,
+            "wrong": 0,
+            "missed": 56,
+            "unsortedRight": 85
+          }
+        },
+        "brand": {
+          "before": {
+            "total": 137,
+            "disputed": 1,
+            "sorted": 100,
+            "right": 99,
+            "wrong": 1,
+            "missed": 16,
+            "unsortedRight": 21
+          },
+          "after": {
+            "total": 137,
+            "disputed": 1,
+            "sorted": 100,
+            "right": 99,
+            "wrong": 1,
+            "missed": 16,
+            "unsortedRight": 21
+          }
+        },
+        "madeup": {
+          "before": {
+            "total": 72,
+            "disputed": 0,
+            "sorted": 55,
+            "right": 55,
+            "wrong": 0,
+            "missed": 0,
+            "unsortedRight": 17
+          },
+          "after": {
+            "total": 72,
+            "disputed": 0,
+            "sorted": 55,
+            "right": 55,
+            "wrong": 0,
+            "missed": 0,
+            "unsortedRight": 17
+          }
+        },
+        "nonshop": {
+          "before": {
+            "total": 157,
+            "disputed": 0,
+            "sorted": 134,
+            "right": 134,
+            "wrong": 0,
+            "missed": 1,
+            "unsortedRight": 22
+          },
+          "after": {
+            "total": 157,
+            "disputed": 0,
+            "sorted": 134,
+            "right": 134,
+            "wrong": 0,
+            "missed": 1,
+            "unsortedRight": 22
+          }
+        },
+        "scenario": {
+          "before": {
+            "total": 22,
+            "disputed": 0,
+            "sorted": 22,
+            "right": 22,
+            "wrong": 0,
+            "missed": 0,
+            "unsortedRight": 0
+          },
+          "after": {
+            "total": 22,
+            "disputed": 0,
+            "sorted": 22,
+            "right": 22,
+            "wrong": 0,
+            "missed": 0,
+            "unsortedRight": 0
+          }
+        }
+      },
+      "changed": 0,
+      "newWrong": 0
+    }
+  },
+  "elsewhere": {
+    "worked": {
+      "brand": {
+        "before": {
+          "total": 312,
+          "disputed": 0,
+          "sorted": 234,
+          "right": 232,
+          "wrong": 2,
+          "missed": 26,
+          "unsortedRight": 52
+        },
+        "leftOut": {
+          "total": 312,
+          "disputed": 0,
+          "sorted": 234,
+          "right": 232,
+          "wrong": 2,
+          "missed": 26,
+          "unsortedRight": 52
+        },
+        "full": {
+          "total": 312,
+          "disputed": 0,
+          "sorted": 234,
+          "right": 232,
+          "wrong": 2,
+          "missed": 26,
+          "unsortedRight": 52
+        },
+        "newWrongWithFull": 0
+      },
+      "madeup": {
+        "before": {
+          "total": 178,
+          "disputed": 0,
+          "sorted": 132,
+          "right": 132,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 46
+        },
+        "leftOut": {
+          "total": 178,
+          "disputed": 0,
+          "sorted": 132,
+          "right": 132,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 46
+        },
+        "full": {
+          "total": 178,
+          "disputed": 0,
+          "sorted": 132,
+          "right": 132,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 46
+        },
+        "newWrongWithFull": 0
+      },
+      "nonshop": {
+        "before": {
+          "total": 343,
+          "disputed": 0,
+          "sorted": 295,
+          "right": 295,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 48
+        },
+        "leftOut": {
+          "total": 343,
+          "disputed": 0,
+          "sorted": 295,
+          "right": 295,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 48
+        },
+        "full": {
+          "total": 343,
+          "disputed": 0,
+          "sorted": 295,
+          "right": 295,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 48
+        },
+        "newWrongWithFull": 0
+      },
+      "scenario": {
+        "before": {
+          "total": 18,
+          "disputed": 0,
+          "sorted": 18,
+          "right": 18,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        },
+        "leftOut": {
+          "total": 18,
+          "disputed": 0,
+          "sorted": 18,
+          "right": 18,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        },
+        "full": {
+          "total": 18,
+          "disputed": 0,
+          "sorted": 18,
+          "right": 18,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        },
+        "newWrongWithFull": 0
+      }
+    },
+    "heldback": {
+      "brand": {
+        "before": {
+          "total": 137,
+          "disputed": 1,
+          "sorted": 100,
+          "right": 99,
+          "wrong": 1,
+          "missed": 16,
+          "unsortedRight": 21
+        },
+        "leftOut": {
+          "total": 137,
+          "disputed": 1,
+          "sorted": 100,
+          "right": 99,
+          "wrong": 1,
+          "missed": 16,
+          "unsortedRight": 21
+        },
+        "full": {
+          "total": 137,
+          "disputed": 1,
+          "sorted": 100,
+          "right": 99,
+          "wrong": 1,
+          "missed": 16,
+          "unsortedRight": 21
+        },
+        "newWrongWithFull": 0
+      },
+      "madeup": {
+        "before": {
+          "total": 72,
+          "disputed": 0,
+          "sorted": 55,
+          "right": 55,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 17
+        },
+        "leftOut": {
+          "total": 72,
+          "disputed": 0,
+          "sorted": 55,
+          "right": 55,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 17
+        },
+        "full": {
+          "total": 72,
+          "disputed": 0,
+          "sorted": 55,
+          "right": 55,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 17
+        },
+        "newWrongWithFull": 0
+      },
+      "nonshop": {
+        "before": {
+          "total": 157,
+          "disputed": 0,
+          "sorted": 134,
+          "right": 134,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 22
+        },
+        "leftOut": {
+          "total": 157,
+          "disputed": 0,
+          "sorted": 134,
+          "right": 134,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 22
+        },
+        "full": {
+          "total": 157,
+          "disputed": 0,
+          "sorted": 134,
+          "right": 134,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 22
+        },
+        "newWrongWithFull": 0
+      },
+      "scenario": {
+        "before": {
+          "total": 22,
+          "disputed": 0,
+          "sorted": 22,
+          "right": 22,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        },
+        "leftOut": {
+          "total": 22,
+          "disputed": 0,
+          "sorted": 22,
+          "right": 22,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        },
+        "full": {
+          "total": 22,
+          "disputed": 0,
+          "sorted": 22,
+          "right": 22,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        },
+        "newWrongWithFull": 0
+      }
+    }
+  },
+  "known": {
+    "seed": "aresium-86-known-places-2026-11-01-v1",
+    "sampleSize": 500,
+    "pool": 258197,
+    "sourceIdHash": "39c076a462e5b6fe652b0fb6b47d2ad39dffbd2a3350ee3831e1ee45c66eaa6e",
+    "method": "Unjudged OSM-kind agreement, not independent accuracy; fresh source places outside all eight exclusion circles; direct/explicit processor renderings; original renderer truncations and bank layouts retained.",
+    "before": {
+      "total": 500,
+      "disputed": 0,
+      "sorted": 203,
+      "right": 191,
+      "wrong": 12,
+      "missed": 297,
+      "unsortedRight": 0
+    },
+    "after": {
+      "total": 500,
+      "disputed": 0,
+      "sorted": 448,
+      "right": 436,
+      "wrong": 12,
+      "missed": 52,
+      "unsortedRight": 0
+    },
+    "localMatched": 412,
+    "newWrong": 0,
+    "examples": [
+      {
+        "anonymisedName": "Local place 1",
+        "category": "travel",
+        "layout": "amex.csv",
+        "match": "name alone"
+      },
+      {
+        "anonymisedName": "Local place 2",
+        "category": "eating-out",
+        "layout": "c24.csv",
+        "match": "name and town"
+      },
+      {
+        "anonymisedName": "Local place 3",
+        "category": "eating-out",
+        "layout": "comdirect.sections.csv",
+        "match": "name and town"
+      },
+      {
+        "anonymisedName": "Local place 4",
+        "category": "household",
+        "layout": "consorsbank.csv",
+        "match": "name and town"
+      },
+      {
+        "anonymisedName": "Local place 5",
+        "category": "electronics",
+        "layout": "deutsche-bank-old-en.csv",
+        "match": "name and town"
+      }
+    ],
+    "byCategory": {
+      "car-fuel": {
+        "before": {
+          "total": 29,
+          "disputed": 0,
+          "sorted": 13,
+          "right": 13,
+          "wrong": 0,
+          "missed": 16,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 29,
+          "disputed": 0,
+          "sorted": 25,
+          "right": 25,
+          "wrong": 0,
+          "missed": 4,
+          "unsortedRight": 0
+        }
+      },
+      "clothes": {
+        "before": {
+          "total": 22,
+          "disputed": 0,
+          "sorted": 4,
+          "right": 3,
+          "wrong": 1,
+          "missed": 18,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 22,
+          "disputed": 0,
+          "sorted": 19,
+          "right": 18,
+          "wrong": 1,
+          "missed": 3,
+          "unsortedRight": 0
+        }
+      },
+      "coffee-snacks": {
+        "before": {
+          "total": 31,
+          "disputed": 0,
+          "sorted": 18,
+          "right": 17,
+          "wrong": 1,
+          "missed": 13,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 31,
+          "disputed": 0,
+          "sorted": 29,
+          "right": 28,
+          "wrong": 1,
+          "missed": 2,
+          "unsortedRight": 0
+        }
+      },
+      "eating-out": {
+        "before": {
+          "total": 105,
+          "disputed": 0,
+          "sorted": 50,
+          "right": 48,
+          "wrong": 2,
+          "missed": 55,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 105,
+          "disputed": 0,
+          "sorted": 97,
+          "right": 95,
+          "wrong": 2,
+          "missed": 8,
+          "unsortedRight": 0
+        }
+      },
+      "education": {
+        "before": {
+          "total": 14,
+          "disputed": 0,
+          "sorted": 8,
+          "right": 7,
+          "wrong": 1,
+          "missed": 6,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 14,
+          "disputed": 0,
+          "sorted": 12,
+          "right": 11,
+          "wrong": 1,
+          "missed": 2,
+          "unsortedRight": 0
+        }
+      },
+      "electronics": {
+        "before": {
+          "total": 5,
+          "disputed": 0,
+          "sorted": 1,
+          "right": 1,
+          "wrong": 0,
+          "missed": 4,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 5,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 5,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "entertainment": {
+        "before": {
+          "total": 10,
+          "disputed": 0,
+          "sorted": 2,
+          "right": 1,
+          "wrong": 1,
+          "missed": 8,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 10,
+          "disputed": 0,
+          "sorted": 9,
+          "right": 8,
+          "wrong": 1,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "going-out": {
+        "before": {
+          "total": 22,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 1,
+          "wrong": 4,
+          "missed": 17,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 22,
+          "disputed": 0,
+          "sorted": 19,
+          "right": 15,
+          "wrong": 4,
+          "missed": 3,
+          "unsortedRight": 0
+        }
+      },
+      "groceries": {
+        "before": {
+          "total": 43,
+          "disputed": 0,
+          "sorted": 15,
+          "right": 15,
+          "wrong": 0,
+          "missed": 28,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 43,
+          "disputed": 0,
+          "sorted": 37,
+          "right": 37,
+          "wrong": 0,
+          "missed": 6,
+          "unsortedRight": 0
+        }
+      },
+      "health": {
+        "before": {
+          "total": 66,
+          "disputed": 0,
+          "sorted": 39,
+          "right": 39,
+          "wrong": 0,
+          "missed": 27,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 66,
+          "disputed": 0,
+          "sorted": 63,
+          "right": 63,
+          "wrong": 0,
+          "missed": 3,
+          "unsortedRight": 0
+        }
+      },
+      "hobbies": {
+        "before": {
+          "total": 11,
+          "disputed": 0,
+          "sorted": 2,
+          "right": 2,
+          "wrong": 0,
+          "missed": 9,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 11,
+          "disputed": 0,
+          "sorted": 10,
+          "right": 10,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "household": {
+        "before": {
+          "total": 22,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 5,
+          "wrong": 0,
+          "missed": 17,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 22,
+          "disputed": 0,
+          "sorted": 19,
+          "right": 19,
+          "wrong": 0,
+          "missed": 3,
+          "unsortedRight": 0
+        }
+      },
+      "insurance": {
+        "before": {
+          "total": 4,
+          "disputed": 0,
+          "sorted": 2,
+          "right": 2,
+          "wrong": 0,
+          "missed": 2,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 4,
+          "disputed": 0,
+          "sorted": 4,
+          "right": 4,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "personal-care": {
+        "before": {
+          "total": 30,
+          "disputed": 0,
+          "sorted": 12,
+          "right": 12,
+          "wrong": 0,
+          "missed": 18,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 30,
+          "disputed": 0,
+          "sorted": 26,
+          "right": 26,
+          "wrong": 0,
+          "missed": 4,
+          "unsortedRight": 0
+        }
+      },
+      "pets": {
+        "before": {
+          "total": 8,
+          "disputed": 0,
+          "sorted": 3,
+          "right": 3,
+          "wrong": 0,
+          "missed": 5,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 8,
+          "disputed": 0,
+          "sorted": 7,
+          "right": 7,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "shopping": {
+        "before": {
+          "total": 7,
+          "disputed": 0,
+          "sorted": 0,
+          "right": 0,
+          "wrong": 0,
+          "missed": 7,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 7,
+          "disputed": 0,
+          "sorted": 4,
+          "right": 4,
+          "wrong": 0,
+          "missed": 3,
+          "unsortedRight": 0
+        }
+      },
+      "sports-fitness": {
+        "before": {
+          "total": 28,
+          "disputed": 0,
+          "sorted": 6,
+          "right": 6,
+          "wrong": 0,
+          "missed": 22,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 28,
+          "disputed": 0,
+          "sorted": 23,
+          "right": 23,
+          "wrong": 0,
+          "missed": 5,
+          "unsortedRight": 0
+        }
+      },
+      "taxi-sharing": {
+        "before": {
+          "total": 2,
+          "disputed": 0,
+          "sorted": 1,
+          "right": 1,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 2,
+          "disputed": 0,
+          "sorted": 2,
+          "right": 2,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "travel": {
+        "before": {
+          "total": 41,
+          "disputed": 0,
+          "sorted": 17,
+          "right": 15,
+          "wrong": 2,
+          "missed": 24,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 41,
+          "disputed": 0,
+          "sorted": 38,
+          "right": 36,
+          "wrong": 2,
+          "missed": 3,
+          "unsortedRight": 0
+        }
+      }
+    },
+    "byLayout": {
+      "amex.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 5,
+          "wrong": 0,
+          "missed": 7,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 12,
+          "right": 12,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "barclays.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 4,
+          "right": 4,
+          "wrong": 0,
+          "missed": 8,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 10,
+          "right": 10,
+          "wrong": 0,
+          "missed": 2,
+          "unsortedRight": 0
+        }
+      },
+      "c24.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 5,
+          "wrong": 0,
+          "missed": 7,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 11,
+          "right": 11,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "camt053": {
+        "before": {
+          "total": 11,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 5,
+          "wrong": 0,
+          "missed": 6,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 11,
+          "disputed": 0,
+          "sorted": 11,
+          "right": 11,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "comdirect-visa.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 5,
+          "wrong": 0,
+          "missed": 7,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 11,
+          "right": 11,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "comdirect.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 7,
+          "right": 7,
+          "wrong": 0,
+          "missed": 5,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 12,
+          "right": 12,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "comdirect.sections.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 1,
+          "right": 1,
+          "wrong": 0,
+          "missed": 11,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 11,
+          "right": 11,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "commerzbank.2020.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 5,
+          "wrong": 0,
+          "missed": 7,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 5,
+          "wrong": 0,
+          "missed": 7,
+          "unsortedRight": 0
+        }
+      },
+      "commerzbank.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 4,
+          "right": 4,
+          "wrong": 0,
+          "missed": 8,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 4,
+          "right": 4,
+          "wrong": 0,
+          "missed": 8,
+          "unsortedRight": 0
+        }
+      },
+      "consorsbank.2018.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 5,
+          "wrong": 0,
+          "missed": 7,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 10,
+          "right": 10,
+          "wrong": 0,
+          "missed": 2,
+          "unsortedRight": 0
+        }
+      },
+      "consorsbank.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 8,
+          "right": 7,
+          "wrong": 1,
+          "missed": 4,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 12,
+          "right": 11,
+          "wrong": 1,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "deutsche-bank-old-en.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 4,
+          "right": 4,
+          "wrong": 0,
+          "missed": 8,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 11,
+          "right": 11,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "deutsche-bank-old.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 7,
+          "right": 7,
+          "wrong": 0,
+          "missed": 5,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 12,
+          "right": 12,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "deutsche-bank.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 3,
+          "right": 3,
+          "wrong": 0,
+          "missed": 9,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 11,
+          "right": 11,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "deutsche-bank.postbank.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 4,
+          "right": 4,
+          "wrong": 0,
+          "missed": 8,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 11,
+          "right": 11,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "dkb-old.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 5,
+          "wrong": 0,
+          "missed": 7,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 11,
+          "right": 11,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "dkb-visa-old.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 3,
+          "right": 3,
+          "wrong": 0,
+          "missed": 9,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 11,
+          "right": 11,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "dkb-visa.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 7,
+          "right": 7,
+          "wrong": 0,
+          "missed": 5,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 11,
+          "right": 11,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "dkb.2023.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 3,
+          "right": 3,
+          "wrong": 0,
+          "missed": 9,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 12,
+          "right": 12,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "dkb.2024-comma.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 4,
+          "wrong": 1,
+          "missed": 7,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 12,
+          "right": 11,
+          "wrong": 1,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "dkb.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 4,
+          "right": 3,
+          "wrong": 1,
+          "missed": 8,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 12,
+          "right": 11,
+          "wrong": 1,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "ing.2026.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 6,
+          "right": 5,
+          "wrong": 1,
+          "missed": 6,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 12,
+          "right": 11,
+          "wrong": 1,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "ing.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 6,
+          "right": 5,
+          "wrong": 1,
+          "missed": 6,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 11,
+          "right": 10,
+          "wrong": 1,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "mt940": {
+        "before": {
+          "total": 11,
+          "disputed": 0,
+          "sorted": 6,
+          "right": 5,
+          "wrong": 1,
+          "missed": 5,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 11,
+          "disputed": 0,
+          "sorted": 10,
+          "right": 9,
+          "wrong": 1,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "n26-old.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 4,
+          "right": 4,
+          "wrong": 0,
+          "missed": 8,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 12,
+          "right": 12,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "n26-old.de.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 5,
+          "wrong": 0,
+          "missed": 7,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 12,
+          "right": 12,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "n26.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 5,
+          "wrong": 0,
+          "missed": 7,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 10,
+          "right": 10,
+          "wrong": 0,
+          "missed": 2,
+          "unsortedRight": 0
+        }
+      },
+      "paypal-de": {
+        "before": {
+          "total": 11,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 5,
+          "wrong": 0,
+          "missed": 6,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 11,
+          "disputed": 0,
+          "sorted": 9,
+          "right": 9,
+          "wrong": 0,
+          "missed": 2,
+          "unsortedRight": 0
+        }
+      },
+      "paypal-en": {
+        "before": {
+          "total": 11,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 5,
+          "wrong": 0,
+          "missed": 6,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 11,
+          "disputed": 0,
+          "sorted": 10,
+          "right": 10,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "postbank-old.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 3,
+          "right": 2,
+          "wrong": 1,
+          "missed": 9,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 10,
+          "right": 9,
+          "wrong": 1,
+          "missed": 2,
+          "unsortedRight": 0
+        }
+      },
+      "revolut.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 4,
+          "right": 3,
+          "wrong": 1,
+          "missed": 8,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 11,
+          "right": 10,
+          "wrong": 1,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "revolut.de.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 4,
+          "right": 4,
+          "wrong": 0,
+          "missed": 8,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 11,
+          "right": 11,
+          "wrong": 0,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "sparkasse-camt.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 6,
+          "right": 6,
+          "wrong": 0,
+          "missed": 6,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 12,
+          "right": 12,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "sparkasse-mt940.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 7,
+          "right": 6,
+          "wrong": 1,
+          "missed": 5,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 11,
+          "right": 10,
+          "wrong": 1,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "targobank.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 5,
+          "wrong": 0,
+          "missed": 7,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 10,
+          "right": 10,
+          "wrong": 0,
+          "missed": 2,
+          "unsortedRight": 0
+        }
+      },
+      "targobank.point.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 4,
+          "right": 4,
+          "wrong": 0,
+          "missed": 8,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 9,
+          "right": 9,
+          "wrong": 0,
+          "missed": 3,
+          "unsortedRight": 0
+        }
+      },
+      "trade-republic.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 5,
+          "wrong": 0,
+          "missed": 7,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 12,
+          "right": 12,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "trade-republic.semicolon.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 5,
+          "wrong": 0,
+          "missed": 7,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 12,
+          "right": 12,
+          "wrong": 0,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "volksbank-2021.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 3,
+          "right": 3,
+          "wrong": 0,
+          "missed": 9,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 9,
+          "right": 9,
+          "wrong": 0,
+          "missed": 3,
+          "unsortedRight": 0
+        }
+      },
+      "volksbank-classic.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 4,
+          "right": 3,
+          "wrong": 1,
+          "missed": 8,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 11,
+          "right": 10,
+          "wrong": 1,
+          "missed": 1,
+          "unsortedRight": 0
+        }
+      },
+      "volksbank.2022.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 7,
+          "right": 6,
+          "wrong": 1,
+          "missed": 5,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 12,
+          "right": 11,
+          "wrong": 1,
+          "missed": 0,
+          "unsortedRight": 0
+        }
+      },
+      "volksbank.csv": {
+        "before": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 5,
+          "right": 4,
+          "wrong": 1,
+          "missed": 7,
+          "unsortedRight": 0
+        },
+        "after": {
+          "total": 12,
+          "disputed": 0,
+          "sorted": 9,
+          "right": 8,
+          "wrong": 1,
+          "missed": 3,
+          "unsortedRight": 0
+        }
+      }
+    }
+  }
+}

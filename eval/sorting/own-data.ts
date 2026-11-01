@@ -4,7 +4,7 @@ import { relative, resolve, isAbsolute, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { sortPayments, learn, type Learned } from "../../src/engine/sorting/sort.js";
 import type { TransferPayment } from "../../src/engine/sorting/transfers.js";
-import type { LocalPlacesData } from "../../src/engine/sorting/local-places.js";
+import type { LocalPlacesInput } from "../../src/engine/sorting/local-places.js";
 import { readLocalPlaces } from "./local-places-file.js";
 import { DEFAULT_CATEGORIES, BUILT_IN_CATEGORIES } from "../../src/engine/categories.js";
 
@@ -42,7 +42,7 @@ export function parseExport(value: unknown): LedgerExport {
   }
   return data;
 }
-export function ownCounts(data: LedgerExport, localPlaces?: LocalPlacesData) {
+export function ownCounts(data: LedgerExport, localPlaces?: LocalPlacesInput) {
   const accounts = new Map(data.accounts.map((a) => [a.id, a]));
   const sortedRows = data.payments.map((p, index) => ({ p, index })).sort((a, b) => a.p.bookingDate.localeCompare(b.p.bookingDate) || a.p.sequence - b.p.sequence || a.index - b.index);
   const originals = sortedRows.map(({ p }) => p);
@@ -83,7 +83,7 @@ export function ownCounts(data: LedgerExport, localPlaces?: LocalPlacesData) {
   return { ...summary, confusion: [...cells.values()].sort((a, b) => a.engine.localeCompare(b.engine) || a.chosen.localeCompare(b.chosen)),
     replay: { fixes, first100, firstMonth, months: [...months.values()] } };
 }
-export async function readOwnData(path: string, repo = fileURLToPath(new URL("../../", import.meta.url)), localPlaces?: LocalPlacesData) {
+export async function readOwnData(path: string, repo = fileURLToPath(new URL("../../", import.meta.url)), localPlaces?: LocalPlacesInput) {
   // Reject lexical traversal into the repository as well as symlinks into it. realpath handles /private on macOS.
   const inside = (root: string, input: string) => { const part = relative(root, input); return part === "" || (part !== ".." && !part.startsWith(`..${sep}`) && !isAbsolute(part)); };
   if (inside(resolve(repo), resolve(path))) throw new Error("Export must stay outside the repository");

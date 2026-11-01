@@ -32,7 +32,9 @@
     "eval:sorting": "tsx eval/sorting/score.ts",
     "shops": "tsx scripts/build-shop-list.ts",
     "local-places": "tsx scripts/build-local-places.ts",
-    "eval:local-places": "tsx scripts/eval-local-places.ts"
+    "eval:local-places": "tsx scripts/eval-local-places.ts",
+    "check:local-places-packed": "tsx scripts/check-local-places-packed.ts",
+    "measure:local-places-packed": "node --expose-gc --import tsx scripts/measure-local-places-packed.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.2.1",

@@ -42,3 +42,6 @@ eval/history.csv.lock
 # The local places list is kept compressed; the .json files are rebuilt from it or from the cache (brief 86).
 data/local-places/de.json
 data/local-places/left-out.json
+
+# Packed local places assets are also kept compressed (brief 97).
+data/local-places/*.places.bin
