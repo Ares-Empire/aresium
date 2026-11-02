@@ -53,7 +53,7 @@ const WORDS: Record<PageLanguage, Words> = {
     pageTitle: "Contact · Aresium",
     description: "Ask for the Aresium iPhone app, or write about a question, a problem or an idea.",
     title: "Contact",
-    lead: "Ask for the iPhone app or write about a question, a problem or an idea. Messages go to Patrik Breeck by email.",
+    lead: "Ask for the iPhone app or write about a question, a problem or an idea.",
     otherLanguage: "Deutsch",
     topic: "Topic", message: "Message", answerTo: "Answer to", optional: "(optional)",
     topics: { access: "Get the app", question: "Question", problem: "Problem", idea: "Idea or wish", other: "Something else" },
@@ -88,8 +88,7 @@ const WORDS: Record<PageLanguage, Words> = {
     pageTitle: "Kontakt · Aresium",
     description: "Die iPhone-App von Aresium anfragen oder zu einer Frage, einem Problem oder einer Idee schreiben.",
     title: "Kontakt",
-    lead: "Die iPhone-App anfragen oder zu einer Frage, einem Problem oder einer Idee schreiben. Nachrichten gehen per " +
-      "E-Mail an Patrik Breeck.",
+    lead: "Die iPhone-App anfragen oder zu einer Frage, einem Problem oder einer Idee schreiben.",
     otherLanguage: "English",
     topic: "Thema", message: "Nachricht", answerTo: "Antwort an", optional: "(optional)",
     topics: { access: "App bekommen", question: "Frage", problem: "Problem", idea: "Idee oder Wunsch", other: "Sonstiges" },

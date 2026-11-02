@@ -41,6 +41,14 @@ test("the paths name the language: /contact English, /kontakt German", () => {
   assert.match(pages.de, /href="\/contact\?topic=question"[^>]*>English</);
 });
 
+test("the pages name no one: the owner's name is only on the legal pages", () => {
+  // Patrik, 2026-11-02: a search for his name brought up the contact pages.
+  for (const page of Object.values(pages)) {
+    assert.ok(!page.includes(loadOwner().name));
+    assert.doesNotMatch(page, /Breeck|Messages go to|Nachrichten gehen per E-Mail an/);
+  }
+});
+
 test("?topic= picks the topic; anything else is a question", () => {
   assert.equal(topicFrom("access"), "access");
   assert.equal(topicFrom("problem"), "problem");
