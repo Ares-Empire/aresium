@@ -30,6 +30,21 @@ test("refunds larger than spending leave the pulse's spending unchanged", () => 
   assert.equal(pulseLine(data, new Date(2026, 0, 5), "de"), "20 € im Januar ausgegeben");
 });
 
+test("a later payback lowers the pulse in the expense's month", () => {
+  const data = buildDashboard(buildDashboardSource({
+    categories: [{ name: "Shopping", icon: "Tag", color: "#123456", excludeFromTotals: false, side: "spend" }],
+    today: "2026-02-05",
+    transactions: [
+      { id: "shop", externalId: "shop", date: "2026-01-02", amount: -80, currency: "EUR", description: "Fictional shop", category: "Shopping" },
+      { id: "back", externalId: "back", date: "2026-02-02", amount: 40, currency: "EUR", description: "Fictional payback", category: "Shopping",
+        paysBack: [{ payment: "shop", amount: 40 }] },
+    ],
+  }));
+  assert.equal(pulseLine(data, new Date(2026, 0, 5)), "€40 spent in January");
+  assert.equal(pulseLine(data, new Date(2026, 0, 5), "de"), "40 € im Januar ausgegeben");
+  assert.equal(pulseLine(data, new Date(2026, 1, 5)), "€0 spent in February");
+});
+
 test("pulse translates all months and formats whole euros in both languages", () => {
   const months = {
     en: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],

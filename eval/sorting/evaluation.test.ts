@@ -115,8 +115,8 @@ const fakeExport = (schema = 5): LedgerExport => ({ app: "Aresium", schema,
     { id: "p1", account: "a", source: "bank", externalId: "FICT1", bookingDate: "2026-02-03", amount: "-1234.87", currency: "EUR", text: "PRIVATE-NAME shopping", counterparty: "PRIVATE-NAME", category: "groceries", categorySource: "manual", sequence: 1 },
     { id: "p2", account: "a", source: "bank", externalId: "FICT2", bookingDate: "2026-03-03", amount: "-6789.43", currency: "EUR", text: "PRIVATE-SECOND", category: "custom-PRIVATE-NAME", categorySource: "starter", sequence: 2 },
   ] });
-test("own-data reads schema 1–6 and replay learns corrections chronologically", () => {
-  for (let schema = 1; schema <= 6; schema++) {
+test("own-data reads schema 1–7 and replay learns corrections chronologically", () => {
+  for (let schema = 1; schema <= 7; schema++) {
     const data = fakeExport(schema); data.payments.push({ ...data.payments[0], id: "p3", externalId: "FICT3", bookingDate: "2026-04-03", sequence: 3 });
     const result = ownCounts(parseExport(data));
     assert.equal(result.manual.total, 2); assert.equal(result.kept.total, 1); assert.equal(result.replay.fixes, 2);
@@ -124,8 +124,13 @@ test("own-data reads schema 1–6 and replay learns corrections chronologically"
     const output = JSON.stringify(result); for (const s of ["PRIVATE", "1234.87", "6789.43", "2026-", "FICT"]) assert.ok(!output.includes(s));
   }
 });
+test("own-data ignores paysBack in schema 7 without changing sorting or replay", () => {
+  const data = fakeExport(7);
+  const withLinks = { ...data, payments: data.payments.map((p) => ({ ...p, paysBack: [{ payment: "p1", amount: 12 }] })) };
+  assert.deepEqual(ownCounts(parseExport(withLinks)), ownCounts(parseExport(data)));
+});
 test("own-data fails closed for invalid exports, paths in repo and symlinks", async () => {
-  assert.throws(() => parseExport({ ...fakeExport(), schema: 7 }));
+  assert.throws(() => parseExport({ ...fakeExport(), schema: 8 }));
   assert.throws(() => parseExport({ ...fakeExport(), payments: [{ ...fakeExport().payments[0], amount: "SECRET" }] }));
   const dir = await mkdtemp(join(tmpdir(), "ares-sorting-"));
   try {

@@ -7,6 +7,22 @@ export interface Category {
   name: string; icon: string; color: string; kind: "spend" | "income" | "transfer";
   otherSide?: true; // also offered for the other direction of money; totals follow the payment's direction
 }
+export interface PaymentLink { payment: string; amount: number }
+/** Applied links only; absent on payments whose counting is unchanged. All amounts are euros. */
+export interface PaybackMarks {
+  counted?: number;
+  paidBack?: number;
+  paidBackBy?: PaymentLink[];
+  paysBack?: PaymentLink[];
+}
+export interface PaybackIgnored {
+  from: string; to: string;
+  reason: "payer-not-counted" | "payer-not-money-in" | "payer-transfer" | "payer-not-euros"
+    | "target-missing" | "target-not-counted" | "target-not-money-out" | "target-transfer"
+    | "target-withdrawal" | "target-not-euros" | "invalid-amount" | "clamped";
+  /** For clamped links, the euros that did not count. */
+  amount?: number;
+}
 // Receipts (brief 30): every field here is optional, so older readers of the JSON keep working.
 export interface ReceiptMarks {
   /** The receipt this row is: a cash receipt, or a card receipt not joined to its bank payment yet. */
@@ -57,7 +73,7 @@ export interface CashMovement {
   /** Cash in: what it still holds after everything that took from it. Cash out: null. */
   left: number | null;
 }
-export interface SourceTxn extends ReceiptMarks {
+export interface SourceTxn extends ReceiptMarks, PaybackMarks {
   id: string; date: string; amount: number; categoryName: string; tags: string[]; place: string; city: string;
 }
 export interface DashboardSource {
@@ -65,8 +81,9 @@ export interface DashboardSource {
   balanceByDay: Record<string, number>; openingBalance: number;
   databaseCategoryNames: string[]; // recategorise targets; excludes dashboard-only categories
   cash?: CashView; // the Cash page (brief 32); the server's source never has it
+  paybacksIgnored?: PaybackIgnored[];
 }
-export interface Txn extends ReceiptMarks {
+export interface Txn extends ReceiptMarks, PaybackMarks {
   id: string; date: string; day: number; month: MonthKey; amount: number;
   categoryName: string; tags: string[]; place: string; city: string;
   categoriesIn: string[]; incomeBuckets: string[];
@@ -86,6 +103,7 @@ export interface Dashboard {
   total: Totals; byMonth: Record<MonthKey, MonthData>; spend: Record<string, Series>; income: Record<string, Series>;
   pick: { spend: string[]; income: string[] };
   cash?: CashView; // the Cash page (brief 32), passed on from the source; never counted
+  paybacksIgnored?: PaybackIgnored[];
 }
 
 const money = (n: number) => Math.round(n * 100) / 100;
@@ -143,6 +161,7 @@ export function buildDashboard(source: DashboardSource): Dashboard {
     // Sides decide the choices only. Each payment counts in the direction it went, including its tags.
     const spending = !isTransfer && (t.amount < 0 || covered);
     const incoming = !isTransfer && t.amount > 0 && !covered;
+    const amount = t.counted ?? t.amount;
     const categoriesIn = spending ? names : [];
     const buckets = incoming ? [...new Set(names.map((name) => isUnsorted(name) ? UNSORTED : name))] : [];
     const txn: Txn = {
@@ -153,33 +172,37 @@ export function buildDashboard(source: DashboardSource): Dashboard {
     if (t.provisional) txn.provisional = true;
     if (covered) txn.coveredBy = [...t.coveredBy!];
     if (t.cashWithdrawal) txn.cashWithdrawal = true;
+    if (t.counted !== undefined && t.counted !== t.amount) txn.counted = t.counted;
+    if (t.paidBack !== undefined) txn.paidBack = t.paidBack;
+    if (t.paidBackBy) txn.paidBackBy = t.paidBackBy.map((link) => ({ ...link }));
+    if (t.paysBack) txn.paysBack = t.paysBack.map((link) => ({ ...link }));
     transactions.push(txn);
     if (spending) {
-      total.expense += -t.amount;
-      if (mo) { mo.expense += -t.amount; if (validDay) mo.dayExpense[day - 1] += -t.amount; }
+      total.expense += -amount;
+      if (mo) { mo.expense += -amount; if (validDay) mo.dayExpense[day - 1] += -amount; }
     }
     for (const name of categoriesIn) {
       const series = spend.get(name);
       if (!series) continue;
-      add(categoryAll, name, -t.amount);
+      add(categoryAll, name, -amount);
       if (index !== undefined) {
-        add(categoryMonths[index], name, -t.amount);
-        series.months[index] += -t.amount;
-        if (validDay) series.days[month][day - 1] += -t.amount;
+        add(categoryMonths[index], name, -amount);
+        series.months[index] += -amount;
+        if (validDay) series.days[month][day - 1] += -amount;
       }
     }
     if (incoming) {
-      total.income += t.amount;
-      if (mo) { mo.income += t.amount; if (validDay) mo.dayIncome[day - 1] += t.amount; }
+      total.income += amount;
+      if (mo) { mo.income += amount; if (validDay) mo.dayIncome[day - 1] += amount; }
     }
     for (const bucket of buckets) {
       if (!income.has(bucket)) income.set(bucket, makeSeries());
-      add(incomeAll, bucket, t.amount);
+      add(incomeAll, bucket, amount);
       if (index !== undefined) {
-        add(incomeMonths[index], bucket, t.amount);
+        add(incomeMonths[index], bucket, amount);
         const series = income.get(bucket)!;
-        series.months[index] += t.amount;
-        if (validDay) series.days[month][day - 1] += t.amount;
+        series.months[index] += amount;
+        if (validDay) series.days[month][day - 1] += amount;
       }
     }
   }
@@ -245,5 +268,6 @@ export function buildDashboard(source: DashboardSource): Dashboard {
       balance: months.map((m) => byMonth[m.key].endBalance),
     },
     ...(source.cash ? { cash: source.cash } : {}),
+    ...(source.paybacksIgnored?.length ? { paybacksIgnored: source.paybacksIgnored.map((link) => ({ ...link })) } : {}),
   };
 }

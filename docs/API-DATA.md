@@ -47,6 +47,7 @@ interface Dashboard {
   spend: Record<string, Series>;      // every category in `categories`
   income: Record<string, Series>;     // every bucket in `incomeBuckets`
   pick: { spend: string[]; income: string[] };   // recategorise choices, in display order (added 2026-10-23)
+  paybacksIgnored?: { from: string; to: string; reason: string; amount?: number }[]; // only when a link is ignored or clamped
 }
 
 interface Month { key: MonthKey; label: string; short: string; year: number; month: number; days: number; partial: boolean }
@@ -58,16 +59,20 @@ interface Category {
 interface Txn {
   id: string; date: string; day: number; month: MonthKey;   // date "2026-10-03", day 3, month "2026-10"
   amount: number;                    // negative = money out
+  counted?: number;                  // amount that counts, only when a payback changes it
+  paidBack?: number;                 // euros this expense got back
+  paidBackBy?: { payment: string; amount: number }[]; // incoming payment ids and applied euros
+  paysBack?: { payment: string; amount: number }[];   // expense ids and applied euros, after limits
   categoryName: string;              // primary category ("Uncategorised" if none)
   tags: string[];                    // extra categories the user "Add"-ed
   place: string; city: string;
   categoriesIn: string[];            // money out and covered cash: primary and tagged spending categories, without duplicates
-  incomeBuckets: string[];           // money in only: primary and tagged categories; unsorted money in uses Other
+  incomeBuckets: string[];           // money in only: primary and tagged categories; unsorted money in uses Uncategorised
 }
 
 interface Totals {
-  expense: number;                   // money out minus covered cash, counted once; excludes transfers
-  income: number;                    // money in, counted once; excludes transfers and covered cash
+  expense: number;                   // counted money out minus covered cash, counted once; excludes transfers
+  income: number;                    // counted money in, counted once; excludes transfers and covered cash
   categories: { name: string; total: number }[];      // spending rows incl. tagged txns, total > 0, largest first
   incomeBuckets: { name: string; total: number }[];   // incl. tagged txns, total > 0, largest first
 }
@@ -87,32 +92,55 @@ interface Series {
 ```
 
 All money values are rounded to cents. Spending is shown as positive money out. Rows show only totals above
-zero; `spend` and `income` series are never below zero. Covered cash is the only deduction from spending.
+zero; `spend` and `income` series are never below zero. Covered cash and paybacks linked by hand are the two
+deductions from spending. Optional payback fields are absent when nothing applies, so sources without links
+keep exactly the same JSON.
 
 ## Rules the server applies (clients never re-implement these)
 
 - **Counted as it happened.** Every payment counts once in the direction it went: money out (amount < 0)
   is spending and money in (amount > 0) is income, whatever the category's side. This applies to all-time,
   monthly and daily headlines, the running spending line, and category rows and series. A returned €100
-  order shows €100 spent and €100 received under that category; the refund never lowers spending. Money
+  order without a link shows €100 spent and €100 received under that category; the refund never lowers spending. Money
   out in an income category is spending under that category and never lowers income. A category can have
   both rows in one month. Zero amounts count nowhere.
 - **Transfers** count as neither spending nor income and have neither listing index. A transfer tag adds
   no row or series value, and tags on a primary transfer do not make it count anywhere.
-- **Tags** widen where a payment is listed: its full amount appears under each primary and tagged category,
+- **Tags** widen where a payment is listed: its counted amount appears under each primary and tagged category,
   once per category, on the payment's direction only. Category rows may overlap; headline figures never
   count tags again.
 - **Spending lists** (`categoriesIn`) contain the primary and tagged categories only for money out and
   covered cash rows. Unsorted money out stays under `Uncategorised` (shown as "Not sorted").
 - **Income rows** (`incomeBuckets`) use the payment's own primary and tagged category names for money in,
-  whatever their sides. Unsorted money in uses `Other`. No `Refunds` bucket is made. The dashboard's
-  `incomeBuckets` metadata carries each row's category icon and colour, with a default look for `Other`.
+  whatever their sides. Unsorted money in uses `Uncategorised`. No `Refunds` bucket is made. The dashboard's
+  `incomeBuckets` metadata carries each row's category icon and colour, with a default look for `Uncategorised`.
   Money out and covered cash rows have no income buckets. Each spending or income list sums to its row.
-- **Cash covered by receipts is the one exception.** A withdrawal's positive `coveredBy` row moves spending
+- **Cash covered by receipts is the first exception.** A withdrawal's positive `coveredBy` row moves spending
   from the withdrawal to the receipt's category. It lowers the withdrawal's spending in its own month and
   its primary and tagged categories, and never counts as income. The receipt counts as spending on its
   own day. Cash entries received count as income, and cash entries spent count as spending by the same
   rules as other payments.
+- **Money paid back is the second exception, only with a link made by hand** (brief 201). A stored payment
+  coming in may carry `paysBack: [{ payment, amount }]`: the stored expense's id and euros paid back, positive
+  whole cents. Nothing is matched automatically. Each applied euro lowers that expense in its own month,
+  day, primary category and tags, and comes off the incoming payment's income on its own day. All headlines,
+  rows, series, the running line and the pulse use `counted ?? amount`. For example, €80 spent in January
+  and €40 linked back in February count as €40 spent in January and €0 income in February.
+  Both payments keep their original `amount` and stay in their direction's lists, even at a counted zero;
+  rows still show only totals above zero. Category sides without an explicit choice use the counted net.
+  The expense carries `paidBack` and `paidBackBy`; the incoming payment's `paysBack` contains only the
+  applied links. `counted` appears only when it differs from `amount`.
+  Both ends must be counted stored payments in euros, after PayPal's currency folding, and neither may be
+  a transfer. The target must be money out and cannot be a cash withdrawal, receipt, cash entry or covered
+  row. The payer must be money in; bank-funding and folded-away PayPal rows cannot pay back anything.
+  Payers apply in booking-day order, then id order; each payer's links apply in their given order. A payer
+  can use at most its own amount and an expense can receive at most its own amount across all links.
+  Excess euros are clamped. `paybacksIgnored` reports ignored links by `from` and `to`, with reasons
+  `payer-not-money-in`, `payer-transfer`, `payer-not-counted`, `payer-not-euros`, `target-missing`,
+  `target-not-counted`, `target-not-money-out`, `target-transfer`, `target-withdrawal`, `target-not-euros`
+  or `invalid-amount`. A receipt or cash-row id is not a stored target (`target-missing`); a stored PayPal
+  row dropped from counting is `target-not-counted`. A `clamped` report includes `amount`: euros that did
+  not count, even when none of the requested amount could count. Reports are absent when there are none.
 - **Balance** is the bank's own balance, carried forward on days without a booking.
 - **Foreign currency** (PayPal, decided 2026-10-24): a purchase in another currency counts at its euro cost (the
   euro row of PayPal's "Allgemeine Währungsumrechnung" with the purchase's code), keeping its category; both
