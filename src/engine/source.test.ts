@@ -194,7 +194,8 @@ test("the bundle's buildDashboardSource equals the direct one, and its dashboard
     pay("2026-01-20", 1200, { category: "Income", balance: 1500 }), pay("2026-02-03", -18.9, { category: null, balance: 1481.1 }),
     pay("2026-02-04", -105.91, { externalId: "X", currency: "USD", raw: { Typ: "PayPal Express-Zahlung" } }),
     pay("2026-02-04", -95.07, { raw: { Typ: "Allgemeine Währungsumrechnung", "Zugehöriger Transaktionscode": "X" } }),
-    pay("2026-02-05", -25, { category: "Income", tags: ["Income"] }),
+    pay("2026-02-05", -25, { id: "expense", category: "Income", tags: ["Income"] }),
+    pay("2026-02-06", 30, { paysBack: [{ payment: "expense", amount: 40 }, { payment: "gone", amount: 1 }] }),
   ];
   const withSides: SourceCategory[] = categories.map((c) => ({ ...c, side: c.name === "Income" ? "income" : "spend", otherSide: true }));
   for (const list of [categories, withSides]) {

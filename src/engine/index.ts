@@ -21,6 +21,7 @@ export const version = "0.1.0";
 // ---- Dashboard source and own transfers (brief 12) ----
 export { buildDashboardSource } from "./source.js";
 export type { DashboardSourceInput, SourcePayment, SourceCategory, SourceReceipt } from "./source.js";
+export type { PaymentLink, PaybackMarks, PaybackIgnored } from "../data/dashboard.js";
 export { ownTransfers, OWN_TRANSFERS } from "./sorting/transfers.js";
 export type { TransferPayment, OwnTransfer } from "./sorting/transfers.js";
 // ---- end of brief 12's block ----

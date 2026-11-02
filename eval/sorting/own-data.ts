@@ -19,7 +19,7 @@ export function parseExport(value: unknown): LedgerExport {
   const fail = () => { throw new Error("Invalid Aresium export; details withheld"); };
   if (!value || typeof value !== "object") return fail();
   const data = value as LedgerExport;
-  if (data.app !== "Aresium" || !Number.isInteger(data.schema) || data.schema < 1 || data.schema > 6
+  if (data.app !== "Aresium" || !Number.isInteger(data.schema) || data.schema < 1 || data.schema > 7
     || !Array.isArray(data.accounts) || !Array.isArray(data.payments) || !Array.isArray(data.categories)) return fail();
   const ids = (list: { id: string }[]) => list.every((row) => row && text(row.id)) && new Set(list.map((row) => row.id)).size === list.length;
   if (!ids(data.accounts) || !ids(data.payments) || !ids(data.categories)) return fail();
@@ -96,5 +96,5 @@ if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) 
     if (process.argv.length !== 3 && !(process.argv.length === 5 && process.argv[3] === "--local-places")) throw new Error();
     const localPlaces = process.argv[4] ? await readLocalPlaces(process.argv[4]) : undefined;
     console.log(JSON.stringify(await readOwnData(process.argv[2], undefined, localPlaces), null, 2));
-  } catch { console.error("Own-data evaluation failed. Supply a valid Aresium schema 1–6 export outside the repository. Details withheld."); process.exitCode = 1; }
+  } catch { console.error("Own-data evaluation failed. Supply a valid Aresium schema 1–7 export outside the repository. Details withheld."); process.exitCode = 1; }
 }

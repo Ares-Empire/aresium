@@ -1,10 +1,11 @@
 // Stored payments → the dashboard's source (DashboardSource), the step before buildDashboard. Pure: inputs in,
 // result out, no clock. The server runs it on its database rows (src/data/queries.ts → getDashboardSource, which
 // applies its icons and colours first); the iPhone app runs it on the payments it stores.
-import type { Category, DashboardSource, Month, SourceTxn } from "../data/dashboard.js";
+import type { Category, DashboardSource, Month, PaymentLink, SourceTxn } from "../data/dashboard.js";
 import { foldPaypalConversions, isPaypalBankFunding } from "./paypal.js";
 import { daysInMonth, parseDay } from "./dates.js";
 import { cashView, countReceipts, withReceiptRows, type ReceiptRow } from "./receipts/count.js";
+import { countPaybacks } from "./paybacks.js";
 
 /** One stored payment, as plain JSON. */
 export type SourcePayment = {
@@ -28,6 +29,8 @@ export type SourcePayment = {
   category: string | null;
   /** Names of the extra ("Add") categories it is also listed under; its amount is never counted twice. */
   tags?: string[];
+  /** Hand-made links from money in to stored money out, in euros (positive, whole cents). */
+  paysBack?: PaymentLink[];
 };
 
 /** A category on the person's list, with its look. */
@@ -108,6 +111,8 @@ export function buildDashboardSource(input: DashboardSourceInput): DashboardSour
   const today = parseDay(input.today);
   if (!today) throw new Error("today is not an ISO date (YYYY-MM-DD)");
   const stored = counted(checked(input.transactions)).rows;
+  const paybacks = countPaybacks(input.transactions, stored, input.categories);
+  const storedPayments = new Set(stored);
   // Receipts and cash entries (the phone's; the server never sends them, so its source stays as it was).
   const fromReceipts = input.receipts ? countReceipts(stored, input.receipts, new Set(input.transactions.map((p) => p.id))) : null;
   const payments: ReceiptRow[] = fromReceipts?.rows.length ? withReceiptRows(stored, fromReceipts.rows) : stored;
@@ -124,7 +129,8 @@ export function buildDashboardSource(input: DashboardSourceInput): DashboardSour
     const category = categoryOf(p);
     if (category === null) hasUncategorised = true;
     const name = category ?? UNCATEGORISED.name;
-    net.set(name, (net.get(name) ?? 0) + p.amount);
+    const amount = (storedPayments.has(p) ? paybacks.marks.get(p.id)?.counted : undefined) ?? p.amount;
+    net.set(name, (net.get(name) ?? 0) + amount);
   }
   const categories: Category[] = input.categories.map((c) => ({
     name: c.name, icon: c.icon, color: c.color,
@@ -147,6 +153,8 @@ export function buildDashboardSource(input: DashboardSourceInput): DashboardSour
     ...(p.provisional ? { provisional: true } : {}),
     ...(p.coveredBy ? { coveredBy: [...p.coveredBy] } : {}),
     ...(fromReceipts?.withdrawals.has(p) ? { cashWithdrawal: true } : {}),
+    // Apply only to stored payments, even if a receipt happens to have the same id.
+    ...(storedPayments.has(p) ? paybacks.marks.get(p.id) : undefined),
   }));
 
   // --- month list spanning the data range; the current month is partial ---
@@ -192,5 +200,6 @@ export function buildDashboardSource(input: DashboardSourceInput): DashboardSour
     databaseCategoryNames: input.categories.map((c) => c.name),
     // The Cash page (brief 32): a view, counted nowhere.
     ...(fromReceipts ? { cash: cashView(fromReceipts, (category) => nameOf(category) ?? UNCATEGORISED.name) } : {}),
+    ...(paybacks.ignored.length ? { paybacksIgnored: paybacks.ignored } : {}),
   };
 }
