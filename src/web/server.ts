@@ -16,6 +16,7 @@ import { categorizeAll } from "../sync/categorize.js";
 import { sessionCookie, clearCookie, sessionToken } from "./auth.js";
 import { welcomePage, loginPage, loginUnavailablePage } from "./login-page.js";
 import { CONTACT_CSP, CONTACT_PAGES, contactPage, topicFrom } from "./contact-page.js";
+import { loadOwner } from "./owner.js";
 import { bearerToken, empireBearerAccess, empireLogin, empireMode, empireTokenAccess } from "./empire-auth.js";
 import { requestLanguage, text } from "../lib/texts.js";
 import { importErrorText } from "../import/errors.js";
@@ -27,6 +28,7 @@ let importing = false;                        // serialise imports (single-user 
 const PUBLIC = join(dirname(fileURLToPath(import.meta.url)), "../../web/public");
 const PORT = Number(process.env.PORT) || 5173;
 const HOST = process.env.HOST || "127.0.0.1";
+const ownerEmail = loadOwner().email;
 
 const MIME: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
@@ -110,7 +112,7 @@ export async function handleRequest(req: IncomingMessage, res: ServerResponse): 
           "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-cache", "Content-Language": contactLanguage,
           "Content-Security-Policy": CONTACT_CSP,
         });
-        res.end(contactPage(contactLanguage, topicFrom(url.searchParams.get("topic"))));
+        res.end(contactPage(contactLanguage, ownerEmail, topicFrom(url.searchParams.get("topic"))));
         return;
       }
       if (url.pathname === "/demo/") return redirect("/demo");      // the page's relative paths need no slash

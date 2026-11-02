@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
-import { test } from "node:test";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { after, test } from "node:test";
 import { runInNewContext } from "node:vm";
 import { CONTACT_CSP, CONTACT_ENDPOINT, CONTACT_PAGES, TOPICS, contactPage, topicFrom } from "./contact-page.js";
+import { loadOwner } from "./owner.js";
 
 const FORMS = new URL("../../web/public/forms/", import.meta.url);
 const SCRIPT = readFileSync(new URL("contact-form.js", FORMS), "utf8");
@@ -17,7 +19,14 @@ const SHARED_FORM_SHA256: Record<string, string> = {
   "contact-form.css": "f3f79bb613a5d103897c5a478664b2a5086529a081863a9d18bc1da604db9a92",
   "contact-form.js": "c50fa7cb8ea3437fb95fcf2c5b0dda65f7ab4dc9704c7cbfdae8067740876822",
 };
-const pages = { en: contactPage("en"), de: contactPage("de") };
+const ownerDirectory = mkdtempSync(join(process.cwd(), ".test-owner-contact-"));
+after(() => rmSync(ownerDirectory, { recursive: true, force: true }));
+process.env.ARES_OWNER_FILE = join(ownerDirectory, "owner.json");
+writeFileSync(process.env.ARES_OWNER_FILE, JSON.stringify({
+  name: "Example Owner", street: "Example Street 1", city: "Example City", email: "owner@example.org",
+}));
+const ownerEmail = loadOwner().email;
+const pages = { en: contactPage("en", ownerEmail), de: contactPage("de", ownerEmail) };
 const count = (text: string, part: string) => text.split(part).length - 1;
 const visibleText = (html: string) => html.replace(/<(script|style)[\s\S]*?<\/\1>/g, "").replace(/<[^>]+>/g, " ")
   .replace(/\s+/g, " ");
@@ -36,12 +45,12 @@ test("?topic= picks the topic; anything else is a question", () => {
   assert.equal(topicFrom("access"), "access");
   assert.equal(topicFrom("problem"), "problem");
   for (const value of [null, "", "bogus", "ACCESS", "access "]) assert.equal(topicFrom(value), "question", String(value));
-  const app = contactPage("en", "access");
+  const app = contactPage("en", ownerEmail, "access");
   assert.match(app, /<option value="access" selected [^>]*data-optional>Get the app<\/option>/);
   assert.match(app, /<textarea id="contact-message"[^>]*placeholder="Anything to add\? \(optional\)"\s+aria-describedby/);
   assert.match(app, /data-optional-mark>\(optional\)</);
   assert.match(app, /The install link comes by email, to this address\./);
-  const question = contactPage("de", "question");
+  const question = contactPage("de", ownerEmail, "question");
   assert.match(question, /<option value="question" selected [^>]*>Frage<\/option>/);
   assert.match(question, /placeholder="Was ist die Frage\?" required/);
   assert.match(question, /data-optional-mark hidden>/);
@@ -118,17 +127,22 @@ test("the privacy policy, imprint and the email fallback are linked in the page'
   assert.match(pages.de, /href="https:\/\/www\.ares-empire\.de\/impressum">Impressum</);
   for (const html of Object.values(pages)) {
     // The failed send and <noscript> name the address; no other problem does.
-    assert.equal(count(html, 'href="mailto:REDACTED-EMAIL"'), 2);
-    assert.match(html, /data-problem="failed" hidden>[\s\S]*?mailto:pab@patrikbreeck\.de[\s\S]*?<\/p>/);
+    assert.equal(count(html, 'href="mailto:owner@example.org">owner@example.org</a>'), 2);
+    assert.match(html, /data-problem="failed" hidden>[\s\S]*?mailto:owner@example\.org[\s\S]*?<\/p>/);
     assert.doesNotMatch(html, /data-problem="empty" hidden>[^\n]*mailto/);
   }
+});
+
+test("the configured email is escaped in the link and its text", () => {
+  const html = contactPage("en", 'owner"<&\'@example.org');
+  assert.equal(count(html, 'href="mailto:owner&quot;&lt;&amp;&#39;@example.org">owner&quot;&lt;&amp;&#39;@example.org</a>'), 2);
 });
 
 test("the words address no one: no you or your, no du, dein or du-imperatives (Patrik, 2026-10-31)", () => {
   // Every word on the page, also the placeholders, notes and problems the script swaps in from data attributes.
   for (const topic of TOPICS) {
-    assert.doesNotMatch(contactPage("en", topic), /\b(you|your|yours|you're)\b/i);
-    assert.doesNotMatch(contactPage("de", topic), /\b(du|dich|dir|dein\w*|frag|schreib|gib|versuch|sende)\b/i);
+    assert.doesNotMatch(contactPage("en", ownerEmail, topic), /\b(you|your|yours|you're)\b/i);
+    assert.doesNotMatch(contactPage("de", ownerEmail, topic), /\b(du|dich|dir|dein\w*|frag|schreib|gib|versuch|sende)\b/i);
   }
 });
 

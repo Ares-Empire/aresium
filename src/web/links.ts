@@ -9,9 +9,6 @@ export const LEGAL: Record<PageLanguage, { privacy: string; imprint: string }> =
   de: { privacy: `${EMPIRE}/datenschutz`, imprint: `${EMPIRE}/impressum` },
 };
 
-// Where a message can go when the form cannot send it (the imprint's address).
-export const OWNER_EMAIL = "REDACTED-EMAIL";
-
 // Aresium's own contact form, one page per language (contact-page.ts).
 export const CONTACT_PATHS: Record<PageLanguage, string> = { en: "/contact", de: "/kontakt" };
 

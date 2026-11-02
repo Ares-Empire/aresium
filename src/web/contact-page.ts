@@ -12,7 +12,7 @@
 // SHA256SUMS by contact-page.test.ts. Nothing comes from other hosts, and the page's Content-Security-Policy
 // (CONTACT_CSP) allows only this server and the account server.
 import { esc } from "./html.js";
-import { CONTACT_PATHS, LEGAL, OWNER_EMAIL, type PageLanguage } from "./links.js";
+import { CONTACT_PATHS, LEGAL, type PageLanguage } from "./links.js";
 
 export const CONTACT_ENDPOINT = "https://auth.ares-empire.de/api/collections/contact/records";
 
@@ -143,14 +143,14 @@ function icon(name: keyof typeof ICON_PATHS, attributes = "", className = "icon"
 }
 
 /** A sentence, with the owner's address as a mailto link in place of %e if it has one. */
-function withEmail(sentence: string): string {
+function withEmail(sentence: string, ownerEmail: string): string {
   if (!sentence.includes("%e")) return esc(sentence);
   const [before, after] = sentence.split("%e");
-  return `${esc(before)}<a href="mailto:${OWNER_EMAIL}">${OWNER_EMAIL}</a>${esc(after)}`;
+  return `${esc(before)}<a href="mailto:${esc(ownerEmail)}">${esc(ownerEmail)}</a>${esc(after)}`;
 }
 
 /** The contact page in `language`, with `topic` chosen (from `?topic=`; the menu can change it). */
-export function contactPage(language: PageLanguage, topic: Topic = DEFAULT_TOPIC): string {
+export function contactPage(language: PageLanguage, ownerEmail: string, topic: Topic = DEFAULT_TOPIC): string {
   const w = WORDS[language];
   const other: PageLanguage = language === "en" ? "de" : "en";
   const optional = topic === "access";
@@ -159,7 +159,7 @@ export function contactPage(language: PageLanguage, topic: Topic = DEFAULT_TOPIC
     `${t === "access" ? " data-optional" : ""}>${esc(w.topics[t])}</option>`).join("\n              ");
   const icons = TOPICS.map((t) => icon(t, ` data-topic-icon="${t}"${t === topic ? "" : " hidden"}`)).join("");
   const problems = (Object.keys(w.problems) as (keyof Words["problems"])[]).map((name) =>
-    `<p class="problem" data-problem="${name}" hidden>${icon("alert")}<span>${withEmail(w.problems[name])}</span></p>`)
+    `<p class="problem" data-problem="${name}" hidden>${icon("alert")}<span>${withEmail(w.problems[name], ownerEmail)}</span></p>`)
     .join("\n          ");
   // The band's letters: spread across the width by the stylesheet, as the iPhone app's WordmarkBand.
   const band = [..."ARESIUM"].map((letter) => `<span>${letter}</span>`).join("");
@@ -235,7 +235,7 @@ export function contactPage(language: PageLanguage, topic: Topic = DEFAULT_TOPIC
           <button type="submit" data-sending="${esc(w.sending)}" data-again="${esc(w.again)}">
             <span class="spinner" aria-hidden="true"></span><span data-label>${esc(w.send)}</span>
           </button>
-          <noscript><p class="note">${withEmail(w.noscript)}</p></noscript>
+          <noscript><p class="note">${withEmail(w.noscript, ownerEmail)}</p></noscript>
         </form>
       </section>
 

@@ -3,6 +3,7 @@
 For the lead to run after review/merge. No database migration, seed, environment change or proxy
 change is needed. The server serves the static files directly; there is no frontend bundle.
 Keep the existing `.env`, database and import files.
+The server requires `$ARES_OWNER_FILE` (default `~/.config/ares-empire/owner.json`) with exactly `name`, `street`, `city` and `email` as non-empty strings.
 
 ## Current deployment
 

@@ -1,13 +1,23 @@
 import assert from "node:assert/strict";
 import { once } from "node:events";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { IncomingMessage, ServerResponse, type IncomingHttpHeaders } from "node:http";
 import type { Socket } from "node:net";
+import { join } from "node:path";
 import { Duplex } from "node:stream";
-import { test } from "node:test";
+import { after, test } from "node:test";
 
 process.env.EMPIRE_ALLOWED_USERS = "test-server-user";
 process.env.APP_SERVER_MODE_USERS = "test-server-user";
+const ownerDirectory = mkdtempSync(join(process.cwd(), ".test-owner-server-"));
+after(() => rmSync(ownerDirectory, { recursive: true, force: true }));
+process.env.ARES_OWNER_FILE = join(ownerDirectory, "owner.json");
+writeFileSync(process.env.ARES_OWNER_FILE, JSON.stringify({
+  name: "Example Owner", street: "Example Street 1", city: "Example City", email: "owner@example.org",
+}));
 const { handleRequest } = await import("./server.js");
+// Requests must use the configuration loaded at startup, without reading the file again.
+rmSync(process.env.ARES_OWNER_FILE);
 const approved = { id: "test-server-user", approved: true, services: ["aresium"] };
 const authResponse = (status: number, record: unknown = approved) => new Response(JSON.stringify({ record }), { status });
 
@@ -427,6 +437,7 @@ test("the contact form is open to everyone, in its language, with its own policy
       assert.match(String(page.headers["content-security-policy"]), /^default-src 'none';.*connect-src https:\/\/auth\.ares-empire\.de;/);
       assert.equal(page.headers["set-cookie"], undefined);
       assert.match(page.body, new RegExp(`<html lang="${language}" data-theme="dark">[\\s\\S]*<h1>${title}</h1>`));
+      assert.equal(page.body.split('href="mailto:owner@example.org">owner@example.org</a>').length - 1, 2);
     }
   }
   for (const path of ["/forms/contact.css", "/forms/contact-form.css", "/forms/contact-form.js", "/fonts/fonts.css", "/fonts/SpaceGrotesk-Variable.ttf", "/brand/hermes.png"]) {
