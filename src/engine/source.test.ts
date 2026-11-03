@@ -128,7 +128,7 @@ test("months span the payments and the current month counts up to today", () => 
   assert.equal(build([pay("2024-02-03", -1)], "2026-02-10").months[0].days, 29);
 });
 
-test("the balance starts at the first known one, the day's last booking wins, and gaps carry it forward", () => {
+test("balances stay unknown before the first closing, and gaps carry it forward", () => {
   const source = build([
     pay("2026-01-30", -10, { balance: null }),
     pay("2026-01-31", -10, { balance: 990 }),
@@ -136,14 +136,14 @@ test("the balance starts at the first known one, the day's last booking wins, an
     pay("2026-02-02", -5, { balance: 980 }),
     pay("2026-02-04", -1, { counterparty: "Märchenladen" }), // a PayPal row: no balance
   ], "2026-02-05");
-  assert.equal(source.openingBalance, 990);
+  assert.equal(source.openingBalance, null);
   assert.deepEqual(Object.entries(source.balanceByDay).slice(28), [
-    ["2026-01-29", 990], ["2026-01-30", 990], ["2026-01-31", 990],
+    ["2026-01-29", null], ["2026-01-30", null], ["2026-01-31", 990],
     ["2026-02-01", 990], ["2026-02-02", 980], ["2026-02-03", 980], ["2026-02-04", 980], ["2026-02-05", 980],
   ]);
   const none = build([pay("2026-02-01", -1)], "2026-02-02");
-  assert.equal(none.openingBalance, 0);
-  assert.deepEqual(none.balanceByDay, { "2026-02-01": 0, "2026-02-02": 0 });
+  assert.equal(none.openingBalance, null);
+  assert.deepEqual(none.balanceByDay, { "2026-02-01": null, "2026-02-02": null });
 });
 
 test("payments in any order give the sorted result; same-day payments keep their order", () => {
@@ -158,7 +158,7 @@ test("payments in any order give the sorted result; same-day payments keep their
 test("no payments: no months, no balance, the categories as spend", () => {
   assert.deepEqual(build([]), {
     categories: categories.map((c) => ({ name: c.name, icon: c.icon, color: c.color, kind: c.excludeFromTotals ? "transfer" : "spend" })),
-    months: [], transactions: [], balanceByDay: {}, openingBalance: 0, databaseCategoryNames: categories.map((c) => c.name),
+    months: [], transactions: [], balanceByDay: {}, openingBalance: null, databaseCategoryNames: categories.map((c) => c.name),
   });
 });
 
@@ -188,6 +188,25 @@ const context = createContext({}); // No Node require/process/Buffer or web APIs
 runInContext(await bundleEngine(), context);
 const bundled = context.AresiumEngine as typeof engine;
 const json = (value: unknown) => JSON.parse(JSON.stringify(value));
+
+test("the app bundle closes shuffled account chains, sums accounts and preserves uncertainty and nulls", () => {
+  const transactions = [
+    pay("2026-02-03", -50, { accountId: "current", balance: 850 }),
+    pay("2026-02-02", 1000, { accountId: "current", balance: 1000 }),
+    pay("2026-02-03", -100, { accountId: "current", balance: 900, category: "Transfer" }),
+    pay("2026-02-04", 200, { accountId: "savings", balance: 200,
+      raw: { Type: "General Card Deposit" } }),
+    pay("2026-02-05", -5, { accountId: "savings", balance: 190 }),
+    pay("2026-02-05", -5, { accountId: "savings", balance: 180 }),
+  ];
+  const input = { transactions, categories, today: "2026-02-07" };
+  const source = bundled.buildDashboardSource(input);
+  const dashboard = bundled.buildDashboard(source);
+  assert.deepEqual(json(source), json(buildDashboardSource(input)));
+  assert.deepEqual(json(dashboard), json(buildDashboard(buildDashboardSource(input))));
+  assert.deepEqual(json(dashboard.byMonth["2026-02"].dayBalance), [null, 1000, 850, 1050, 1030, 1030, 1030]);
+  assert.deepEqual(json(dashboard.balanceUncertainDays), [{ date: "2026-02-05", accountId: "savings" }]);
+});
 
 test("the bundle's buildDashboardSource equals the direct one, and its dashboard too", () => {
   const transactions = [

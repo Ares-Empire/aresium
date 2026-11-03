@@ -76,12 +76,17 @@ export interface CashMovement {
 export interface SourceTxn extends ReceiptMarks, PaybackMarks {
   id: string; date: string; amount: number; categoryName: string; tags: string[]; place: string; city: string;
 }
+export interface BalanceUncertainDay {
+  date: string;
+  accountId: string | null;
+}
 export interface DashboardSource {
   categories: Category[]; months: Month[]; transactions: SourceTxn[];
-  balanceByDay: Record<string, number>; openingBalance: number;
+  balanceByDay: Record<string, number | null>; openingBalance: number | null;
   databaseCategoryNames: string[]; // recategorise targets; excludes dashboard-only categories
   cash?: CashView; // the Cash page (brief 32); present when receipts or manual cash inputs are supplied
   paybacksIgnored?: PaybackIgnored[];
+  balanceUncertainDays?: BalanceUncertainDay[];
 }
 export interface Txn extends ReceiptMarks, PaybackMarks {
   id: string; date: string; day: number; month: MonthKey; amount: number;
@@ -94,16 +99,18 @@ export interface Totals {
   incomeBuckets: { name: string; total: number }[];
 }
 export interface MonthData extends Totals {
-  endBalance: number; dayExpense: number[]; dayExpenseRunning: number[]; dayIncome: number[]; dayBalance: number[];
+  endBalance: number | null; dayExpense: number[]; dayExpenseRunning: number[]; dayIncome: number[];
+  dayBalance: (number | null)[];
 }
 export interface Series { months: number[]; days: Record<MonthKey, number[]> }
 export interface Dashboard {
   version: 2; months: Month[]; categories: Category[]; incomeBuckets: Category[]; transactions: Txn[];
-  overview: { expense: number[]; income: number[]; balance: number[] };
+  overview: { expense: number[]; income: number[]; balance: (number | null)[] };
   total: Totals; byMonth: Record<MonthKey, MonthData>; spend: Record<string, Series>; income: Record<string, Series>;
   pick: { spend: string[]; income: string[] };
   cash?: CashView; // the Cash page (brief 32), passed on from the source; never counted
   paybacksIgnored?: PaybackIgnored[];
+  balanceUncertainDays?: BalanceUncertainDay[];
 }
 
 const money = (n: number) => Math.round(n * 100) / 100;
@@ -134,10 +141,10 @@ export function buildDashboard(source: DashboardSource): Dashboard {
   const incomeMonths = months.map(() => new Map<string, number>());
   const total: Totals = { expense: 0, income: 0, categories: [], incomeBuckets: [] };
   const byMonth: Record<string, MonthData> = Object.fromEntries(months.map((mo) => {
-    const dayBalance = Array.from({ length: mo.days }, (_, i) => balanceByDay[`${mo.key}-${String(i + 1).padStart(2, "0")}`] ?? 0);
+    const dayBalance = Array.from({ length: mo.days }, (_, i) => balanceByDay[`${mo.key}-${String(i + 1).padStart(2, "0")}`] ?? null);
     return [mo.key, {
       expense: 0, income: 0, categories: [], incomeBuckets: [],
-      endBalance: balanceByDay[`${mo.key}-${String(mo.days).padStart(2, "0")}`],
+      endBalance: balanceByDay[`${mo.key}-${String(mo.days).padStart(2, "0")}`] ?? null,
       dayExpense: new Array<number>(mo.days).fill(0), dayExpenseRunning: [], dayIncome: new Array<number>(mo.days).fill(0), dayBalance,
     }];
   }));
@@ -267,6 +274,8 @@ export function buildDashboard(source: DashboardSource): Dashboard {
       expense: months.map((m) => byMonth[m.key].expense), income: months.map((m) => byMonth[m.key].income),
       balance: months.map((m) => byMonth[m.key].endBalance),
     },
+    ...(source.balanceUncertainDays?.length
+      ? { balanceUncertainDays: source.balanceUncertainDays.map((day) => ({ ...day })) } : {}),
     ...(source.cash ? { cash: source.cash } : {}),
     ...(source.paybacksIgnored?.length ? { paybacksIgnored: source.paybacksIgnored.map((link) => ({ ...link })) } : {}),
   };

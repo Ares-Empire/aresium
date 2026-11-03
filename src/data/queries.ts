@@ -243,7 +243,7 @@ export async function fetchSourceRows(): Promise<SourceRows> {
 }
 
 // Database rows → the engine's plain input. Icons and colours (CAT_META) are applied here, on the server.
-function sourceInput(
+export function dashboardInputFromRows(
   { transactions, categories }: SourceRows,
   now: Date,
   links: Record<string, import("./dashboard.js").PaymentLink[]> = {},
@@ -256,6 +256,7 @@ function sourceInput(
           paysBack: links[t.id]
         } : {}),
         externalId: t.externalId,
+        accountId: t.accountId,
         date: t.bookingDate.toISOString(),
         amount: Number(t.amount),
         currency: t.currency,
@@ -301,7 +302,7 @@ export function dashboardSourceFromRows(
     source: DashboardSource;
     unmatched: string[]
   } {
-  const input = sourceInput(rows, now, links, receipts);
+  const input = dashboardInputFromRows(rows, now, links, receipts);
   return {
     source: buildDashboardSource(input),
     unmatched: unmatchedPaypalConversions(input.transactions)

@@ -4,6 +4,8 @@ import { readdir, readFile } from "node:fs/promises";
 import { test } from "node:test";
 import { createContext, runInContext } from "node:vm";
 import { bundleEngine } from "../../scripts/build-engine.js";
+import { assertBalanceOnlyChanges, withoutDashboardBalances } from "../../scripts/balance-parity.js";
+import { legacyBuildDashboardSource } from "./legacy-source.js";
 import { buildDashboard } from "../data/dashboard.js";
 import { DEFAULT_CATEGORIES } from "./categories.js";
 import * as engine from "./index.js";
@@ -48,8 +50,11 @@ const sha256 = (value: unknown) => createHash("sha256").update(JSON.stringify(va
 const DASHBOARD_HASH = "388c0d4e7f4d0e9589896a2c190b1ddf6218f570d1f0b8bd14b5595aa07dea18";
 const SOURCE_HASH_BEFORE_SIDES = "736b388d6c1308e85ed0b44d559f62cd357a9c4b5163524b50f5edc5e799af07";
 
-function assertFixtureDashboard(dashboard: ReturnType<typeof buildDashboard>) {
-  assert.equal(sha256(dashboard), DASHBOARD_HASH);
+function assertFixtureDashboard(
+  dashboard: ReturnType<typeof buildDashboard>, legacy: ReturnType<typeof buildDashboard>,
+) {
+  assert.equal(sha256(legacy), DASHBOARD_HASH);
+  assert.deepEqual(withoutDashboardBalances(dashboard), withoutDashboardBalances(legacy));
   const transfers = new Set(dashboard.categories.filter((c) => c.kind === "transfer").map((c) => c.name));
   assert.equal(dashboard.total.income,
     Math.round(dashboard.transactions.filter((t) => t.amount > 0 && !transfers.has(t.categoryName))
@@ -59,14 +64,15 @@ function assertFixtureDashboard(dashboard: ReturnType<typeof buildDashboard>) {
       .reduce((sum, t) => sum - t.amount, 0) * 100) / 100);
 }
 
-test("no receipts: every bank fixture follows direction and keeps the existing source JSON", async () => {
+test("no receipts: every bank fixture keeps all source fields except the approved balance changes", async () => {
   const input = { transactions: await fixturePayments(), categories: fixtureCategories, today: "2026-03-15" };
   assert.equal(input.transactions.length, 128);
   assert.ok(input.transactions.some((p) => p.category === "Cash"), "the fixtures hold cash withdrawals");
-  const source = buildDashboardSource(input);
-  assert.equal(sha256(source), SOURCE_HASH_BEFORE_SIDES, "source JSON without side fields stays byte-identical");
+  const source = assertBalanceOnlyChanges(input);
+  const legacy = legacyBuildDashboardSource(input);
+  assert.equal(sha256(legacy), SOURCE_HASH_BEFORE_SIDES, "retained source matches the original fixture hash");
   const dashboard = buildDashboard(source);
-  assertFixtureDashboard(dashboard);
+  assertFixtureDashboard(dashboard, buildDashboard(legacy));
   // The server's JSON gains nothing of the Cash page (brief 32).
   assert.equal("cash" in dashboard, false);
   assert.equal(dashboard.transactions.some((t) => "cashWithdrawal" in t), false);
@@ -74,9 +80,11 @@ test("no receipts: every bank fixture follows direction and keeps the existing s
 
 test("receipts given but none stored: the same numbers; only the Cash page and the withdrawals' marks are added", async () => {
   const input = { transactions: await fixturePayments(), categories: fixtureCategories, today: "2026-03-15", receipts: [] };
-  const { cash, ...dashboard } = buildDashboard(buildDashboardSource(input));
+  const { cash, ...dashboard } = buildDashboard(assertBalanceOnlyChanges(input));
+  const { cash: legacyCash, ...legacy } = buildDashboard(legacyBuildDashboardSource(input));
   const unmarked = { ...dashboard, transactions: dashboard.transactions.map(({ cashWithdrawal, ...t }) => t) };
-  assertFixtureDashboard(unmarked);
+  const legacyUnmarked = { ...legacy, transactions: legacy.transactions.map(({ cashWithdrawal, ...t }) => t) };
+  assertFixtureDashboard(unmarked, legacyUnmarked);
   const marked = dashboard.transactions.filter((t) => t.cashWithdrawal).map((t) => t.id);
   assert.ok(marked.length > 0);
   assert.deepEqual(cash!.movements.map((m) => [m.id, m.kind, m.paidFrom, m.coveredBy]), marked.map((id) => [id, "withdrawal", null, []]));
