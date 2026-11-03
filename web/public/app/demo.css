@@ -1,0 +1,42 @@
+.demo-band {
+  top: auto;
+  bottom: 14px;
+  max-width: calc(100vw - 24px);
+  white-space: normal;
+}
+
+.demo-band>span:nth-child(2) {
+  min-width: 0;
+}
+
+.demo-band a {
+  flex-shrink: 0;
+}
+
+
+
+html.demo .mob-logout-btn {
+  display: none;
+}
+
+.demo-band {
+  width: min(560px, calc(100vw - 24px));
+}
+
+html.demo .page-overlay {
+  overflow: hidden;
+}
+
+html.demo .dashboard-page {
+  max-height: calc(100dvh - 126px);
+  overflow-y: auto;
+  padding-bottom: 24px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-soft) transparent;
+}
+
+@media(max-width:620px) {
+  html.demo .dashboard-page {
+    max-height: calc(100dvh - 118px);
+  }
+}

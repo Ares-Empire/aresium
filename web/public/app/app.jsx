@@ -1,156 +1,344 @@
 /* Aresium — app shell: drill-down state machine, header, theme, layout. */
 const { useState: useS, useEffect: useE, useCallback: useC, useMemo } = React;
 const D = window.AresiumData;
-
 const THEME_COLORS = {
-  dark:  { exp: "#FF2D4B", bal: "#2E8BFF" },
-  light: { exp: "#E11030", bal: "#1452F0" },
-  red:   { exp: "#0a0a0a", bal: "#ffffff" },
+  dark: {
+    exp: "#FF2D4B",
+    bal: "#2E8BFF"
+  },
+  light: {
+    exp: "#E11030",
+    bal: "#1452F0"
+  },
+  red: {
+    exp: "#0a0a0a",
+    bal: "#ffffff"
+  },
 };
-
 // ---- screen builders: each returns chart props + panel descriptor ----
 const INC = "#34E27A"; // income green
-
 function buildScreen(state, colors) {
   const { screen, monthKey, cat, income } = state;
   const mo = monthKey ? D.months.find((m) => m.key === monthKey) : null;
-  const dayLabels = (m) => Array.from({ length: m.days }, (_, i) => String(i + 1));
+  const dayLabels = (m) => Array.from({
+    length: m.days
+  }, (_, i) => String(i + 1));
   const monthLabels = D.months.map((m) => m.short);
-
   if (screen === "overview") {
     // Graph lives on the wall; the right side is the Expenses/Income tabs.
     return {
-      title: "Overview", subtitle: `${D.months[0].label} – ${D.months[D.months.length - 1].label}`,
+      title: "Overview",
+      subtitle: `${D.months[0].label} – ${D.months[D.months.length - 1].label}`,
       chart: {
-        animKey: "overview", clickable: true, xLabel: "Month", yLabel: "EUR",
+        animKey: "overview",
+        clickable: true,
+        xLabel: "Month",
+        yLabel: "EUR",
         xLabels: monthLabels,
         series: [
-          { key: "exp", label: "Expenses", color: colors.exp, points: D.overviewMonthExpense },
-          { key: "inc", label: "Income", color: INC, points: D.overviewMonthIncome },
-          { key: "bal", label: "Balance", color: colors.bal, points: D.overviewMonthBalance },
+          {
+            key: "exp",
+            label: "Expenses",
+            color: colors.exp,
+            points: D.overviewMonthExpense
+          },
+          {
+            key: "inc",
+            label: "Income",
+            color: INC,
+            points: D.overviewMonthIncome
+          },
+          {
+            key: "bal",
+            label: "Balance",
+            color: colors.bal,
+            points: D.overviewMonthBalance
+          },
         ],
       },
       legend: true,
-      panel: { dual: true, kicker: "By category",
-        expenseRows: D.categoryTotalsAll(), incomeRows: D.incomeTotalsAll(),
-        expenseTotal: D.expenseTotal(null), incomeTotal: D.incomeTotalPrimary(null) },
+      panel: {
+        dual: true,
+        kicker: "By category",
+        expenseRows: D.categoryTotalsAll(),
+        incomeRows: D.incomeTotalsAll(),
+        expenseTotal: D.expenseTotal(null),
+        incomeTotal: D.incomeTotalPrimary(null)
+      },
     };
   }
   if (screen === "month") {
     return {
-      title: mo.label, subtitle: "Daily expenses, income & balance",
+      title: mo.label,
+      subtitle: "Daily expenses, income & balance",
       chart: {
-        animKey: "month-" + monthKey, clickable: false, xLabel: "Day", yLabel: "EUR",
+        animKey: "month-" + monthKey,
+        clickable: true,
+        xLabel: "Day",
+        yLabel: "EUR",
         xLabels: dayLabels(mo),
         series: [
-          { key: "exp", label: "Expenses", color: colors.exp, points: D.dayExpenseSeries(monthKey) },
-          { key: "inc", label: "Income", color: INC, points: D.incomeDaySeries(monthKey) },
-          { key: "bal", label: "Balance", color: colors.bal, points: D.dayBalanceSeries(monthKey) },
+          {
+            key: "exp",
+            label: "Expenses",
+            color: colors.exp,
+            points: D.dayExpenseSeries(monthKey)
+          },
+          {
+            key: "inc",
+            label: "Income",
+            color: INC,
+            points: D.incomeDaySeries(monthKey)
+          },
+          {
+            key: "bal",
+            label: "Balance",
+            color: colors.bal,
+            points: D.dayBalanceSeries(monthKey)
+          },
         ],
       },
       legend: true,
-      panel: { dual: true, kicker: mo.label,
-        expenseRows: D.categoryTotalsMonth(monthKey), incomeRows: D.incomeTotalsMonth(monthKey),
-        expenseTotal: D.expenseTotal(monthKey), incomeTotal: D.incomeTotalPrimary(monthKey) },
+      panel: {
+        dual: true,
+        kicker: mo.label,
+        expenseRows: D.categoryTotalsMonth(monthKey),
+        incomeRows: D.incomeTotalsMonth(monthKey),
+        expenseTotal: D.expenseTotal(monthKey),
+        incomeTotal: D.incomeTotalPrimary(monthKey)
+      },
     };
   }
   if (screen === "category") {
     // A single category: just its own line — no balance, no other side.
     const c = income ? D.incomeBucketMeta(cat) : D.catByName[cat];
     return {
-      title: `${cat} over time`, subtitle: income ? "Monthly income" : "Monthly spend", icon: c.icon, iconColor: c.color,
+      title: `${cat}`,
+      subtitle: income ? "Monthly income" : "Monthly spend",
+      icon: c.icon,
+      iconColor: c.color,
       chart: {
-        animKey: (income ? "inccat-" : "cat-") + cat, clickable: true, xLabel: "Month", yLabel: "EUR",
+        animKey: (income ? "inccat-" : "cat-") + cat,
+        clickable: true,
+        xLabel: "Month",
+        yLabel: "EUR",
         xLabels: monthLabels,
-        series: [{ key: income ? "inc" : "exp", label: cat, color: c.color, points: income ? D.incomeBucketMonthSeries(cat) : D.categoryMonthSeries(cat) }],
+        series: [
+          {
+            key: income ? "inc" : "exp",
+            label: cat,
+            color: c.color,
+            points: income ? D.incomeBucketMonthSeries(cat) : D.categoryMonthSeries(cat)
+          }
+        ],
       },
       legend: false,
-      panel: { kind: "months", kicker: cat, title: "By month", cat: c, income, months: income ? D.incomeBucketMonthList(cat) : D.categoryMonthList(cat) },
+      panel: {
+        kind: "months",
+        kicker: cat,
+        title: "By month",
+        cat: c,
+        income,
+        months: income ? D.incomeBucketMonthList(cat) : D.categoryMonthList(cat)
+      },
     };
   }
   // categoryMonth
   const c = income ? D.incomeBucketMeta(cat) : D.catByName[cat];
   return {
-    title: `${cat}`, subtitle: `${mo.label} · daily`, icon: c.icon, iconColor: c.color,
+    title: `${cat}`,
+    subtitle: `${mo.label} · daily`,
+    icon: c.icon,
+    iconColor: c.color,
     chart: {
-      animKey: (income ? "inccatmonth-" : "catmonth-") + cat + "-" + monthKey, clickable: false, xLabel: "Day", yLabel: "EUR",
+      animKey: (income ? "inccatmonth-" : "catmonth-") + cat + "-" + monthKey,
+      clickable: true,
+      xLabel: "Day",
+      yLabel: "EUR",
       xLabels: dayLabels(mo),
-      series: [{ key: income ? "inc" : "exp", label: cat, color: c.color, fill: true, points: income ? D.incomeBucketDaySeries(cat, monthKey) : D.categoryDaySeries(cat, monthKey) }],
+      series: [
+        {
+          key: income ? "inc" : "exp",
+          label: cat,
+          color: c.color,
+          fill: true,
+          points: income ? D.incomeBucketDaySeries(cat, monthKey) : D.categoryDaySeries(cat, monthKey)
+        }
+      ],
     },
     legend: false,
-    panel: { kind: "txns", kicker: `${cat} · ${mo.label}`, title: "Transactions", cat: c, txns: income ? D.incomeBucketMonthTransactions(cat, monthKey) : D.categoryMonthTransactions(cat, monthKey) },
+    panel: {
+      kind: "txns",
+      kicker: `${cat} · ${mo.label}`,
+      title: "Transactions",
+      cat: c,
+      txns: income
+        ? D.incomeBucketMonthTransactions(cat, monthKey)
+        : D.categoryMonthTransactions(cat, monthKey)
+    },
   };
 }
-
 function crumbsFor(state) {
-  const out = [{ label: "Overview", to: { screen: "overview" } }];
+  const out = [{
+    label: "Overview",
+    to: {
+      screen: "overview"
+    }
+  }];
   const mo = state.monthKey ? D.months.find((m) => m.key === state.monthKey) : null;
-  if (state.screen === "month") out.push({ label: mo.label });
-  if (state.screen === "category") out.push({ label: state.cat });
+  if (state.screen === "month")
+    out.push({
+      label: mo.label
+    });
+  if (state.screen === "category")
+    out.push({
+      label: state.cat
+    });
   if (state.screen === "categoryMonth") {
     if (state.from === "category") {
-      out.push({ label: state.cat, to: { screen: "category", cat: state.cat, income: state.income } });
-      out.push({ label: mo.label });
+      out.push(
+        {
+          label: state.cat,
+          to: {
+            screen: "category",
+            cat: state.cat,
+            income: state.income
+          }
+        });
+      out.push({
+        label: mo.label
+      });
     } else {
-      out.push({ label: mo.label, to: { screen: "month", monthKey: state.monthKey } });
-      out.push({ label: state.cat });
+      out.push(
+        {
+          label: mo.label,
+          to: {
+            screen: "month",
+            monthKey: state.monthKey
+          }
+        });
+      out.push({
+        label: state.cat
+      });
     }
   }
   return out;
 }
-
 function Legend({ series, hidden, onToggle }) {
   return (
     <div className="legend">
-      {series.map((s) => (
-        <button key={s.key} className={"legend-item" + (hidden[s.key] ? " off" : "")} onClick={() => onToggle(s.key)} title={hidden[s.key] ? `Show ${s.label}` : `Hide ${s.label}`}>
-          <span className="dot" style={{ background: s.color }} />{s.label}
-        </button>
-      ))}
+      {series.map(
+        (s) => (
+          <button
+            key={s.key}
+            className={"legend-item" + (hidden[s.key] ? " off" : "")}
+            onClick={() => onToggle(s.key)}
+            title={hidden[s.key] ? `Show ${s.label}` : `Hide ${s.label}`}
+          >
+            <span
+              className="dot"
+              style={{
+                background: s.color
+              }}
+            />
+            {window.AresiumLanguage.t(s.label)}
+          </button>
+        ))}
     </div>
   );
 }
-
 // Single panel for the drill screens (months list, or transactions).
 function SidePanel({ view, dir, pickMonth, openTxn }) {
   const [shown, setShown] = useS(false);
-  useE(() => { const id = setTimeout(() => setShown(true), 20); return () => clearTimeout(id); }, []);
+  useE(
+    () => {
+      const id = setTimeout(() => setShown(true), 20);
+      return () => clearTimeout(id);
+    },
+    []);
   const p = view.panel;
   return (
     <div className={`panel ${dir > 0 ? "fwd" : "back"} ${shown ? "in" : ""}`}>
-      <PanelHeader kicker={p.kicker} title={p.title} total={null} />
-      {p.kind === "months" && <MonthListPanel cat={p.cat} months={p.months} onPick={pickMonth} />}
-      {p.kind === "txns" && <TransactionsPanel cat={p.cat} txns={p.txns} onOpen={openTxn} />}
+      <PanelHeader
+        kicker={p.kicker}
+        title={p.title}
+        total={null}
+      />
+      {p.kind === "months"
+        && <MonthListPanel
+          cat={p.cat}
+          months={p.months}
+          onPick={pickMonth}
+        />}
+      {p.kind === "txns"
+        && <TransactionsPanel
+          cat={p.cat}
+          txns={p.txns}
+          onOpen={openTxn}
+        />}
     </div>
   );
 }
-
 // One side list with its own header + total — used twice (Expenses, Income) on the
 // overview/month screens so both are visible at once.
-function SideListPanel({ title, cap, rows, total, onPick, dir }) {
+function SideListPanel({ title, cap, rows, total, onPick, dir, overview }) {
   const [shown, setShown] = useS(false);
-  useE(() => { const id = setTimeout(() => setShown(true), 20); return () => clearTimeout(id); }, []);
+  useE(
+    () => {
+      const id = setTimeout(() => setShown(true), 20);
+      return () => clearTimeout(id);
+    },
+    []);
   // `total` is the primary-only money figure (real spend/income). It is passed in rather
   // than summed from `rows` because rows may include "Add"-tagged overlaps across categories.
   return (
     <div className={`panel ${dir > 0 ? "fwd" : "back"} ${shown ? "in" : ""}`}>
       <div className="panel-head">
-        <div className="panel-title">{title}</div>
-        <div className="panel-total">{window.fmtMoney(total)}<span className="panel-total-cap">{cap}</span></div>
+        <div className="panel-title">
+          {window.AresiumLanguage.t(title)}
+        </div>
+        <div className="panel-total">
+          {window.fmtMoney(total)}
+          <span className="panel-total-cap">
+            {window.AresiumLanguage.t(cap)}
+          </span>
+        </div>
       </div>
-      <CategoryListPanel rows={rows} onPick={onPick} />
+      {overview && <window.AverageLine side={title === "Income" ? "income" : "expenses"} />}
+      <CategoryListPanel
+        rows={rows}
+        onPick={onPick}
+      />
     </div>
   );
 }
-
 function Logo() {
   // The Hermes bust — the Aresium mark across the empire.
-  return <img className="logo" src="brand/hermes.png" width="38" height="38" alt="Aresium" />;
+  return <img
+    className="logo"
+    src="brand/hermes.png"
+    width="38"
+    height="38"
+    alt="Aresium"
+  />;
 }
-
 function App() {
+  const handleClick = () => {
+    if (window.confirm(window.AresiumLanguage.t("Log out?")))
+      window.location.href = "/logout";
+  };
+  const [graphOn, setGraphOn] = useS(() => window.AresiumDisplay.get("graph", true));
+  useE(
+    () => {
+      const fn = () => setGraphOn(window.AresiumDisplay.get("graph", true));
+      window.addEventListener("aresium:display", fn);
+      return () => window.removeEventListener("aresium:display", fn);
+    },
+    []);
   const [theme, setTheme] = useS(() => window.AresiumAppearance.load());   // dark until switched (appearance.js)
-  const [state, setState] = useS({ screen: "overview" });
+  const [state, setState] = useS({
+    screen: "overview"
+  });
   const [dir, setDir] = useS(1); // 1 forward, -1 back
   const [history, setHistory] = useS([]);
   const [detailId, setDetailId] = useS(null); // open transaction-detail modal
@@ -162,222 +350,609 @@ function App() {
   const prevTheme = React.useRef(theme);
   const busy = React.useRef(false);
   const colors = THEME_COLORS[theme];
-
-  useE(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    window.AresiumAppearance.save(theme);   // light or dark is remembered, also for the contact page; red is not
-  }, [theme]);
-
+  useE(
+    () => {
+      const fn = () => {
+        setState({
+          screen: "overview"
+        });
+        setHistory([]);
+      };
+      window.addEventListener("aresium:tour-home", fn);
+      return () => window.removeEventListener("aresium:tour-home", fn);
+    },
+    []);
+  useE(
+    () => {
+      const fn = () => setDataVer((v) => v + 1);
+      window.addEventListener("aresium:data", fn);
+      return () => window.removeEventListener("aresium:data", fn);
+    },
+    []);
+  useE(
+    () => {
+      document.documentElement.setAttribute("data-theme", theme);
+      window.AresiumAppearance.save(theme);   // light or dark is remembered, also for the contact page; red is not
+    },
+    [theme]);
   // Wordmark intro transition (window.AresiumIntro): the ARESIUM word flies in to a hero,
   // vibrates, and settles into the bottom band while the background morphs — and the mirror
   // when leaving red. The real theme is swapped (onSwap) while the page is covered.
-  const runIntro = useC((target, entering) => {
-    if (busy.current) return; busy.current = true;
-    window.AresiumIntro.play({
-      entering, target,
-      onSwap: () => setTheme(target),
-      onDone: () => { busy.current = false; },
-    });
-  }, []);
-
-  const toggleRed = useC(() => {
-    if (theme === "red") runIntro(prevTheme.current, false);
-    else { prevTheme.current = theme; runIntro("red", true); }
-  }, [theme, runIntro]);
-  const onThemeBtn = useC(() => {
-    if (theme === "red") { runIntro(prevTheme.current, false); return; }
-    setTheme((t) => (t === "dark" ? "light" : "dark"));
-  }, [theme, runIntro]);
-
-  const go = useC((next) => {
-    setDir(1);
-    setHistory((h) => [...h, state]);
-    setState(next);
-  }, [state]);
-
-  const back = useC(() => {
-    setHistory((h) => {
-      if (h.length === 0) return h;
+  const runIntro = useC(
+    (target, entering) => {
+      if (busy.current)
+        return;
+      busy.current = true;
+      window.AresiumIntro.play(
+        {
+          entering,
+          target,
+          onSwap: () => setTheme(target),
+          onDone: () => {
+            busy.current = false;
+          },
+        });
+    },
+    []);
+  const toggleRed = useC(
+    () => {
+      if (theme === "red")
+        runIntro(prevTheme.current, false);
+      else {
+        prevTheme.current = theme;
+        runIntro("red", true);
+      }
+    },
+    [theme, runIntro]);
+  const onThemeBtn = useC(
+    () => {
+      if (theme === "red") {
+        runIntro(prevTheme.current, false);
+        return;
+      }
+      setTheme((t) => (t === "dark" ? "light" : "dark"));
+    },
+    [theme, runIntro]);
+  const go = useC(
+    (next) => {
+      setDir(1);
+      setHistory((h) => [...h, state]);
+      setState(next);
+    },
+    [state]);
+  const back = useC(
+    () => {
+      setHistory(
+        (h) => {
+          if (h.length === 0)
+            return h;
+          setDir(-1);
+          setState(h[h.length - 1]);
+          return h.slice(0, -1);
+        });
+    },
+    []);
+  const jumpTo = useC(
+    (to) => {
+      // breadcrumb jump: rebuild a clean history
       setDir(-1);
-      setState(h[h.length - 1]);
-      return h.slice(0, -1);
-    });
-  }, []);
-
-  const jumpTo = useC((to) => {
-    // breadcrumb jump: rebuild a clean history
-    setDir(-1);
-    setHistory((h) => {
-      const idx = h.findIndex((s) => s.screen === to.screen && s.cat === to.cat && s.monthKey === to.monthKey);
-      if (idx >= 0) { setState(h[idx]); return h.slice(0, idx); }
-      setState(to); return [];
-    });
-  }, []);
-
+      setHistory(
+        (h) => {
+          const idx = h.findIndex((s) => s.screen === to.screen && s.cat === to.cat && s.monthKey === to.monthKey);
+          if (idx >= 0) {
+            setState(h[idx]);
+            return h.slice(0, idx);
+          }
+          setState(to);
+          return [];
+        });
+    },
+    []);
   const view = useMemo(() => buildScreen(state, colors), [state, colors, dataVer]);
-
   // chart click handler (months on overview/category screens)
-  const onIndexClick = useC((i) => {
-    if (state.screen === "overview") go({ screen: "month", monthKey: D.months[i].key });
-    else if (state.screen === "category") go({ screen: "categoryMonth", cat: state.cat, monthKey: D.months[i].key, from: "category", income: state.income });
-  }, [state, go]);
-
+  const onIndexClick = useC(
+    (i) => {
+      if (state.screen === "month" || state.screen === "categoryMonth") {
+        window.AresiumPages.open(
+          {
+            screen: "day",
+            day: state.monthKey + "-" + String(i + 1).padStart(2, "0"),
+            side: state.income ? "income" : "expenses"
+          });
+        return;
+      }
+      if (state.screen === "overview")
+        go({
+          screen: "month",
+          monthKey: D.months[i].key
+        });
+      else
+        if (state.screen === "category")
+          go(
+            {
+              screen: "categoryMonth",
+              cat: state.cat,
+              monthKey: D.months[i].key,
+              from: "category",
+              income: state.income
+            });
+    },
+    [state, go]);
   // panel pick handlers
-  const pickCategory = useC((c) => {
-    if (state.screen === "overview") go({ screen: "category", cat: c.name });
-    else if (state.screen === "month") go({ screen: "categoryMonth", cat: c.name, monthKey: state.monthKey, from: "month" });
-  }, [state, go]);
-  const pickIncome = useC((c) => {
-    if (state.screen === "overview") go({ screen: "category", cat: c.name, income: true });
-    else if (state.screen === "month") go({ screen: "categoryMonth", cat: c.name, monthKey: state.monthKey, from: "month", income: true });
-  }, [state, go]);
-  const pickMonth = useC((m) => go({ screen: "categoryMonth", cat: state.cat, monthKey: m.key, from: "category", income: state.income }), [state, go]);
-
+  const pickCategory = useC(
+    (c) => {
+      if (state.screen === "overview")
+        go({
+          screen: "category",
+          cat: c.name
+        });
+      else
+        if (state.screen === "month")
+          go(
+            {
+              screen: "categoryMonth",
+              cat: c.name,
+              monthKey: state.monthKey,
+              from: "month"
+            });
+    },
+    [state, go]);
+  const pickIncome = useC(
+    (c) => {
+      if (state.screen === "overview")
+        go({
+          screen: "category",
+          cat: c.name,
+          income: true
+        });
+      else
+        if (state.screen === "month")
+          go(
+            {
+              screen: "categoryMonth",
+              cat: c.name,
+              monthKey: state.monthKey,
+              from: "month",
+              income: true
+            });
+    },
+    [state, go]);
+  const pickMonth = useC(
+    (m) => go(
+      {
+        screen: "categoryMonth",
+        cat: state.cat,
+        monthKey: m.key,
+        from: "category",
+        income: state.income
+      }),
+    [state, go]);
   // Refresh the server-calculated figures after a category or tag change.
-  const onTxnRecategorized = useC(async (detail) => {
-    if (!detail) return;
-    await window.AresiumData.refresh();
-    setDataVer((v) => v + 1);
-  }, []);
-
+  const onTxnRecategorized = useC(
+    async (detail) => {
+      if (!detail)
+        return;
+      await window.AresiumData.refresh();
+      setDataVer((v) => v + 1);
+    },
+    []);
   // Upload bank/PayPal exports → server ingests + categorises → refresh live data and
   // bump importVer so the chart morphs and the category lists re-reveal to the new totals.
-  const openUpload = useC(() => { if (fileRef.current) fileRef.current.click(); }, []);
-  const onUploadPick = useC(async (e) => {
-    const files = e.target.files;
-    if (!files || !files.length) return;
-    setUpload({ busy: true });
-    try {
-      const data = await window.AresiumUpload.send(files);
-      await window.AresiumData.refresh();
-      setImportVer((v) => v + 1);
-      setDataVer((v) => v + 1);
-      setUpload({ msg: window.AresiumUpload.summarize(data), ok: true });
-    } catch (err) {
-      setUpload({ msg: (err && err.message) || "Import failed", ok: false });
-    } finally {
-      if (fileRef.current) fileRef.current.value = "";   // allow re-picking the same file
-      setTimeout(() => setUpload((u) => (u && u.busy ? u : null)), 4600);
-    }
+  const openUpload = useC(() => {
+    if (fileRef.current)
+      fileRef.current.click();
   }, []);
-
+  const onUploadPick = useC(
+    async (e) => {
+      const files = e.target.files;
+      if (!files || !files.length)
+        return;
+      setUpload({
+        busy: true
+      });
+      try {
+        const data = await window.AresiumUpload.send(files);
+        await window.AresiumData.refresh();
+        setImportVer((v) => v + 1);
+        setDataVer((v) => v + 1);
+        setUpload({
+          msg: window.AresiumUpload.summarize(data),
+          ok: true
+        });
+      } catch (err) {
+        setUpload({
+          msg: (err && err.message) || "Import failed",
+          ok: false
+        });
+      } finally {
+        if (fileRef.current)
+          fileRef.current.value = "";   // allow re-picking the same file
+        setTimeout(
+          () => {
+            setUpload((u) => (u && u.busy ? u : null));
+            if (D.raw.quickSort?.length)
+              window.AresiumPages.open({
+                screen: "quickSortOffer"
+              });
+          },
+          4600);
+      }
+    },
+    []);
   // legend toggles reset whenever you navigate to another screen
-  useE(() => { setHidden({}); }, [state]);
-  const toggleSeries = useC((k) => setHidden((h) => ({ ...h, [k]: !h[k] })), []);
+  useE(() => {
+    setHidden({});
+  }, [state]);
+  const toggleSeries = useC((k) => setHidden((h) => ({
+    ...h,
+    [k]: !h[k]
+  })), []);
   const shownSeries = view.chart.series.filter((s) => !hidden[s.key]);
   const hiddenSig = Object.keys(hidden).filter((k) => hidden[k]).sort().join("");
   // include importVer so a fresh upload re-keys the chart (morph) + side lists (re-reveal)
   const ak = view.chart.animKey + "-i" + importVer;
-
   const crumbs = crumbsFor(state);
-
   return (
     <div className="app">
       <header className="topbar">
         <div className="brand">
-          <button className="brand-btn" onClick={toggleRed} aria-label="Aresium mode" title={theme === "red" ? "Exit Aresium mode" : "Enter Aresium mode"}>
-            <span className="brand-mark"><Logo /></span>
-            <span className="brand-name">Aresium</span>
+          <button
+            className="brand-btn"
+            onClick={toggleRed}
+            aria-label="Aresium mode"
+            title={theme === "red" ? "Exit Aresium mode" : "Enter Aresium mode"}
+          >
+            <span className="brand-mark">
+              <Logo />
+            </span>
+            <span className="brand-name">
+              {"Aresium"}
+            </span>
           </button>
           <nav className="crumbs">
-            {crumbs.map((c, i) => (
-              <span key={i} className="crumb-wrap">
-                {i > 0 && <span className="crumb-sep">/</span>}
-                {c.to && i < crumbs.length - 1
-                  ? <button className="crumb crumb-link" onClick={() => jumpTo(c.to)}>{c.label}</button>
-                  : <span className="crumb crumb-cur">{c.label}</span>}
-              </span>
-            ))}
+            {crumbs.map(
+              (c, i) => (
+                <span
+                  key={i}
+                  className="crumb-wrap"
+                >
+                  {i > 0 && <span className="crumb-sep">
+                    {"/"}
+                  </span>}
+                  {c.to && i < crumbs.length - 1
+                    ? <button
+                      className="crumb crumb-link"
+                      onClick={() => jumpTo(c.to)}
+                    >
+                      {c.label}
+                    </button>
+                    : <span className="crumb crumb-cur">
+                      {c.label}
+                    </span>}
+                </span>
+              ))}
           </nav>
         </div>
         <div className="actions">
-          <input ref={fileRef} type="file" accept=".csv,.xml" multiple style={{ display: "none" }} onChange={onUploadPick} />
-          <button className={"btn-import" + (upload && upload.busy ? " busy" : "")} onClick={openUpload} disabled={!!(upload && upload.busy)} aria-label="Import statements" title="Import VR Bank / PayPal exports">
+          <window.DashboardTools />
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".csv,.xml"
+            multiple
+            style={{
+              display: "none"
+            }}
+            onChange={onUploadPick}
+          />
+          <button
+            className={"btn-import" + (upload && upload.busy ? " busy" : "")}
+            onClick={openUpload}
+            disabled={!!(upload && upload.busy)}
+            aria-label={window.AresiumLanguage.t("Import statements")}
+            title="Import VR Bank / PayPal exports"
+          >
             {upload && upload.busy
-              ? <span className="btn-spin" aria-hidden="true" />
-              : <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 10.5 V2.5 M8 2.5 L5 5.5 M8 2.5 L11 5.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /><path d="M3 11 V13 H13 V11" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>}
-            <span>{upload && upload.busy ? "Importing…" : "Import"}</span>
+              ? <span
+                className="btn-spin"
+                aria-hidden="true"
+              />
+              : <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+              >
+                <path
+                  d="M8 10.5 V2.5 M8 2.5 L5 5.5 M8 2.5 L11 5.5"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M3 11 V13 H13 V11"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>}
+            <span>
+              {window.AresiumLanguage.t(upload && upload.busy ? "Importing…" : "Import")}
+            </span>
           </button>
-          <button className="btn-back" onClick={back} disabled={history.length === 0} aria-label="Back">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3 L5 8 L10 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            <span>Back</span>
+          <button
+            className="btn-back"
+            onClick={back}
+            disabled={history.length === 0}
+            aria-label={window.AresiumLanguage.t("Back")}
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+            >
+              <path
+                d="M10 3 L5 8 L10 13"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <span>
+              {window.AresiumLanguage.t("Back")}
+            </span>
           </button>
-          <button className="btn-theme" onClick={onThemeBtn} aria-label="Toggle theme">
-            {theme === "dark" ? (
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4.2" fill="currentColor" /><g stroke="currentColor" strokeWidth="1.7" strokeLinecap="round">{[0,45,90,135,180,225,270,315].map((a)=>{const r=a*Math.PI/180;return <line key={a} x1={12+Math.cos(r)*7} y1={12+Math.sin(r)*7} x2={12+Math.cos(r)*9.4} y2={12+Math.sin(r)*9.4}/>;})}</g></svg>
-            ) : theme === "light" ? (
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M20 14.5 A8 8 0 1 1 9.5 4 A6.2 6.2 0 0 0 20 14.5 Z" fill="currentColor" /></svg>
-            ) : (
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M11.5 4.5 L4.5 11.5 M4.5 4.5 L11.5 11.5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" /></svg>
-            )}
+          <button
+            className="btn-theme"
+            onClick={onThemeBtn}
+            aria-label={window.AresiumLanguage.t("Toggle theme")}
+          >
+            {theme === "dark"
+              ? (
+                <svg
+                  width="17"
+                  height="17"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="4.2"
+                    fill="currentColor"
+                  />
+                  <g
+                    stroke="currentColor"
+                    strokeWidth="1.7"
+                    strokeLinecap="round"
+                  >
+                    {[0, 45, 90, 135, 180, 225, 270, 315].map(
+                      (a) => {
+                        const r = a * Math.PI / 180;
+                        return <line
+                          key={a}
+                          x1={12 + Math.cos(r) * 7}
+                          y1={12 + Math.sin(r) * 7}
+                          x2={12 + Math.cos(r) * 9.4}
+                          y2={12 + Math.sin(r) * 9.4}
+                        />;
+                      })}
+                  </g>
+                </svg>
+              )
+              : theme === "light"
+                ? (
+                  <svg
+                    width="17"
+                    height="17"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                  >
+                    <path
+                      d="M20 14.5 A8 8 0 1 1 9.5 4 A6.2 6.2 0 0 0 20 14.5 Z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                )
+                : (
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                  >
+                    <path
+                      d="M11.5 4.5 L4.5 11.5 M4.5 4.5 L11.5 11.5"
+                      stroke="currentColor"
+                      strokeWidth="1.9"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                )}
           </button>
-          <button className="btn-logout" onClick={() => { window.location.href = "/logout"; }} aria-label="Log out" title="Log out">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M14 4 H7 a2 2 0 0 0 -2 2 v12 a2 2 0 0 0 2 2 h7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /><path d="M17 8 l4 4 -4 4 M21 12 H10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          <button
+            className="btn-logout"
+            onClick={handleClick}
+            aria-label={window.AresiumLanguage.t("Log out")}
+            title={window.AresiumLanguage.t("Log out")}
+          >
+            <svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+            >
+              <path
+                d="M14 4 H7 a2 2 0 0 0 -2 2 v12 a2 2 0 0 0 2 2 h7"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M17 8 l4 4 -4 4 M21 12 H10"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </button>
         </div>
       </header>
-
-      <main className={"grid" + (view.panel.dual ? " grid-dual" : "")}>
-        <section className="chart-card">
+      <main
+        className={"grid" + (!graphOn ? " no-chart" : "") + (view.panel.dual ? " grid-dual" : "")}>
+        <section
+          className="chart-card"
+          style={graphOn ? {} : {
+            display: "none"
+          }}
+        >
           <div className="chart-card-head">
             <div className="chart-titles">
-              <h1 className="chart-title">{view.icon ? <span className="chart-title-ic" style={{ color: view.iconColor }} dangerouslySetInnerHTML={{ __html: window.lucideSvg(view.icon) }} /> : null}{view.title}</h1>
-              <p className="chart-sub">{view.subtitle}</p>
+              <h1 className="chart-title">
+                {view.icon
+                  ? <span
+                    className="chart-title-ic"
+                    style={{
+                      color: view.iconColor
+                    }}
+                    dangerouslySetInnerHTML={{
+                      __html: window.lucideSvg(view.icon)
+                    }}
+                  />
+                  : null}
+                {window.AresiumLanguage.t(view.title)}
+              </h1>
+              <p className="chart-sub">
+                {window.AresiumLanguage.t(view.subtitle)}
+              </p>
             </div>
-            {view.legend && <Legend series={view.chart.series} hidden={hidden} onToggle={toggleSeries} />}
+            {view.legend
+              && <Legend
+                series={view.chart.series}
+                hidden={hidden}
+                onToggle={toggleSeries}
+              />}
           </div>
           <div className="chart-host">
-            <AnimatedChart {...view.chart} series={shownSeries} animKey={ak + "-" + theme + "-" + hiddenSig} theme={theme} onIndexClick={onIndexClick} />
+            <AnimatedChart
+              {...view.chart}
+              partialLast={(state.screen === "overview" || state.screen === "category") && D.months.at(-1)?.partial}
+              series={shownSeries}
+              animKey={ak + "-" + theme + "-" + hiddenSig}
+              theme={theme}
+              onIndexClick={onIndexClick}
+            />
           </div>
         </section>
-
-        {view.panel.dual ? (
-          <React.Fragment>
+        {view.panel.dual
+          ? (
+            <React.Fragment>
+              <aside className="side-card">
+                <SideListPanel
+                  key={ak + "-exp"}
+                  title={window.AresiumLanguage.t("Expenses")}
+                  cap="spent"
+                  rows={view.panel.expenseRows}
+                  total={view.panel.expenseTotal}
+                  onPick={pickCategory}
+                  dir={dir}
+                  overview={state.screen === "overview"}
+                />
+              </aside>
+              <aside className="side-card side-income">
+                <SideListPanel
+                  key={ak + "-inc"}
+                  title={window.AresiumLanguage.t("Income")}
+                  cap="received"
+                  rows={view.panel.incomeRows}
+                  total={view.panel.incomeTotal}
+                  onPick={pickIncome}
+                  dir={dir}
+                  overview={state.screen === "overview"}
+                />
+              </aside>
+            </React.Fragment>
+          )
+          : (
             <aside className="side-card">
-              <SideListPanel key={ak + "-exp"} title="Expenses" cap="spent" rows={view.panel.expenseRows} total={view.panel.expenseTotal} onPick={pickCategory} dir={dir} />
+              <SidePanel
+                key={ak}
+                view={view}
+                dir={dir}
+                pickMonth={pickMonth}
+                openTxn={setDetailId}
+              />
             </aside>
-            <aside className="side-card side-income">
-              <SideListPanel key={ak + "-inc"} title="Income" cap="received" rows={view.panel.incomeRows} total={view.panel.incomeTotal} onPick={pickIncome} dir={dir} />
-            </aside>
-          </React.Fragment>
-        ) : (
-          <aside className="side-card">
-            <SidePanel key={ak} view={view} dir={dir} pickMonth={pickMonth} openTxn={setDetailId} />
-          </aside>
-        )}
+          )}
       </main>
-
-      <TxnDetailModal id={detailId} onClose={() => setDetailId(null)} onChanged={onTxnRecategorized} />
-
-      {upload && !upload.busy && (
-        <div className={"import-toast " + (upload.ok ? "ok" : "err")} role="status">{upload.msg}</div>
-      )}
-
-      {theme === "red" && (
-        <div className="aresium-band" aria-hidden="true">
-          <div className="aresium-word">{"ARESIUM".split("").map((ch, i) => <span key={i}>{ch}</span>)}</div>
-        </div>
-      )}
-
+      <TxnDetailModal
+        id={detailId}
+        onClose={() => setDetailId(null)}
+        onChanged={onTxnRecategorized}
+      />
+      {upload && !upload.busy
+        && (
+          <div
+            className={"import-toast " + (upload.ok ? "ok" : "err")}
+            role="status"
+          >
+            {upload.msg}
+          </div>
+        )}
+      {theme === "red"
+        && (
+          <div
+            className="aresium-band"
+            aria-hidden="true"
+          >
+            <div className="aresium-word">
+              {"ARESIUM".split("").map((ch, i) => <span key={i}>
+                {ch}
+              </span>)}
+            </div>
+          </div>
+        )}
       <LegalLinks className="legal" />
     </div>
   );
 }
-
 // Device routing: phones (≤620px) get their own MobileApp component tree (different
 // functionality, not a reflow); iPad and wider get the desktop web version. Re-evaluated
 // on resize/orientation so rotating a device swaps the right experience in.
 const MOBILE_MQ = "(max-width: 620px)";
 function Root() {
   const [isMobile, setIsMobile] = useS(() => window.matchMedia(MOBILE_MQ).matches);
-  useE(() => {
-    const m = window.matchMedia(MOBILE_MQ);
-    const fn = (e) => setIsMobile(e.matches);
-    m.addEventListener ? m.addEventListener("change", fn) : m.addListener(fn);
-    return () => { m.removeEventListener ? m.removeEventListener("change", fn) : m.removeListener(fn); };
-  }, []);
+  useE(
+    () => {
+      const m = window.matchMedia(MOBILE_MQ);
+      const fn = (e) => setIsMobile(e.matches);
+      m.addEventListener ? m.addEventListener("change", fn) : m.addListener(fn);
+      return () => {
+        m.removeEventListener ? m.removeEventListener("change", fn) : m.removeListener(fn);
+      };
+    },
+    []);
+  const [, setRevision] = useS(0);
+  useE(
+    () => {
+      const fn = () => setRevision((v) => v + 1);
+      window.addEventListener("aresium:data", fn);
+      return () => window.removeEventListener("aresium:data", fn);
+    },
+    []);
+  if (!D.months.length)
+    return <window.EmptyDashboard />;
   const Mobile = window.MobileApp;
-  return isMobile && Mobile ? <Mobile /> : <App />;
+  return <>
+    <window.AresiumTour />
+    <window.DashboardPageHost />
+    {isMobile && Mobile ? <Mobile /> : <App />}
+  </>;
 }
-
 ReactDOM.createRoot(document.getElementById("root")).render(<Root />);

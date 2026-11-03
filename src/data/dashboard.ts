@@ -34,12 +34,12 @@ export interface ReceiptMarks {
    * lowers its spending; never income, also when the withdrawal has no category.
    */
   coveredBy?: string[];
-  /** A cash withdrawal, a source of the Cash page (brief 32). Only in the phone's dashboard (when receipts are given). */
+  /** A cash withdrawal, a source of the Cash page. Present when receipts or manual cash entries are given. */
   cashWithdrawal?: boolean;
 }
 // The Cash page (brief 32, D9): every cash movement from the wallet's side. A view: nothing in it counts in the totals
 // (each movement counts where it counts: the receipt in its category, the gift in its income category, the
-// withdrawal's rest in the withdrawal's category). Only in the phone's dashboard (when receipts are given).
+// withdrawal's rest in the withdrawal's category). Present when receipts or manual cash entries are given.
 export interface CashView {
   /** Per month ("YYYY-MM") with any cash movement; a month without one is left out. */
   months: Record<MonthKey, CashMonth>;
@@ -80,7 +80,7 @@ export interface DashboardSource {
   categories: Category[]; months: Month[]; transactions: SourceTxn[];
   balanceByDay: Record<string, number>; openingBalance: number;
   databaseCategoryNames: string[]; // recategorise targets; excludes dashboard-only categories
-  cash?: CashView; // the Cash page (brief 32); the server's source never has it
+  cash?: CashView; // the Cash page (brief 32); present when receipts or manual cash inputs are supplied
   paybacksIgnored?: PaybackIgnored[];
 }
 export interface Txn extends ReceiptMarks, PaybackMarks {

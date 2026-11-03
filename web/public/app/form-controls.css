@@ -1,0 +1,131 @@
+.page-field {
+  display: grid;
+  gap: 8px;
+  margin: 20px 0;
+  color: var(--ink-2);
+  font-size: 14px;
+}
+
+.page-field input,
+.page-field select {
+  color: var(--ink);
+  background: var(--card-2);
+  border: 1px solid var(--line-soft);
+  padding: 12px;
+  border-radius: var(--r-row);
+  font: inherit;
+  min-width: 0;
+}
+
+.payback-pick {
+  display: flex;
+  gap: 12px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line-soft);
+  align-items: center;
+}
+
+.payback-pick span:first-of-type {
+  flex: 1;
+}
+
+.payback-pick small {
+  display: block;
+  margin-top: 6px;
+  color: var(--ink-2);
+}
+
+
+
+input[type="checkbox"],
+input[type="radio"] {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  margin: 0;
+  flex-shrink: 0;
+  border: 1px solid var(--ink-3);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--bg);
+  display: inline-grid;
+  place-content: center;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+input[type="checkbox"]:checked,
+input[type="radio"]:checked {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+
+input[type="checkbox"]::after {
+  content: "";
+  width: 8px;
+  height: 4px;
+  border-left: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: translateY(-1px) rotate(-45deg) scale(0);
+}
+
+input[type="checkbox"]:checked::after {
+  transform: translateY(-1px) rotate(-45deg) scale(1);
+}
+
+input[type="radio"]:checked::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--bg);
+}
+
+input[type="checkbox"]:disabled,
+input[type="radio"]:disabled {
+  opacity: .4;
+  cursor: default;
+}
+
+.dashboard-page :focus-visible,
+.selection-row input:focus-visible,
+.selection-tools :focus-visible {
+  outline: 2px solid var(--ink-2);
+  outline-offset: 3px;
+}
+
+.dashboard-page .recat-btn.primary,
+.empty-dashboard .recat-btn.primary {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+}
+
+.page-field select {
+  appearance: none;
+  padding-right: 36px;
+  background-image: linear-gradient(45deg, transparent 50%, var(--ink-2) 50%),
+    linear-gradient(135deg, var(--ink-2) 50%, transparent 50%);
+  background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+}
+
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration {
+  appearance: none;
+}
+
+input[type="search"]::-webkit-search-cancel-button {
+  width: 14px;
+  height: 14px;
+  margin-left: 8px;
+  cursor: pointer;
+  background: linear-gradient(45deg, transparent 43%, var(--ink-2) 45%, var(--ink-2) 55%, transparent 57%),
+    linear-gradient(135deg, transparent 43%, var(--ink-2) 45%, var(--ink-2) 55%, transparent 57%);
+}
+
+.dashboard-page :focus-visible {
+  outline-offset: -2px;
+}

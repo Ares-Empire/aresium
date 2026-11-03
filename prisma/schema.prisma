@@ -63,6 +63,10 @@ model Category {
   color             String         @default("#64748b")
   icon              String?
   excludeFromTotals Boolean        @default(false) // transfers/investments: stored but kept out of spending/income graphs
+  side              String?
+  otherSide         Boolean @default(false)
+  originalName      String?
+  removed           Boolean @default(false)
   rules             CategoryRule[] @relation("RuleCategory")
   alsoTagRules      CategoryRule[] @relation("RuleAlsoTag")
   transactions      Transaction[]
@@ -111,4 +115,17 @@ model CategoryCorrection {
 
   @@index([merchant])
   @@index([transactionId])
+}
+
+// Owner-only dashboard preferences. Included in the existing full-database backup.
+model WebSettings {
+  id       String @id
+  data     Json
+}
+
+// A persisted, single-use undo. The after snapshot refuses intervening edits or imports.
+model WebUndo {
+  id       String @id @default(cuid())
+  before   Json
+  after    Json
 }

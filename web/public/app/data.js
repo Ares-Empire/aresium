@@ -7,47 +7,118 @@
   // page's own API requests answered here in the browser (a transaction's details from the sample; any change is
   // refused with a "log in" message), so nothing reaches the server and nothing is saved. src/web/server.ts serves it.
   const DEMO = location.pathname === "/demo";
-  const DEMO_REFUSAL = "This is the demo with sample data: importing and changes are switched off.";
+  const DEMO_REFUSAL = window.AresiumLanguage?.t("Log in to save changes. This demo uses sample data.")
+    || "Log in to save changes. This demo uses sample data.";
   // Where the band's "Get the app" goes: Aresium's own contact form with "Get the app" chosen, as GET_APP in
   // src/web/links.ts (the front page's button).
   const GET_APP = "/contact?topic=access";
 
   function adaptDashboard(data) {
-    if (!data || data.version !== 2) throw new Error("Expected dashboard version 2");
-    const { categories, months } = data;
+    if (!data || data.version !== 2)
+      throw new Error("Expected dashboard version 2");
+    const categories = data.categories;
+    const months = data.months.map(
+      (m) => {
+        if (!window.AresiumLanguage)
+          return m;
+        const date = new Date(Date.UTC(m.year, m.month, 1));
+        const locale = window.AresiumLanguage.locale;
+        return {
+          ...m,
+          label: new Intl.DateTimeFormat(
+            locale,
+            {
+              month: "short",
+              year: "numeric",
+              timeZone: "UTC"
+            }).format(date),
+          short: new Intl.DateTimeFormat(locale, {
+            month: "short",
+            timeZone: "UTC"
+          }).format(date)
+        };
+      });
     const catByName = Object.fromEntries(categories.map((c) => [c.name, c]));
     const incomeMeta = Object.fromEntries(data.incomeBuckets.map((c) => [c.name, c]));
     const INCOME_META = {
-      Refunds: { name: "Refunds", icon: "RotateCcw", color: "#34E27A", kind: "income" },
-      Other: { name: "Other", icon: "CircleHelp", color: "#9AA6B8", kind: "income" },
+      Refunds: {
+        name: "Refunds",
+        icon: "RotateCcw",
+        color: "#34E27A",
+        kind: "income"
+      },
+      Other: {
+        name: "Other",
+        icon: "CircleHelp",
+        color: "#9AA6B8",
+        kind: "income"
+      },
     };
     const incomeBucketMeta = (name) => catByName[name] || incomeMeta[name] || INCOME_META[name]
-      || { name, icon: "Tag", color: "#34E27A", kind: "income" };
+      || {
+      name,
+      icon: "Tag",
+      color: "#34E27A",
+      kind: "income"
+    };
     // Retain the old transaction shapes; v2's listing indexes stay in the payload.
-    const transactions = data.transactions.map(({ id, date, amount, categoryName, tags, place, city }) =>
-      ({ id, date, amount, categoryName, tags, place, city }));
+    const transactions = data.transactions.map((t) => ({
+      ...t
+    }));
     const zeroDays = (key) => new Array(months.find((m) => m.key === key).days).fill(0);
     const monthSeries = (table, name) => table[name] ? table[name].months : months.map(() => 0);
     const daySeries = (table, name, key) => table[name] ? table[name].days[key] : zeroDays(key);
     const monthList = (table, name) => {
       const series = monthSeries(table, name);
-      return months.map((m, i) => ({ ...m, total: series[i] })).filter((m) => m.total > 0);
+      return months.map((m, i) => ({
+        ...m,
+        total: series[i]
+      })).filter((m) => m.total > 0);
     };
-    const categoryRows = (totals) => totals.map(({ name, total }) => ({ ...catByName[name], total }));
-    const incomeRows = (totals) => totals.map(({ name, total }) => ({ ...incomeBucketMeta(name), total }));
+    const categoryRows = (totals) => totals.map(({ name, total }) => ({
+      ...catByName[name],
+      total
+    }));
+    const incomeRows = (totals) => totals.map(({ name, total }) => ({
+      ...incomeBucketMeta(name),
+      total
+    }));
     const monthTransactions = (name, key, income) => data.transactions
-      .map((t, i) => ({ t, i }))
-      .filter(({ t }) => t.month === key && (income ? t.incomeBuckets : t.categoriesIn).indexOf(name) !== -1)
-      .map(({ t, i }) => ({ ...transactions[i], day: t.day,
-        tagged: (income ? t.incomeBuckets[0] : t.categoryName) !== name }))
+      .map((t, i) => ({
+        t,
+        i
+      }))
+      .filter(
+        ({ t }) => t.month === key && (income ? t.incomeBuckets : t.categoriesIn).indexOf(name) !== -1)
+      .map(
+        ({ t, i }) => ({
+          ...transactions[i],
+          day: t.day,
+          tagged: (income ? t.incomeBuckets[0] : t.categoryName) !== name
+        }))
       .sort((a, b) => a.day - b.day);
     // This legacy helper also accepts negative transactions and arbitrary objects.
-    const primaryBucketByCategory = Object.fromEntries(categories.map((c) => [c.name,
-      c.kind === "income" || c.kind === "transfer" || c.name === "Tax" ? c.name : "Refunds"]));
-    const incomeBucketOf = (t) => !t.categoryName || t.categoryName === "Uncategorised" ? "Other"
+    const primaryBucketByCategory = Object.fromEntries(
+      categories.map(
+        (c) => [
+          c.name,
+          c.kind === "income" || c.kind === "transfer" || c.name === "Tax" ? c.name : "Refunds"
+        ]));
+    const incomeBucketOf = (t) => !t.categoryName || t.categoryName === "Uncategorised"
+      ? "Other"
       : primaryBucketByCategory[t.categoryName] || (t.categoryName === "Tax" ? "Tax" : "Refunds");
     return {
-      categories, catByName, months, transactions, pick: data.pick,
+      categories,
+      catByName,
+      months,
+      transactions,
+      pick: data.pick,
+      raw: data,
+      nameGroups: data.nameGroups || {},
+      ownNames: data.ownNames,
+      monthlyAverage: data.monthlyAverage,
+      fixedCosts: data.fixedCosts,
+      today: data.today,
       monthExpense: (key) => data.byMonth[key] ? data.byMonth[key].expense : 0,
       monthEndBalance: (key) => data.byMonth[key] ? data.byMonth[key].endBalance : 0,
       dayExpenseSeries: (key) => data.byMonth[key].dayExpense,
@@ -60,10 +131,15 @@
       incomeTotalPrimary: (key) => !key ? data.total.income : data.byMonth[key] ? data.byMonth[key].income : 0,
       categoryMonthList: (cat) => monthList(data.spend, cat),
       categoryMonthTransactions: (cat, key) => monthTransactions(cat, key, false),
-      incomeBucketOf, incomeBucketMeta,
+      incomeBucketOf,
+      incomeBucketMeta,
       incomeDaySeries: (key) => data.byMonth[key].dayIncome,
       incomeTotalsAll: () => incomeRows(data.total.incomeBuckets),
-      incomeTotalsMonth: (key) => incomeRows(!key ? data.total.incomeBuckets : data.byMonth[key] ? data.byMonth[key].incomeBuckets : []),
+      incomeTotalsMonth: (key) => incomeRows(
+        !key
+          ? data.total.incomeBuckets
+          : data.byMonth[key] ? data
+            .byMonth[key].incomeBuckets : []),
       incomeBucketMonthSeries: (bucket) => monthSeries(data.income, bucket),
       incomeBucketDaySeries: (bucket, key) => daySeries(data.income, bucket, key),
       incomeBucketMonthList: (bucket) => monthList(data.income, bucket),
@@ -78,23 +154,27 @@
   // Opened as a local file → the generated sample. On the live site a failed load shows an
   // error instead: made-up numbers must never look like real ones.
   function loadDashboard() {
-    if (location.protocol === "file:") return window.AresiumSample;
-    if (DEMO) return loadSample();
+    if (location.protocol === "file:")
+      return window.AresiumSample;
+    if (DEMO)
+      return loadSample();
     let status = "no response";
     try {
       const xhr = new XMLHttpRequest();
       xhr.open("GET", "/api/data", false);
-      xhr.setRequestHeader("Accept-Language", "en");
+      xhr.setRequestHeader("Accept-Language", window.AresiumLanguage?.language || "en");
       xhr.send(null);
       status = xhr.status;
       if (xhr.status === 200) {
         const data = JSON.parse(xhr.responseText);
-        if (data && data.version === 2) return data;
+        if (data && data.version === 2)
+          return data;
         status = "unexpected format";
       }
     } catch (e) { /* network error: reported below */ }
     document.body.innerHTML = '<p style="font:16px system-ui;padding:24px">Could not load your data (' +
-      status + '). Reload the page to try again.</p>';
+      status
+      + '). Reload the page to try again.</p>';
     throw new Error("Aresium: /api/data failed (" + status + ")");
   }
 
@@ -104,7 +184,8 @@
     xhr.send(null);
     if (xhr.status !== 200) {
       document.body.innerHTML = '<p style="font:16px system-ui;padding:24px">Could not load the demo (' +
-        xhr.status + '). Reload the page to try again.</p>';
+        xhr.status
+        + '). Reload the page to try again.</p>';
       throw new Error("Aresium: the demo sample failed (" + xhr.status + ")");
     }
     return JSON.parse(xhr.responseText);
@@ -116,8 +197,15 @@
     document.documentElement.classList.add("demo");
     const band = document.createElement("div");
     band.className = "demo-band";
-    band.innerHTML = '<span class="demo-dot"></span><span><b>Sample data</b> · a made-up account to look around</span>' +
-      '<a href="' + GET_APP + '">Get the app</a>';
+    const tr = (s) => window.AresiumLanguage?.t(s) || s;
+    band.innerHTML = '<span class="demo-dot"></span><span><b>' + tr("Sample data") + '</b> · '
+      + tr("a made-up account to look around")
+      + '</span>'
+      + '<a href="'
+      + GET_APP
+      + '">'
+      + tr("Get the app")
+      + '</a>';
     document.body.appendChild(band);
 
     // Import: the file picker does not open in the demo (nothing would be sent anyway); a note says why instead.
@@ -129,55 +217,135 @@
       document.body.appendChild(toast);
       setTimeout(() => toast.remove(), 4200);
     };
-    document.addEventListener("click", (e) => {
-      if (e.target instanceof HTMLInputElement && e.target.type === "file") { e.preventDefault(); note(DEMO_REFUSAL); }
-    }, true);
+    document.addEventListener(
+      "click",
+      (e) => {
+        if (e.target instanceof HTMLInputElement && e.target.type === "file") {
+          e.preventDefault();
+          note(DEMO_REFUSAL);
+        }
+      },
+      true);
 
     const colorOf = Object.fromEntries(sample.categories.map((c) => [c.name, c.color]));
     const detail = (id) => {
       const t = sample.transactions.find((x) => String(x.id) === id);
-      if (!t) return null;
+      if (!t)
+        return null;
       return {
-        id: t.id, place: t.place, amount: t.amount, currency: "EUR", bookingDate: t.date, valueDate: t.date,
-        balance: null, category: t.categoryName, categoryColor: colorOf[t.categoryName] || "#9AA6B8",
-        tags: t.tags || [], categorySource: "rule", categorized: true, description: t.place, counterparty: t.place,
-        account: "Sample account", iban: null, source: "bank", city: t.city || null, country: "DE", trip: null,
-        tripKind: null, placeType: null, recurring: false, externalId: null, raw: null,
+        id: t.id,
+        place: t.place,
+        amount: t.amount,
+        currency: "EUR",
+        bookingDate: t.date,
+        valueDate: t.date,
+        balance: null,
+        category: t.categoryName,
+        categoryColor: colorOf[t.categoryName] || "#9AA6B8",
+        tags: t.tags || [],
+        categorySource: "rule",
+        categorized: true,
+        description: t.place,
+        counterparty: t.place,
+        account: "Sample account",
+        iban: null,
+        source: "bank",
+        city: t.city || null,
+        country: "DE",
+        trip: null,
+        tripKind: null,
+        placeType: null,
+        recurring: false,
+        externalId: null,
+        raw: null,
       };
     };
-    const reply = (status, body) => Promise.resolve(new Response(JSON.stringify(body),
-      { status, headers: { "Content-Type": "application/json; charset=utf-8" } }));
+    const reply = (status, body) => Promise.resolve(
+      new Response(
+        JSON.stringify(body),
+        {
+          status,
+          headers: {
+            "Content-Type": "application/json; charset=utf-8"
+          }
+        }));
     const realFetch = window.fetch.bind(window);
     window.fetch = (input, init) => {
       const url = new URL(typeof input === "string" ? input : input.url, location.href);
-      if (url.origin !== location.origin || !url.pathname.startsWith("/api/")) return realFetch(input, init);
+      if (url.origin !== location.origin || !url.pathname.startsWith("/api/"))
+        return realFetch(input, init);
       const method = String((init && init.method) || (typeof input === "string" ? "GET" : input.method)).toUpperCase();
+      if (method === "POST" && url.pathname === "/api/selection") {
+        const body = JSON.parse(init.body);
+        const preview = sample.selectionPreviews?.[(body.ids || []).slice().sort().join("|")];
+        return preview ? reply(200, preview) : reply(403, {
+          error: DEMO_REFUSAL
+        });
+      }
+      if (method === "POST" && url.pathname === "/api/paybacks/preview") {
+        const body = JSON.parse(init.body);
+        const key = (ids) => ids.slice().sort().join("|");
+        const choice = sample.demoPaybacks?.choices[key(body.ids || [])];
+        const plan = body.others?.length ? sample.demoPaybacks?.plans[key([...body.ids, ...body.others])] : null;
+        if (choice && (!body.others?.length || plan)
+          && (body.amount === undefined || body.amount === plan?.linked))
+          return reply(
+            200,
+            {
+              ...choice,
+              group: choice.group.map((id) => sample.transactions.find((p) => p.id === id)),
+              candidates: choice.candidates.map((id) => sample.transactions.find((p) => p.id === id)),
+              plan
+            });
+        return reply(403, {
+          error: DEMO_REFUSAL
+        });
+      }
       const one = url.pathname.match(/^\/api\/transaction\/([^/]+)$/);
-      if (method === "GET" && url.pathname === "/api/data") return reply(200, sample);
+      if (method === "GET" && url.pathname === "/api/data")
+        return reply(200, sample);
       if (method === "GET" && one) {
         const d = detail(decodeURIComponent(one[1]));
-        return d ? reply(200, d) : reply(404, { error: "not found" });
+        return d ? reply(200, d) : reply(404, {
+          error: "not found"
+        });
       }
-      return reply(403, { error: DEMO_REFUSAL });
+      return reply(403, {
+        error: DEMO_REFUSAL
+      });
     };
   }
 
   // Preserve the object captured by the desktop and mobile modules across refreshes.
   function applyDashboard(data) {
     const built = adaptDashboard(data);
-    if (!window.AresiumData) window.AresiumData = {};
-    Object.keys(window.AresiumData).forEach((k) => {
-      if (k !== "refresh" && !(k in built)) delete window.AresiumData[k];
-    });
+    if (!window.AresiumData)
+      window.AresiumData = {};
+    Object.keys(window.AresiumData).forEach(
+      (k) => {
+        if (k !== "refresh" && !(k in built))
+          delete window.AresiumData[k];
+      });
     Object.assign(window.AresiumData, built);
   }
   async function refresh() {
-    const res = await fetch("/api/data", { cache: "no-store", headers: { "Accept-Language": "en" } });
-    if (!res.ok) throw new Error("data refresh failed (" + res.status + ")");
+    const res = await fetch(
+      "/api/data",
+      {
+        cache: "no-store",
+        headers: {
+          "Accept-Language": window.AresiumLanguage?.language || "en"
+        }
+      });
+    if (!res.ok)
+      throw new Error("data refresh failed (" + res.status + ")");
     applyDashboard(await res.json());
+    if (window.dispatchEvent)
+      window.dispatchEvent(new Event("aresium:data"));
   }
   const initial = loadDashboard();
-  if (DEMO) startDemo(initial);
+  if (DEMO)
+    startDemo(initial);
   applyDashboard(initial);
   window.AresiumData.refresh = refresh;
 })();

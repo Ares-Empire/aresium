@@ -1,0 +1,87 @@
+.page-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: var(--bg);
+  overflow: auto;
+  padding: 24px;
+}
+
+.dashboard-page {
+  max-width: 800px;
+  margin: 0 auto;
+  color: var(--ink);
+  padding-bottom: 70px;
+}
+
+.dashboard-page h1 {
+  font-size: 26px;
+  margin: 25px 0;
+}
+
+.page-nav {
+  display: flex;
+  justify-content: space-between;
+}
+
+.page-undo {
+  position: sticky;
+  bottom: 0;
+  background: var(--bg);
+  padding: 16px 0;
+}
+
+.dashboard-page .panel-list {
+  max-height: none;
+  overflow: visible;
+}
+
+.dashboard-page button:disabled {
+  opacity: .45;
+  cursor: default;
+}
+
+.dashboard-page>.recat-err {
+  position: sticky;
+  bottom: 58px;
+  z-index: 110;
+  background: var(--bg);
+  padding: 14px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-row);
+}
+
+.page-notice {
+  z-index: 110;
+}
+
+@media(max-width:620px) {
+  .page-shortcut {
+    display: none;
+  }
+
+  .mob-top-right>.md-edit {
+    min-width: 34px;
+    min-height: 36px;
+  }
+}
+
+
+
+.help-links {
+  line-height: 1.8;
+}
+
+.help-links a {
+  color: var(--ink-2);
+}
+
+@media(max-width:620px) {
+  .page-overlay {
+    padding: 20px 16px;
+  }
+
+  .dashboard-page h1 {
+    font-size: 24px;
+  }
+}

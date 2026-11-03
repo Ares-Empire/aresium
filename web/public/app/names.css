@@ -1,0 +1,29 @@
+.name-result {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  gap: 16px;
+  text-align: left;
+  padding: 18px 4px;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 15px;
+}
+
+.name-result small {
+  display: block;
+  color: var(--ink-2);
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+.name-totals p {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.name-chart {
+  height: 250px;
+  position: relative;
+  margin: 20px 0;
+}

@@ -16,20 +16,37 @@
     const picked = Array.prototype.slice.call(fileList || []);
     const files = [];
     for (const f of picked) {
-      if (!/\.(csv|xml)$/i.test(f.name)) continue;       // skip anything that isn't an export
-      if (f.size > MAX_BYTES) throw new Error(f.name + " is too large (max 20 MB)");
-      files.push({ name: f.name, content: await f.text() });
+      if (!/\.(csv|xml)$/i.test(f.name))
+        continue;       // skip anything that isn't an export
+      if (f.size > MAX_BYTES)
+        throw new Error(f.name + " is too large (max 20 MB)");
+      files.push({
+        name: f.name,
+        content: await f.text()
+      });
     }
-    if (files.length === 0) throw new Error("Pick a VR Bank or PayPal .csv (or CAMT .xml) export.");
+    if (files.length === 0)
+      throw new Error("Pick a VR Bank or PayPal .csv (or CAMT .xml) export.");
 
-    const res = await fetch("/api/import", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Accept-Language": "en" },
-      body: JSON.stringify({ files }),
-    });
+    const res = await fetch(
+      "/api/import",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept-Language": window.AresiumLanguage?.language || "en"
+        },
+        body: JSON.stringify({
+          files
+        }),
+      });
     if (!res.ok) {
       let msg = "Import failed (" + res.status + ")";
-      try { const e = await res.json(); if (e && e.error) msg = e.error; } catch (_) {}
+      try {
+        const e = await res.json();
+        if (e && e.error)
+          msg = e.error;
+      } catch (_) { }
       throw new Error(msg);
     }
     return res.json();
@@ -40,11 +57,19 @@
     const r = (data && data.results) || [];
     const added = r.reduce((s, x) => s + (x.added || 0), 0);
     const errs = r.filter((x) => x.error);
-    if (errs.length) return added + " added · " + errs.length + " file(s) failed";
+    if (errs.length)
+      return window.AresiumLanguage?.language === "de"
+        ? added + " hinzugefügt · " + errs.length + " Datei(en) fehlgeschlagen"
+        : added + " added · " + errs.length + " file(s) failed";
     const skipped = r.filter((x) => x.skipped).length;
-    return added + " new transaction" + (added === 1 ? "" : "s") + " imported" +
-      (skipped ? " · " + skipped + " skipped" : "");
+    if (window.AresiumLanguage?.language === "de")
+      return added + " neue Zahlung(en) importiert" + (skipped ? " · " + skipped + " übersprungen" : "");
+    return added + " new transaction" + (added === 1 ? "" : "s") + " imported"
+      + (skipped ? " · " + skipped + " skipped" : "");
   }
 
-  window.AresiumUpload = { send, summarize };
+  window.AresiumUpload = {
+    send,
+    summarize
+  };
 })();
