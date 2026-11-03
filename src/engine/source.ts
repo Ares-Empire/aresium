@@ -6,6 +6,7 @@ import { foldPaypalConversions, isPaypalBankFunding } from "./paypal.js";
 import { daysInMonth, parseDay } from "./dates.js";
 import { cashView, countReceipts, withReceiptRows, type ReceiptRow } from "./receipts/count.js";
 import { countPaybacks } from "./paybacks.js";
+import { accountBalanceSeries } from "./balances.js";
 
 /** One stored payment, as plain JSON. */
 export type SourcePayment = {
@@ -13,6 +14,10 @@ export type SourcePayment = {
   id: string;
   /** The export's own id; PayPal's currency conversions name their purchase by it. */
   externalId: string;
+  /** Stable account identity. Older callers without it share one legacy account. */
+  accountId?: string | null;
+  /** Bank statement order within this account/day, ascending; never import time or database id. */
+  statementOrder?: number | null;
   /** Booking date: `YYYY-MM-DD`, or a UTC ISO timestamp (its first ten characters are the day). */
   date: string;
   /** Negative = money out, in `currency`. */
@@ -110,7 +115,8 @@ export function unmatchedPaypalConversions(transactions: readonly SourcePayment[
 export function buildDashboardSource(input: DashboardSourceInput): DashboardSource {
   const today = parseDay(input.today);
   if (!today) throw new Error("today is not an ISO date (YYYY-MM-DD)");
-  const stored = counted(checked(input.transactions)).rows;
+  const ordered = checked(input.transactions);
+  const stored = counted(ordered).rows;
   const paybacks = countPaybacks(input.transactions, stored, input.categories);
   const storedPayments = new Set(stored);
   // Receipts and cash entries (the phone's; the server never sends them, so its source stays as it was).
@@ -177,26 +183,11 @@ export function buildDashboardSource(input: DashboardSourceInput): DashboardSour
     }
   }
 
-  // --- balance for every day in range (forward-filled from the bank's balance) ---
-  const balanceByDay: Record<string, number> = {};
-  let openingBalance = 0;
-  if (months.length) {
-    const balanceAt = new Map<string, number>(); // day -> last known balance that day
-    for (const p of payments) if (p.balance != null) balanceAt.set(p.date.slice(0, 10), p.balance);
-    const firstKnown = payments.find((p) => p.balance != null);
-    openingBalance = firstKnown?.balance ?? 0;
-    let balance = openingBalance;
-    for (const mo of months) {
-      for (let d = 1; d <= mo.days; d++) {
-        const day = `${mo.key}-${pad(d)}`;
-        if (balanceAt.has(day)) balance = balanceAt.get(day)!;
-        balanceByDay[day] = balance;
-      }
-    }
-  }
+  // Balances use original bookings, before funding, currency, receipt or spending adjustments.
+  const balances = accountBalanceSeries(input.transactions, months);
 
   return {
-    categories, months, transactions, balanceByDay, openingBalance,
+    categories, months, transactions, ...balances,
     databaseCategoryNames: input.categories.map((c) => c.name),
     // The Cash page (brief 32): a view, counted nowhere.
     ...(fromReceipts ? { cash: cashView(fromReceipts, (category) => nameOf(category) ?? UNCATEGORISED.name) } : {}),

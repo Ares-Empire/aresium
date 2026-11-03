@@ -41,13 +41,14 @@ interface Dashboard {
   categories: Category[];             // every category, plus "Uncategorised" if any txn has none
   incomeBuckets: Category[];          // meta for every income bucket that occurs (see "Income buckets")
   transactions: Txn[];                // same order as version 1 (booking date ascending)
-  overview: { expense: number[]; income: number[]; balance: number[] };   // one value per month, same index as `months`
+  overview: { expense: number[]; income: number[]; balance: (number | null)[] }; // one per month
   total: Totals;                      // all time
   byMonth: Record<MonthKey, MonthData>;   // every month in `months`
   spend: Record<string, Series>;      // every category in `categories`
   income: Record<string, Series>;     // every bucket in `incomeBuckets`
   pick: { spend: string[]; income: string[] };   // recategorise choices, in display order (added 2026-10-23)
   paybacksIgnored?: { from: string; to: string; reason: string; amount?: number }[]; // only when a link is ignored or clamped
+  balanceUncertainDays?: { date: string; accountId: string | null }[]; // only ambiguous/incomplete account closings
 }
 
 interface Month { key: MonthKey; label: string; short: string; year: number; month: number; days: number; partial: boolean }
@@ -78,11 +79,11 @@ interface Totals {
 }
 
 interface MonthData extends Totals {
-  endBalance: number;                // bank balance on the month's last day (today for the current month)
+  endBalance: number | null;         // sum of known account balances on the last day (today for the current month)
   dayExpense: number[];              // one value per day, length = month.days
   dayExpenseRunning: number[];       // running total of dayExpense through the month (added 2026-10-23)
   dayIncome: number[];
-  dayBalance: number[];
+  dayBalance: (number | null)[];
 }
 
 interface Series {
@@ -141,7 +142,26 @@ keep exactly the same JSON.
   or `invalid-amount`. A receipt or cash-row id is not a stored target (`target-missing`); a stored PayPal
   row dropped from counting is `target-not-counted`. A `clamped` report includes `amount`: euros that did
   not count, even when none of the requested amount could count. Reports are absent when there are none.
-- **Balance** is the bank's own balance, carried forward on days without a booking.
+- **Balance** (brief 223) is the sum of each account's last known daily closing, carried forward independently.
+  All original bookings with a balance participate, before spending exclusions, PayPal funding/conversion filters,
+  paybacks or receipts. An account joins the sum on its first booking with a balance; until any account is known,
+  values are `null`. An actual zero stays zero. No inferred opening balance is backfilled into earlier days.
+  The month range and all spending/income fields keep their existing behavior.
+  Within one account/day, each booking links `balance - amount` to `balance`, using whole cents. A connected
+  complete chain with a unique end supplies the closing, independently of row/import order. A complete, unique
+  `statementOrder` takes precedence and is checked for continuity. If no complete chain identifies the end,
+  the last known balance in stored input order is used. Broken statement order also uses its last balance.
+  `balanceUncertainDays` lists these booking days by `date` (`YYYY-MM-DD`) and `accountId`, sorted by day/account,
+  and is absent when none occur. Its fallback value carries forward until the next known closing; the field lists
+  the original uncertain closing day, rather than repeating every carried day. A locally consistent chain cannot
+  detect a missing first/last booking; compare against the bank files as [BALANCE-CHECK.md](BALANCE-CHECK.md) describes.
+  Engine callers must supply each payment's stable `accountId`. Without it, older callers share one legacy account
+  (`accountId: null` in uncertainty reports). The server adapter supplies the database account id. The optional
+  `statementOrder` is an ascending bank position comparable across **all** bookings of an account/day; import time,
+  database id and `ledgerSequence` are not statement order. Current server imports do not persist such positions,
+  so existing rows use their balance chains. Positions from separate overlapping files must be reconciled first.
+  The source's `openingBalance` is the sum known before the first chart day, or `null`; `balanceByDay` also permits
+  `null`. These fields are internal source fields, not additional `/api/data` fields.
 - **Foreign currency** (PayPal, decided 2026-10-24): a purchase in another currency counts at its euro cost (the
   euro row of PayPal's "Allgemeine Währungsumrechnung" with the purchase's code), keeping its category; both
   conversion rows are left out of every figure (`src/engine/paypal.ts`). Without a euro row the rows stay as they
