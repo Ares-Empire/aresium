@@ -62,3 +62,45 @@ Ensure Swift's source/dashboard balance decoders accept `null` (`openingBalance`
 `endBalance`, `overview.balance`) and preserve gaps in charts. The optional `balanceUncertainDays` can be ignored
 by older decoders or surfaced for review. Run the proving cases through JavaScriptCore on the app as well; the Node
 VM bundle test checks the same JSON outputs without Node or browser APIs. No app files were changed in this brief.
+
+## Brief 224: compare every dashboard field before and after the money review
+
+Claude runs this from the server checkout containing brief 224, with its normal database environment:
+
+```sh
+npx tsx scripts/check-money-review.ts
+```
+
+The baseline is the full commit `aaf3443c524f50808cfe8ced94379269c3181f23` (brief 223). Keep that commit available
+locally. The script compiles its code from Git into a temporary directory under `build/`; it checks out nothing,
+installs nothing, writes no data files and removes the generated code afterwards. It reads the database once in a
+repeatable-read, read-only transaction, including categories and web settings. Both versions then run against that
+same in-memory snapshot. Nothing is imported, modified, sent, deployed or printed from the payment records.
+
+The calendar is frozen at **2026-11-03 12:00 UTC**. This freezes calculations, not database history: run against
+the November 3 snapshot for the requested historical comparison. A later live database includes later edits/imports.
+
+Expected differences are derived narrowly, rather than allowing whole dashboard sections to change:
+
+- Normalize the server input's `today` to the Berlin day; all other input fields must be identical.
+- Run the old source with that day. Recalculate only category sides from integer-cent nets and remove only an
+  appended synthetic `Uncategorised` when that category already exists. Every other source field must be identical.
+- Run the **old** ledger/dashboard calculation on that corrected source. Its entire output must equal the new
+  output, including balances, totals, category rows, menus, names, fixed costs, averages and charts. Only the
+  category-option side metadata is updated to follow those corrected categories. Both pulse languages are checked.
+
+Thus a change to an unrelated number fails even inside a category/total field that legitimately changes elsewhere.
+For November 3 at noon the timezone correction alone changes no fields. Category corrections can remove duplicate
+rows or change inferred sides and their dependent metadata/menus; headline amounts normally stay identical.
+The report gives `onlyIntendedChanges`, `paymentsChecked`, `asOf`, the baseline commit and changed top-level field
+names. It prints no amounts, names, payment ids or bank data. Any unexpected difference or setup/database error
+returns a nonzero status. A failure requires investigation; it is not permission to widen the comparison.
+
+The local tests compare all 49 existing bank fixtures and both complete sample dashboards against that commit,
+exercise the comparison on synthetic affected inputs, and deliberately inject an unrelated one-cent difference
+to prove rejection. The standalone engine bundle also runs the category regression cases.
+
+After this check passes, Claude copies `dist/aresium-engine.js` into the app as usual and checks its adapter supplies
+the intended calendar day to both engine calls. The engine bundle contains the two category fixes; the Berlin
+clock conversion lives in the server adapter. Fixed costs still have the separate Swift implementation described
+in brief 218; this review does not claim to have migrated or verified that implementation.

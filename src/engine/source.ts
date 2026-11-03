@@ -78,7 +78,7 @@ export type SourceReceipt = {
 export type DashboardSourceInput = {
   transactions: readonly SourcePayment[];
   categories: readonly SourceCategory[];
-  /** Today as `YYYY-MM-DD` (UTC): the current month is partial and counts up to this day. */
+  /** Today's calendar day as `YYYY-MM-DD`: the current month is partial and counts up to this day. */
   today: string;
   /**
    * Receipts and cash entries (./receipts/count.ts says how they count). Without them nothing changes;
@@ -136,14 +136,15 @@ export function buildDashboardSource(input: DashboardSourceInput): DashboardSour
     if (category === null) hasUncategorised = true;
     const name = category ?? UNCATEGORISED.name;
     const amount = (storedPayments.has(p) ? paybacks.marks.get(p.id)?.counted : undefined) ?? p.amount;
-    net.set(name, (net.get(name) ?? 0) + amount);
+    // A zero-cent net must stay zero, independent of stored row order.
+    net.set(name, (net.get(name) ?? 0) + Math.round(amount * 100));
   }
   const categories: Category[] = input.categories.map((c) => ({
     name: c.name, icon: c.icon, color: c.color,
     kind: c.excludeFromTotals ? "transfer" : c.side ?? ((net.get(c.name) ?? 0) > 0 ? "income" : "spend"),
     ...(c.otherSide && !c.excludeFromTotals ? { otherSide: true as const } : {}),
   }));
-  if (hasUncategorised) categories.push({ ...UNCATEGORISED });
+  if (hasUncategorised && !known.has(UNCATEGORISED.name)) categories.push({ ...UNCATEGORISED });
 
   // --- transactions in the flat shape the dashboard expects ---
   const transactions: SourceTxn[] = payments.map((p) => ({
