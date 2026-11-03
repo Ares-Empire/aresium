@@ -82,20 +82,46 @@ export async function getMonth(month: string) {
   const [y, m] = month.split("-").map(Number);
   const start = new Date(Date.UTC(y, m - 1, 1));
   const end = new Date(Date.UTC(y, m, 1));
-  const txns = await fetchWithCategory({ bookingDate: { gte: start, lt: end } });
-
-  const prev = await prisma.transaction.findFirst({
-    where: { source: "bank", balance: { not: null }, bookingDate: { lt: start } },
-    orderBy: { bookingDate: "desc" },
-    select: { balance: true },
+  const txns = await fetchWithCategory({
+    bookingDate: {
+      gte: start,
+      lt: end
+    }
   });
 
-  const perDay = new Map<number, { expenses: number; balance: number | null }>();
+  const prev = await prisma.transaction.findFirst(
+    {
+      where: {
+        source: "bank",
+        balance: {
+          not: null
+        },
+        bookingDate: {
+          lt: start
+        }
+      },
+      orderBy: {
+        bookingDate: "desc"
+      },
+      select: {
+        balance: true
+      },
+    });
+
+  const perDay = new Map<number, {
+    expenses: number;
+    balance: number | null
+  }>();
   for (const t of txns) {
     const day = t.bookingDate.getUTCDate();
-    const e = perDay.get(day) ?? { expenses: 0, balance: null };
-    if (!(t.category?.excludeFromTotals ?? false) && Number(t.amount) < 0) e.expenses += -Number(t.amount);
-    if (t.balance != null) e.balance = Number(t.balance);
+    const e = perDay.get(day) ?? {
+      expenses: 0,
+      balance: null
+    };
+    if (!(t.category?.excludeFromTotals ?? false) && Number(t.amount) < 0)
+      e.expenses += -Number(t.amount);
+    if (t.balance != null)
+      e.balance = Number(t.balance);
     perDay.set(day, e);
   }
 
@@ -103,10 +129,21 @@ export async function getMonth(month: string) {
   const daily: DayPoint[] = [];
   for (let d = 1; d <= daysInMonth(y, m); d++) {
     const e = perDay.get(d);
-    if (e?.balance != null) lastBal = e.balance;
-    daily.push({ day: d, date: `${month}-${String(d).padStart(2, "0")}`, expenses: e?.expenses ?? 0, balance: lastBal });
+    if (e?.balance != null)
+      lastBal = e.balance;
+    daily.push(
+      {
+        day: d,
+        date: `${month}-${String(d).padStart(2, "0")}`,
+        expenses: e?.expenses ?? 0,
+        balance: lastBal
+      });
   }
-  return { month, daily, categories: categoryTotals(txns) };
+  return {
+    month,
+    daily,
+    categories: categoryTotals(txns)
+  };
 }
 
 // Screen 3 — one category over time: monthly spend.
@@ -195,35 +232,80 @@ const categoryMeta = (name: string, dbColor?: string) =>
 // The database's rows for the dashboard, in booking-date order.
 export type SourceRows = { transactions: TxnWithCat[]; categories: DbCategory[] };
 export async function fetchSourceRows(): Promise<SourceRows> {
-  return { transactions: await fetchWithCategory({}), categories: await prisma.category.findMany() };
+  return {
+    transactions: await fetchWithCategory({}),
+    categories: await prisma.category.findMany({
+      where: {
+        removed: false
+      }
+    })
+  };
 }
 
 // Database rows → the engine's plain input. Icons and colours (CAT_META) are applied here, on the server.
-function sourceInput({ transactions, categories }: SourceRows, now: Date): DashboardSourceInput {
+function sourceInput(
+  { transactions, categories }: SourceRows,
+  now: Date,
+  links: Record<string, import("./dashboard.js").PaymentLink[]> = {},
+  receipts?: import("../engine/source.js").SourceReceipt[]): DashboardSourceInput {
   return {
-    transactions: transactions.map((t) => ({
-      id: t.id,
-      externalId: t.externalId,
-      date: t.bookingDate.toISOString(),
-      amount: Number(t.amount),
-      currency: t.currency,
-      balance: t.balance != null ? Number(t.balance) : null,
-      description: t.description,
-      counterparty: t.counterparty,
-      city: t.city,
-      raw: t.raw,
-      category: t.category?.name ?? null,
-      tags: t.tags.map((tt) => tt.category.name),
-    })),
-    categories: categories.map((c) => ({ name: c.name, ...categoryMeta(c.name, c.color), excludeFromTotals: c.excludeFromTotals })),
+    transactions: transactions.map(
+      (t) => ({
+        id: t.id,
+        ...(links[t.id]?.length ? {
+          paysBack: links[t.id]
+        } : {}),
+        externalId: t.externalId,
+        date: t.bookingDate.toISOString(),
+        amount: Number(t.amount),
+        currency: t.currency,
+        balance: t.balance != null ? Number(t.balance) : null,
+        description: t.description,
+        counterparty: t.counterparty,
+        city: t.city,
+        raw: t.raw,
+        category: t.category?.name ?? null,
+        tags: t.tags.map((tt) => tt.category.name),
+      })),
+    categories: categories.filter((c) => !c.removed).map(
+      (c) => ({
+        name: c.name,
+        ...categoryMeta(c.name, c.color),
+        ...(/^[A-Za-z][A-Za-z0-9]*$/.test(c.icon || "")
+          ? {
+            icon: c.icon!,
+            color: c.color
+          }
+          : {}),
+        excludeFromTotals: c.excludeFromTotals,
+        ...(c.side === "spend" || c.side === "income" ? {
+          side: c.side
+        } : {}),
+        ...(c.otherSide ? {
+          otherSide: true
+        } : {})
+      })),
     today: now.toISOString().slice(0, 10),
+    ...(receipts ? {
+      receipts
+    } : {}),
   };
 }
 
 // Database rows → the dashboard source, computed by the shared engine (src/engine/source.ts).
-export function dashboardSourceFromRows(rows: SourceRows, now: Date): { source: DashboardSource; unmatched: string[] } {
-  const input = sourceInput(rows, now);
-  return { source: buildDashboardSource(input), unmatched: unmatchedPaypalConversions(input.transactions) };
+export function dashboardSourceFromRows(
+  rows: SourceRows,
+  now: Date,
+  links: Record<string, import("./dashboard.js").PaymentLink[]> = {},
+  receipts?: import("../engine/source.js").SourceReceipt[]): {
+    source: DashboardSource;
+    unmatched: string[]
+  } {
+  const input = sourceInput(rows, now, links, receipts);
+  return {
+    source: buildDashboardSource(input),
+    unmatched: unmatchedPaypalConversions(input.transactions)
+  };
 }
 
 const warnUnmatched = (unmatched: string[]) => {
@@ -241,11 +323,58 @@ export async function getDashboardSource(): Promise<DashboardSource> {
 // export row (`raw`) — i.e. exactly what the bank/PayPal statement showed. Backs the
 // click-through detail modal (GET /api/transaction/:id).
 export async function getTransactionDetail(id: string) {
-  const t = await prisma.transaction.findUnique({
-    where: { id },
-    include: { category: true, account: true, tags: { include: { category: true } } },
-  });
-  if (!t) return null;
+  const t = await prisma.transaction.findUnique(
+    {
+      where: {
+        id
+      },
+      include: {
+        category: true,
+        account: true,
+        tags: {
+          include: {
+            category: true
+          }
+        }
+      },
+    });
+  if (!t && id.startsWith("cash-")) {
+    const { webDashboard } = await import("./web-ledger.js");
+    const dashboard = await webDashboard();
+    const entry = dashboard.cashEntries.find((p) => p.id === id);
+    const row = dashboard.transactions.find((p) => p.id === id);
+    if (!entry || !row)
+      return null;
+    return {
+      id,
+      place: row.place,
+      amount: row.amount,
+      currency: "EUR",
+      bookingDate: row.date,
+      valueDate: null,
+      balance: null,
+      category: row.categoryName,
+      categoryColor: dashboard.categories.find((c) => c.name === row.categoryName)?.color ?? "#9ca3af",
+      tags: [],
+      categorySource: "manual",
+      categorized: !!entry.category,
+      description: entry.shop,
+      counterparty: entry.shop,
+      account: null,
+      iban: null,
+      source: "cash",
+      city: null,
+      country: null,
+      trip: null,
+      tripKind: null,
+      placeType: null,
+      recurring: false,
+      externalId: null,
+      raw: null
+    };
+  }
+  if (!t)
+    return null;
   const catName = t.category?.name ?? "Uncategorised";
   const accent = categoryMeta(catName, t.category?.color).color;
   return {
@@ -280,32 +409,62 @@ export async function getTransactionDetail(id: string) {
 // Manually move a transaction to another category. Marks it categorySource="manual"
 // (so rules/LLM never overwrite it) and appends a CategoryCorrection row — the
 // training signal the LLM reads on its next run. No-op (and unlogged) if unchanged.
-export async function recategorizeTransaction(id: string, categoryName: string) {
-  const t = await prisma.transaction.findUnique({ where: { id }, include: { category: true } });
-  if (!t) return { error: "not found" as const };
-  const target = await prisma.category.findFirst({
-    where: { name: { equals: categoryName, mode: "insensitive" } },
+export async function legacyRecategorizeTransaction(id: string, categoryName: string) {
+  const t = await prisma.transaction.findUnique({
+    where: {
+      id
+    },
+    include: {
+      category: true
+    }
   });
-  if (!target) return { error: "unknown category" as const };
+  if (!t)
+    return {
+      error: "not found" as const
+    };
+  const target = await prisma.category.findFirst(
+    {
+      where: {
+        name: {
+          equals: categoryName,
+          mode: "insensitive"
+        }
+      },
+    });
+  if (!target)
+    return {
+      error: "unknown category" as const
+    };
 
   if (target.id !== t.categoryId) {
-    await prisma.$transaction([
-      prisma.transaction.update({
-        where: { id },
-        data: { categoryId: target.id, categorized: true, categorySource: "manual" },
-      }),
-      prisma.categoryCorrection.create({
-        data: {
-          transactionId: id,
-          merchant: t.counterparty || t.description,
-          fromCategory: t.category?.name ?? null,
-          toCategory: target.name,
-          fromSource: t.categorySource ?? null,
-        },
-      }),
-    ]);
+    await prisma.$transaction(
+      [
+        prisma.transaction.update(
+          {
+            where: {
+              id
+            },
+            data: {
+              categoryId: target.id,
+              categorized: true,
+              categorySource: "manual"
+            },
+          }),
+        prisma.categoryCorrection.create(
+          {
+            data: {
+              transactionId: id,
+              merchant: t.counterparty || t.description,
+              fromCategory: t.category?.name ?? null,
+              toCategory: target.name,
+              fromSource: t.categorySource ?? null,
+            },
+          }),
+      ]);
   }
-  return { detail: await getTransactionDetail(id) };
+  return {
+    detail: await getTransactionDetail(id)
+  };
 }
 
 // "Add" the transaction into extra categories so it ALSO shows under them, without
@@ -314,58 +473,193 @@ export async function recategorizeTransaction(id: string, categoryName: string) 
 //   dropCurrent=false → keep the current primary, set the tag set to `categoryNames`.
 //   dropCurrent=true  → move the transaction OUT of its current category entirely:
 //                       categoryNames[0] becomes the new primary, the rest become tags.
-export async function setTransactionTags(id: string, categoryNames: string[], dropCurrent: boolean) {
-  const t = await prisma.transaction.findUnique({ where: { id }, include: { category: true } });
-  if (!t) return { error: "not found" as const };
+export async function legacySetTransactionTags(id: string, categoryNames: string[], dropCurrent: boolean) {
+  const t = await prisma.transaction.findUnique({
+    where: {
+      id
+    },
+    include: {
+      category: true
+    }
+  });
+  if (!t)
+    return {
+      error: "not found" as const
+    };
 
   // Resolve requested names → categories (case-insensitive), preserving request order + uniqueness.
-  const wanted: { name: string; id: string }[] = [];
+  const wanted: {
+    name: string;
+    id: string
+  }[] = [];
   const seen = new Set<string>();
   for (const raw of categoryNames) {
-    const cat = await prisma.category.findFirst({ where: { name: { equals: raw, mode: "insensitive" } } });
-    if (cat && !seen.has(cat.id)) { seen.add(cat.id); wanted.push({ name: cat.name, id: cat.id }); }
+    const cat = await prisma.category.findFirst(
+      {
+        where: {
+          name: {
+            equals: raw,
+            mode: "insensitive"
+          }
+        }
+      });
+    if (cat && !seen.has(cat.id)) {
+      seen.add(cat.id);
+      wanted.push({
+        name: cat.name,
+        id: cat.id
+      });
+    }
   }
 
   const ops: any[] = [];
   if (dropCurrent) {
-    if (wanted.length === 0) return { error: "no categories" as const };
+    if (wanted.length === 0)
+      return {
+        error: "no categories" as const
+      };
     const [primary, ...rest] = wanted;
     if (primary.id !== t.categoryId) {
       ops.push(
-        prisma.transaction.update({
-          where: { id },
-          data: { categoryId: primary.id, categorized: true, categorySource: "manual" },
-        }),
-        prisma.categoryCorrection.create({
-          data: {
-            transactionId: id,
-            merchant: t.counterparty || t.description,
-            fromCategory: t.category?.name ?? null,
-            toCategory: primary.name,
-            fromSource: t.categorySource ?? null,
-          },
-        }),
+        prisma.transaction.update(
+          {
+            where: {
+              id
+            },
+            data: {
+              categoryId: primary.id,
+              categorized: true,
+              categorySource: "manual"
+            },
+          }),
+        prisma.categoryCorrection.create(
+          {
+            data: {
+              transactionId: id,
+              merchant: t.counterparty || t.description,
+              fromCategory: t.category?.name ?? null,
+              toCategory: primary.name,
+              fromSource: t.categorySource ?? null,
+            },
+          }),
       );
     }
-    ops.push(prisma.transactionTag.deleteMany({ where: { transactionId: id } }));
+    ops.push(prisma.transactionTag.deleteMany({
+      where: {
+        transactionId: id
+      }
+    }));
     if (rest.length) {
-      ops.push(prisma.transactionTag.createMany({
-        data: rest.map((c) => ({ transactionId: id, categoryId: c.id })),
-        skipDuplicates: true,
-      }));
+      ops.push(
+        prisma.transactionTag.createMany(
+          {
+            data: rest.map((c) => ({
+              transactionId: id,
+              categoryId: c.id
+            })),
+            skipDuplicates: true,
+          }));
     }
   } else {
     // Keep current primary; replace tag set with the requested extras (never tag the primary itself).
     const extras = wanted.filter((c) => c.id !== t.categoryId);
-    ops.push(prisma.transactionTag.deleteMany({ where: { transactionId: id } }));
+    ops.push(prisma.transactionTag.deleteMany({
+      where: {
+        transactionId: id
+      }
+    }));
     if (extras.length) {
-      ops.push(prisma.transactionTag.createMany({
-        data: extras.map((c) => ({ transactionId: id, categoryId: c.id })),
-        skipDuplicates: true,
-      }));
+      ops.push(
+        prisma.transactionTag.createMany(
+          {
+            data: extras.map((c) => ({
+              transactionId: id,
+              categoryId: c.id
+            })),
+            skipDuplicates: true,
+          }));
     }
   }
 
   await prisma.$transaction(ops);
-  return { detail: await getTransactionDetail(id) };
+  return {
+    detail: await getTransactionDetail(id)
+  };
+}
+
+// Brief 218: the old path above is retained for Claude's server-side parity check.
+export async function recategorizeTransaction(id: string, categoryName: string) {
+  const t = await prisma.transaction.findUnique({
+    where: {
+      id
+    },
+    include: {
+      category: true
+    }
+  });
+  if (!t)
+    return {
+      error: "not found" as const
+    };
+  const target = await prisma.category.findFirst(
+    {
+      where: {
+        name: {
+          equals: categoryName,
+          mode: "insensitive"
+        }
+      }
+    });
+  if (!target)
+    return {
+      error: "unknown category" as const
+    };
+  const { changePayments } = await import("./web-ledger.js");
+  await changePayments({
+    ids: [id],
+    categories: [target.name],
+    mode: "switch"
+  });
+  return {
+    detail: await getTransactionDetail(id)
+  };
+}
+
+export async function setTransactionTags(id: string, categoryNames: string[], dropCurrent: boolean) {
+  const t = await prisma.transaction.findUnique({
+    where: {
+      id
+    },
+    include: {
+      category: true
+    }
+  });
+  if (!t)
+    return {
+      error: "not found" as const
+    };
+  const wanted: string[] = [];
+  for (const name of categoryNames) {
+    const category = await prisma.category.findFirst(
+      {
+        where: {
+          name: {
+            equals: name,
+            mode: "insensitive"
+          },
+          removed: false
+        }
+      });
+    if (category)
+      wanted.push(category.name);
+  }
+  if (dropCurrent && !wanted.length)
+    return {
+      error: "no categories" as const
+    };
+  const { changeTransactionTags } = await import("./web-ledger.js");
+  await changeTransactionTags(id, wanted, dropCurrent);
+  return {
+    detail: await getTransactionDetail(id)
+  };
 }

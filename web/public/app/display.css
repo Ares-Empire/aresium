@@ -1,0 +1,34 @@
+.grid.no-chart {
+  grid-template-columns: 1fr;
+}
+
+.grid.grid-dual.no-chart {
+  grid-template-columns: 1fr 1fr;
+}
+
+@media(max-width:620px) {
+  html[data-graph-scroll="true"] .mob-main {
+    overflow-y: auto;
+  }
+
+  html[data-graph-scroll="true"] .mob-swipe {
+    flex: none;
+    overflow: hidden;
+  }
+
+  html[data-graph-scroll="true"] .mob-page .panel-list {
+    overflow: visible;
+    max-height: none;
+  }
+}
+
+@media(prefers-reduced-motion:reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

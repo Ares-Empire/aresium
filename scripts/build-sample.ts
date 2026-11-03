@@ -1,8 +1,7 @@
 import { writeFile } from "node:fs/promises";
-import { buildDashboard } from "../src/data/dashboard.js";
-import { buildSampleSource } from "../src/data/sample-source.js";
+import { buildWebSample } from "../src/data/web-sample.js";
 
-const json = JSON.stringify(buildDashboard(buildSampleSource()));
+const json = JSON.stringify(buildWebSample());
 for (const [name, contents] of [
   ["dashboard.sample.json", json + "\n"],
   ["dashboard.sample.js", "window.AresiumSample = " + json + ";\n"],

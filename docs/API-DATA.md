@@ -14,11 +14,11 @@ unreadable or unsupported headers fall back to English. Tags with `q=0` are not 
 `Content-Language: en` or `de`. German pulse lines use German month names and whole-euro formatting
 (e.g. `1.339 € im Oktober ausgegeben`). Statuses, keys and numeric values stay the same.
 
-`/api/data` stays unchanged: month `label` and `short` remain English; clients format months from
+`/api/data` keeps the language-independent v2 fields: month `label` and `short` remain English; clients format months from
 `year` and the zero-based `month`. Category/account names, transaction text and original records are
-never translated, including old stored rows. The website explicitly requests English for its API
-calls; its pages, login flow and the Telegram bot remain English. All API wording lives in
-`src/lib/texts.ts`.
+never translated, including old stored rows. The dashboard defaults to English and its language button selects English/German, also sent on API calls.
+The login flow and Telegram bot remain English. Shared API wording lives in `src/lib/texts.ts`;
+brief 218's dashboard mutation wording lives with its handlers in `src/data/web-ledger.ts`.
 
 ## Why version 2
 
@@ -231,3 +231,141 @@ of three statuses (agreed 2026-10-23 after the pre-TestFlight council), each wit
 | **503** | The Empire could not be asked (down, timeout, rate-limited) | keep the session and the data, say "try again" |
 
 The server never turns "could not check" into 401: an outage must not log anyone out.
+
+## Website parity additions (brief 218)
+
+`GET /api/data` now also includes `today` (UTC `YYYY-MM-DD`), `monthlyAverage: {expenses, income}` and
+`fixedCosts: {expenses, income}`. Existing v2 fields retain their names and accounting.
+
+Each average is null with fewer than two finished months; otherwise `{cents, amount, count, first, last}`.
+The first month is excluded when its earliest payment is after day 7. Each fixed-cost list contains
+`running`, `ended`, `takenOut`, `monthlyCents`, `monthlyTotal` and `yearlyTotal`. Entries contain
+`id`, `mark: {key, side, cadence, anchor}`, `newest`, `category`, `name`, `side`, `cadence`, `cents`,
+`monthlyCents`, `amount`, `monthlyEquivalent`, `count`, `first`, `last`, `nextDue`, `running`, `notFixed`,
+`exclusionIDs` and `ids` (newest first). Cadences: monthly, quarterly, halfYearly, yearly. Detection follows
+app briefs 208/216/217, including steady days, price steps and extras carried by combined bookings.
+The newest bank payment is the reference for running status; `today` controls whether the UI says next or last.
+
+Payment rows additionally carry `nameKey`, `fixedCostKey`, `ledgerSequence`, `bankName`, `merchant`.
+These are display identity metadata; they never change `id`, `externalId`, bank text, sorting or accounting.
+
+- `POST /api/fixed-costs` `{id, ids: string[], notFixed: boolean}` excludes/restores an entry. Membership must
+  still match the screen; otherwise 409. Returns `{undo}`.
+- `POST /api/undo` `{undo}` consumes the returned opaque token. Returns `{undone: true}`; an intervening
+  import/edit or a used token returns 409. Changes and snapshots are stored in a serializable transaction.
+
+Both routes share the existing owner login, request limits and English/German error handling.
+The public demo intercepts changes locally and asks the visitor to log in; it never calls these routes.
+`WebSettings` and `WebUndo` are part of the existing full PostgreSQL backup. Migration files are shipped;
+applying migrations is a deployment task, never done by the coding agent.
+
+### Money paid back
+
+Links are stored in `WebSettings.data.links`, by incoming payment id, as `{payment, amount}[]` and supplied
+to the existing shared-engine payback accounting. A row's additive `paybackEligible` controls offering
+link actions; zero remaining payments stay visible. As in the app, only stored EUR payments are offered
+until folded currency is available as metadata. Transfers, withdrawals, cash/receipts and dropped rows are excluded.
+The pulse also reads this accounting.
+
+- `POST /api/paybacks/preview` `{ids: string[], others?: string[], amount?: number}` returns `{group,
+  candidates, suggestions, rest, skipped, plan, revision}`. Selection must have one direction; candidates have
+  the opposite direction. Suggestions rank whole/half/third/quarter/rest fits first, then date distance, in
+  the app's −30/+120 day window. Candidates include every date for browser search. `plan` is null until
+  `others` are chosen; otherwise it contains `links: {from,to,amount,totalAmount}[]`, `expenses` and
+  `paymentsIn` allocations `{id,amount,rest}`, `linked`, `stillOpen`, `staysIncome`. Both sides are oldest
+  first, then ledger sequence, then id. Optional `amount` is only for one payment on each side, in whole cents.
+- `POST /api/paybacks` takes the same selection and the preview's `revision`. Recomputes under a serializable
+  transaction, refuses changes since the preview (409), stores every link together and returns one `{undo}`.
+- `POST /api/paybacks/link` `{from,to,amount}` changes an existing link; zero removes it. Both remaining
+  limits and whole cents are validated. Returns `{undo}`. Payment ids and original amounts are untouched.
+
+The demo has generated choice/plan examples in `demoPaybacks` in the sample, resolved locally, with no
+browser accounting. Unsupported sample selections and all saves ask for login; no real API request is sent.
+
+### Names and finding payments
+
+`nameGroups` maps opaque keys to `{key,name,rows: string[],count,moneyOut,moneyIn,months,names,newestDate}`.
+Rows are newest first. Every dashboard month has `{moneyOut,moneyIn,count}` (also zero months), using counted
+whole cents and excluding transfers/covered rows. `names` retains own names and original bank spellings for
+search, even while `ownNames: false`. Additional transaction metadata: `ownName`, `paymentOwnName`,
+`shopOwnName`, `isOwnName`. The newest qualifying non-card bank line names a shop; merchant identities are
+resolved in one universe containing payments, bank-line probes and stored rules. No name reaches sorting.
+
+- `POST /api/names` `{ids: string[], name: string, scope: "payment"|"shop"}` stores a name for the selected
+  payments or their shops and future imports. Trimmed to 60 grapheme clusters; empty removes that scope's
+  name. Per-payment overrides win. Empty merchant keys allow only payment scope. Returns `{undo}`.
+- `POST /api/names/display` `{enabled: boolean}` hides/shows own names, preserving them. Returns `{undo}`.
+
+Search ranking stays in the browser (display only); name totals/months are server-built. Day pages filter
+rows by date and listing indexes, without duplicate tags, and read totals directly from `dayExpense` /
+`dayIncome`. Graph day indexes open those pages; month points open the existing month pages.
+
+### Several payments at once
+
+- `POST /api/selection` `{ids, category?}` returns `{ids,count,side,total,shops,otherCount,otherIDs,revision}`.
+  Counts and counted money are computed in the engine. Covered rows and mixed directions are refused.
+  Other shop payments exclude manual/structural/receipt choices, transfers, selected rows and the target category.
+- `POST /api/transactions` `{ids,mode:"switch"|"add",categories:string[],removeCategories?:string[],dropCurrent?,otherPayments?,revision?}`
+  changes a selection atomically, with one `{undo}`. The screen supplies `revision` from the selection preview.
+  Switch sets the primary/manual category and remembers original merchant identities for future imports; Add changes
+  tag membership without counting twice. `removeCategories` removes old extras, including an empty `categories` list
+  when only removing; the primary stays unchanged. `dropCurrent` uses the first chosen category as primary, the rest as tags.
+  `otherPayments` applies the same change to eligible shop peers after the single question. Moving to a transfer
+  category removes payback links at both ends, and undo restores them.
+
+`WebSettings.data.learned` stores original merchant keys and chosen category ids separately for each direction.
+The import handler applies them to new rows after existing import categorization, preserving manual/transfer
+choices. This does not change bank readers, ids or sorting rules. The legacy single-category helper is retained
+as `legacyRecategorizeTransaction` for Claude's parity check; the route now uses the same batch operation.
+
+### Sorting unsorted names
+
+`quickSort` contains `{key,name,ids,count,side,total,first,last,examples}` groups over all unsorted payments,
+separated by name key and direction, ranked by count then counted money. Example purpose lines are deduplicated.
+`POST /api/quick-sort` `{key,ids,category}` checks current membership inside the batch transaction, switches
+only that unsorted group and remembers its original bank identities. Returns one `{undo}`. Already sorted
+payments are never included. Skip is a display choice and changes nothing on the server. The browser offers
+this flow after import, after the import notice, and from Not sorted.
+
+### Category editing
+
+`categoryOptions` contains stored categories with stable database ids, `name`, `icon`, `color`, `side`,
+`kind`, `otherSide`, `originalName`, `removed`, `default`, `protected`, `paymentCount`.
+`POST /api/categories` takes one of:
+
+- `{action:"create",name,side:"spend"|"income"}`: creates a category with a persistent icon/colour, or reuses
+  a matching name (including English/German default names), restoring/offering it on this side if necessary.
+- `{action:"rename",id,name}` or `{action:"rename",id,original:true}`: preserves category id, look, side,
+  payments and learning; defaults remember their original name.
+- `{action:"side",id,side?,otherSide?}`: pins the home side and/or its offer on the other side. Direction
+  still decides counting. Changing home side keeps the previous side offered if it holds payments there.
+- `{action:"delete",id}`: removes a default or deletes a custom category; removes its extra memberships,
+  re-sorts its primary payments through the existing shared engine using the remaining categories and learned
+  choices. Payments it cannot sort become Not sorted. Transfer links are cleared where needed.
+- `{action:"restore",id}`: restores a removed default. Reserved built-ins cannot be renamed/deleted.
+
+All return `{undo, category?}`; creation/reuse and rename/side/restore also return the selected `{id,name}`
+(with stored fields). All changes, re-sorting and undo are transactional. Undo appends inverse category corrections so the audit remains append-only and its learning signal follows the restored state.
+The latest undo alone is retained;
+its snapshot stores category/name/link state and hashes of original bank fields, rather than copies of raw exports.
+The existing category/tag routes keep their response shapes but use these atomic changes. Their old helpers
+remain as `legacyRecategorizeTransaction` / `legacySetTransactionTags` until Claude checks parity.
+
+### Remaining website views
+
+`currentMonth` chooses the previous finished month during days 1–7 when the latest month is partial; otherwise
+it is the latest month with data. The phone layout keeps this month one tap away. `summedLists` maps
+`JSON.stringify([categoryName, monthKey, "spend"|"income"])` to `{key,name,ids,count,amount,latest}[]`.
+Amounts use counted cents, supplied by the engine; toggling the display and selecting all of a sum are browser work.
+
+`cashEntries` stores manual EUR cash entries using the existing engine's `SourceReceipt` shape, and `cash`
+is the engine's wallet view (`months`, `movements`, as documented above). `POST /api/cash` takes
+`{action:"create"|"edit",id?,shop,date,total,direction:"in"|"out",category?,paidFrom?}` or
+`{action:"delete",id}`. Positive whole-cent totals, real ISO days and non-transfer categories are checked;
+returns `{undo}`. The engine allocates cash spending to a chosen source or its automatic source, so withdrawals
+and spending never count twice. Category rename/delete follows manual cash too. No receipt photos are supported.
+
+The demo includes a cash gift and cash spending, and a 22-step read-only tour through the actual screens.
+Graph visibility/scrolling, theme, language and sum toggles are browser display preferences; financial choices
+are persisted on the authenticated server. Dashboard and preview reads use one repeatable-read snapshot;
+writes use serializable transactions, with canonical hashes (JSONB object ordering never invalidates an undo).

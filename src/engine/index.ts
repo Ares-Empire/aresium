@@ -74,3 +74,11 @@ export type { ReceiptMarks } from "../data/dashboard.js";
 // Cash beyond the bank (brief 32): `SourceReceipt` takes `direction`, `kind` and `paidFrom`; the dashboard's `cash`.
 export type { CashView, CashMonth, CashMovement } from "../data/dashboard.js";
 // ── end of receipts ───────────────────────────────────────────────────────────────────────────────────────
+
+// Website parity (brief 218); explicit inputs, also callable from JavaScriptCore.
+export { buildLedgerDashboard, emptyLedgerSettings } from "./ledger-dashboard.js";
+export { fixedCostEntries, fixedCostList, monthlyAverage, nextFixedDay } from "./fixed-costs.js";
+export type { FixedCostMark, FixedCostEntry, FixedCostList } from "./fixed-costs.js";
+export { paybackChoices, planPaybacks, applyPlan } from "./payback-plan.js";
+export { selectionSummary } from "./selection.js";
+export { quickSortGroups } from "./quick-sort.js";

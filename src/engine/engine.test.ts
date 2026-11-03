@@ -5,6 +5,7 @@ import { test } from "node:test";
 import { createContext, runInContext } from "node:vm";
 import { bundleEngine, buildTimingSource } from "../../scripts/build-engine.js";
 import { buildDashboard, type Dashboard } from "../data/dashboard.js";
+import { buildWebSample } from "../data/web-sample.js";
 import { buildSampleSource } from "../data/sample-source.js";
 import { parseVrBankCsv } from "../import/vrbank-csv.js";
 import { parseCamt } from "../import/camt.js";
@@ -34,42 +35,98 @@ test("bundled sorting and learning run without Node or web APIs", () => {
   assert.deepEqual(json(bundled.sortPayments(payments, { categories })),
     [{ categoryId: "groceries", source: "starter" }, { categoryId: "groceries", source: "starter" }]);
 });
-test("bundled shop identities and cross-shop learning equal the direct engine without host APIs", () => {
-  const keys = ["MGP Vinted - Kleiderkreisel", "vinted uab", "dm-drogerie markt", "dm drogerie", "apple services",
-    "apple.com bill", "muenchener rueckver", "muenchener rueckversic", "Max Mustermann", "Max Otto Mustermann", ""];
-  assert.deepEqual(json(bundled.shopIdentities(keys)), engine.shopIdentities(keys));
-  const payments = [{ counterparty: "Vinted, UAB", amount: -12 }, { counterparty: "Apple Services", amount: -8 }];
-  const options = { categories: [{ id: "custom" }], learned: { "mgp vinted - kleiderkreisel": "custom", "apple store": "custom" } };
-  assert.deepEqual(json(bundled.sortPayments(payments, options)), engine.sortPayments(payments, options));
-  assert.ok(bundled.sortPayments(payments, options).every((result) => result.source === "learned"));
-  assert.equal(bundled.merchantKey({ description: "FIKTIVSHOP          USA MUSTERSTADT            USD 7,43 Kurs: 1,086700 1,00% Auslandsums. 0,07Umsatz vom 09.10.2026 MC Hauptkarte" }), "fiktivshop");
-});
+test(
+  "bundled shop identities and cross-shop learning equal the direct engine without host APIs",
+  () => {
+    const keys = [
+      "MGP Vinted - Kleiderkreisel",
+      "vinted uab",
+      "dm-drogerie markt",
+      "dm drogerie",
+      "apple services",
+      "apple.com bill",
+      "muenchener rueckver",
+      "muenchener rueckversic",
+      "Max Mustermann",
+      "Max Otto Mustermann",
+      ""
+    ];
+    assert.deepEqual(json(bundled.shopIdentities(keys)), engine.shopIdentities(keys));
+    const payments = [
+      {
+        counterparty: "Vinted, UAB",
+        amount: -12
+      },
+      {
+        counterparty: "Apple Services",
+        amount: -8
+      }
+    ];
+    const options = {
+      categories: [{
+        id: "custom"
+      }],
+      learned: {
+        "mgp vinted - kleiderkreisel": "custom",
+        "apple store": "custom"
+      }
+    };
+    assert.deepEqual(json(bundled.sortPayments(payments, options)), engine.sortPayments(payments, options));
+    assert.ok(bundled.sortPayments(payments, options).every((result) => result.source === "learned"));
+    assert.equal(
+      bundled.merchantKey(
+        {
+          description: "FIKTIVSHOP          USA MUSTERSTADT            USD 7,43 Kurs: 1,086700 "
+            + "1,00% Auslandsums. 0,07Umsatz vom 09.10.2026 MC Hauptkarte"
+        }),
+      "fiktivshop");
+  });
 test("bundled sample dashboard equals the direct server calculation", () => {
   const source = buildSampleSource();
   assert.deepEqual(json(bundled.buildDashboard(source)), json(buildDashboard(source)));
 });
 
-test("sample source JSON stays byte-identical; its dashboard equals the stored website sample", async () => {
-  const source = buildSampleSource();
-  assert.equal(createHash("sha256").update(JSON.stringify(source)).digest("hex"),
-    "f79896e7c5135e670fd035f42357d109f775a3d46cdc215642a320622576bab0");
-  // The stored sample is rebuilt with `npm run sample` whenever the counting changes (last: briefs 68 and 71).
-  const expected: Dashboard = JSON.parse(await readFile(new URL("../../web/public/app/dashboard.sample.json", import.meta.url), "utf8"));
-  assert.deepEqual(buildDashboard(source), expected);
-});
+test(
+  "sample source JSON stays byte-identical; its dashboard equals the stored website sample",
+  async () => {
+    const source = buildSampleSource();
+    assert.equal(
+      createHash("sha256").update(JSON.stringify(source)).digest("hex"),
+      "f79896e7c5135e670fd035f42357d109f775a3d46cdc215642a320622576bab0");
+    // The stored sample is rebuilt with `npm run sample` whenever the counting changes (last: briefs 68 and 71).
+    const expected: Dashboard = JSON.parse(
+      await readFile(new URL("../../web/public/app/dashboard.sample.json", import.meta.url), "utf8"));
+    const web = buildWebSample();
+    assert.deepEqual(json(web), expected);
+    for (const month of web.months) {
+      assert.ok(web.transactions.filter((p) => p.month === month.key).every((p) => p.day <= month.days));
+      const totals = web.byMonth[month.key];
+      assert.equal(
+        Math.round(totals.dayExpense.reduce((a, b) => a + b, 0) * 100),
+        Math.round(totals.expense * 100));
+      assert.equal(
+        Math.round(totals.dayIncome.reduce((a, b) => a + b, 0) * 100),
+        Math.round(totals.income * 100));
+    }
+    assert.equal(web.transactions.find((p) => p.id === "sample-dinner")?.counted, -45);
+    assert.ok(web.fixedCosts.expenses.ended.some((p) => p.name === "Spotify"));
+    assert.ok(web.fixedCosts.income.running.some((p) => p.name === "Northwind Werkstudent"));
+  });
 for (const [name, parser, bundledParser] of [
   ["vrbank.csv", parseVrBankCsv, bundled.parseVrBankCsv],
   ["camt.xml", parseCamt, bundled.parseCamt],
   ["paypal.csv", parsePaypalCsv, bundled.parsePaypalCsv],
 ] as const) {
-  test(`bundled ${name} equals the server and stored Node answer, with ISO dates`, async () => {
-    const file = new URL(`fixtures/${name}`, import.meta.url);
-    const input = await readFile(file, "utf8");
-    const expected = json(parser(input));
-    assert.deepEqual(JSON.parse(await readFile(new URL(`${file.href}.expected.json`), "utf8")), expected);
-    assert.deepEqual(json(bundledParser(input)), expected);
-    assert.ok(bundledParser(input).transactions.every((txn) => typeof txn.bookingDate === "string"));
-  });
+  test(
+    `bundled ${name} equals the server and stored Node answer, with ISO dates`,
+    async () => {
+      const file = new URL(`fixtures/${name}`, import.meta.url);
+      const input = await readFile(file, "utf8");
+      const expected = json(parser(input));
+      assert.deepEqual(JSON.parse(await readFile(new URL(`${file.href}.expected.json`), "utf8")), expected);
+      assert.deepEqual(json(bundledParser(input)), expected);
+      assert.ok(bundledParser(input).transactions.every((txn) => typeof txn.bookingDate === "string"));
+    });
 }
 test("timing source is deterministic and covers 24 months and 5,000 unique transactions", () => {
   const source = buildTimingSource();

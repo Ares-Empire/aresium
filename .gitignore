@@ -45,3 +45,7 @@ data/local-places/left-out.json
 
 # Packed local places assets are also kept compressed (brief 97).
 data/local-places/*.places.bin
+
+# Screenshots and scratch output of checks; test leftovers
+build/
+.test-owner-*/

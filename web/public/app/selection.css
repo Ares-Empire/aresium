@@ -1,0 +1,18 @@
+.selection-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 12px 0;
+}
+
+.selection-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.selection-row .txn-row {
+  flex: 1;
+  min-width: 0;
+}

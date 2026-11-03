@@ -61,7 +61,7 @@ export type SourceReceipt = {
    * `method: "cash"`; it counts as money in and is a source of cash, like a withdrawal.
    */
   direction?: "out" | "in" | null;
-  /** "receipt" (the default): read from a receipt. "manual": typed in by hand. Only for the app's labels. */
+  /** "receipt" (the default): read from a receipt. "manual": typed in by hand. Used for display labels. */
   kind?: "receipt" | "manual" | null;
   /**
    * Cash out only: the source it was paid from, a withdrawal's payment id or a cash-received entry's id; null or left
@@ -76,7 +76,7 @@ export type DashboardSourceInput = {
   /** Today as `YYYY-MM-DD` (UTC): the current month is partial and counts up to this day. */
   today: string;
   /**
-   * The phone's receipts and cash entries (./receipts/count.ts says how they count). Without them nothing changes;
+   * Receipts and cash entries (./receipts/count.ts says how they count). Without them nothing changes;
    * with them (also none) the source gets the Cash page (`cash`) and its withdrawals are marked `cashWithdrawal`.
    */
   receipts?: readonly SourceReceipt[];

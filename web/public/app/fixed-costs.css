@@ -1,0 +1,58 @@
+.average-line {
+  padding: 8px 0 3px;
+  font-size: 12px;
+  color: var(--ink-2);
+  line-height: 1.7;
+}
+
+.average-line button {
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.fixed-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  border-bottom: 1px solid var(--line-soft);
+  padding: 16px 0;
+}
+
+.fixed-open {
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  text-align: left;
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+}
+
+.fixed-line {
+  grid-column: 1 / -1;
+  line-height: 1.7;
+}
+
+.fixed-row.quiet {
+  opacity: .65;
+}
+
+@media(max-width:620px) {
+  .fixed-row {
+    gap: 8px;
+  }
+}
+
+.fixed-row > .md-edit {
+  flex-shrink: 0;
+  white-space: nowrap;
+  margin-top: 0;
+  line-height: 18px;
+}
