@@ -9,6 +9,7 @@
 import type { Category as DbCategory } from "@prisma/client";
 import type { Category, DashboardSource } from "./dashboard.js";
 import { prisma } from "../lib/db.js";
+import { berlinDay } from "./calendar.js";
 import { buildDashboardSource, unmatchedPaypalConversions, UNCATEGORISED, type DashboardSourceInput } from "../engine/source.js";
 
 const ym = (d: Date) => d.toISOString().slice(0, 7);
@@ -286,7 +287,7 @@ export function dashboardInputFromRows(
           otherSide: true
         } : {})
       })),
-    today: now.toISOString().slice(0, 10),
+    today: berlinDay(now),
     ...(receipts ? {
       receipts
     } : {}),

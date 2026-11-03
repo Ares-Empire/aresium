@@ -179,6 +179,9 @@ keep exactly the same JSON.
   both fields. Only `otherSide: true` is passed to the output, so older inputs gain no JSON fields. The
   caller chooses the side; the engine does not look up default category ids. Sides decide where a
   category is offered, while payment direction decides where its money counts.
+  Category nets are summed in integer cents, so a zero net always falls on the spending side regardless of
+  stored row order. If `Uncategorised` is already a stored category, its metadata is reused; the engine does
+  not append a second category or duplicate its spending rows (brief 224).
 - **Recategorise choices** (`pick`): money out (amount ≤ 0) offers `spend` categories, then transfers,
   then `income` categories with `otherSide`. Money in offers `income`/`transfer` categories and `Tax` as
   before, then `spend` categories with `otherSide` (each name once). Each part follows its home side's
@@ -254,8 +257,15 @@ The server never turns "could not check" into 401: an outage must not log anyone
 
 ## Website parity additions (brief 218)
 
-`GET /api/data` now also includes `today` (UTC `YYYY-MM-DD`), `monthlyAverage: {expenses, income}` and
-`fixedCosts: {expenses, income}`. Existing v2 fields retain their names and accounting.
+`GET /api/data` now also includes `today` (Europe/Berlin calendar day, `YYYY-MM-DD`),
+`monthlyAverage: {expenses, income}` and `fixedCosts: {expenses, income}`. Existing v2 fields retain their names
+and accounting.
+
+Since brief 224, the server derives `today`, the partial-month cutoff and the pulse's month from the same
+Europe/Berlin calendar, independently of the server's timezone. This includes midnight, year changes and DST.
+Stored booking dates retain their existing date-only semantics; their UTC serialization is not shifted.
+Phone callers supply their intended calendar day to both `buildDashboardSource` and `buildLedgerDashboard`;
+the shared engine never reads the clock or a timezone itself.
 
 Each average is null with fewer than two finished months; otherwise `{cents, amount, count, first, last}`.
 The first month is excluded when its earliest payment is after day 7. Each fixed-cost list contains

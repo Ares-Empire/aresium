@@ -11,6 +11,7 @@ import { parseDay } from "../engine/dates.js";
 import { randomUUID, createHash } from "node:crypto";
 import { paybackChoices, planPaybacks, applyPlan, centAmount } from "../engine/payback-plan.js";
 import { markID } from "../engine/fixed-costs.js";
+import { berlinDay } from "./calendar.js";
 
 type DB = Prisma.TransactionClient;
 export class LedgerError extends Error {
@@ -121,7 +122,7 @@ async function buildWebDashboard(db: DB, now: Date) {
         }))
     ],
     settings,
-    now.toISOString().slice(0, 10));
+    berlinDay(now));
   const allCategories = await db.category.findMany({
     orderBy: {
       name: "asc"
