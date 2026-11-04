@@ -269,6 +269,30 @@ test("VR Bank CSV gets the other party's IBAN on top of the server's reader, who
   assert.ok(server.every((t) => !("counterpartyIban" in t)), "the server's reader is unchanged");
 });
 
+test("a Sparda-Bank's export is the VR banks' layout: read with the server's ids, its account named after the Sparda-Bank", async () => {
+  const text = (await fixture("volksbank.sparda.csv")).toString("utf8").replace(/^﻿/, "");
+  const file = engine.readBankText(text);
+  assert.equal(file.bank?.id, "volksbank");
+  assert.equal(file.account?.name, "Sparda-Bank ••3000");
+  assert.equal(file.account?.iban, "DE89370400440532013000");
+  assert.deepEqual(ids(file), parseVrBankCsv(text).transactions.map((t) => t.externalId));
+  assert.deepEqual(others(file), [null, null, "DE96100500000000123456", null, "DE34701500000000246810", null]);
+  assert.deepEqual(json(bundled.readBankText(text)).account, json(file.account));
+
+  // Lines above the table take the other reader; the account is named the same there.
+  const below = engine.readBankText(`Umsatzanzeige;\n\n${text}`);
+  assert.equal(below.account?.name, "Sparda-Bank ••3000");
+  assert.deepEqual(below.transactions.map((t) => t.amount), file.transactions.map((t) => t.amount));
+
+  // A VR bank's file keeps the name the server gives it; only "Sparda-Bank" in the bank's own column renames.
+  assert.equal(engine.readBankText((await fixture("volksbank.csv")).toString("utf8")).account?.name, "VR Bank ••2122");
+  const vr = text.replaceAll("Sparda-Bank West eG", "Fiktive Volksbank eG");
+  assert.equal(engine.readBankText(vr).account?.name, "VR Bank ••3000");
+  assert.deepEqual(ids(engine.readBankText(vr)), ids(file), "the bank's name is not part of an id");
+  const elsewhere = text.replace("Abo Dezember 2025", "Abo Sparda-Bank Dezember 2025").replaceAll("Sparda-Bank West eG", "Fiktive Volksbank eG");
+  assert.equal(engine.readBankText(elsewhere).account?.name, "VR Bank ••3000");
+});
+
 // ── Detection ──────────────────────────────────────────────────────────────────────────────────────────────
 
 test("detects CAMT, MT940, PayPal, known and unknown CSVs, and refuses ZIP archives", async () => {

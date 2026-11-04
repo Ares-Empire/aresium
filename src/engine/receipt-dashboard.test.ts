@@ -18,13 +18,17 @@ import { buildDashboardSource, type SourceCategory, type SourcePayment, type Sou
 // the old name, so that the source hash still proves its JSON did not change.
 const nameAtHash = (c: (typeof DEFAULT_CATEGORIES)[number]) => (c.id === "cash" ? "Cash" : c.name.en);
 
+// Fixtures added after the hashes below were taken: leaving them out keeps the hashes' proof that nothing changed.
+// Their reading has its own tests (bank-readers.test.ts), and balances.test.ts runs them through both sources.
+const ADDED_AFTER_HASH = new Set(["volksbank.sparda.csv.expected.json"]); // brief 231
+
 // Every payment of the existing bank fixtures (made-up payments in real formats), sorted by the shop list.
 async function fixturePayments(): Promise<SourcePayment[]> {
   const root = new URL("fixtures/", import.meta.url);
   const banks = new URL("banks/", root);
   const files = [
     ...(await readdir(root)).filter((f) => f.endsWith(".expected.json")).map((f) => new URL(f, root)),
-    ...(await readdir(banks)).filter((f) => f.endsWith(".expected.json")).map((f) => new URL(f, banks)),
+    ...(await readdir(banks)).filter((f) => f.endsWith(".expected.json") && !ADDED_AFTER_HASH.has(f)).map((f) => new URL(f, banks)),
   ].sort((a, b) => (a.href < b.href ? -1 : 1));
   const payments: SourcePayment[] = [];
   for (const url of files) {

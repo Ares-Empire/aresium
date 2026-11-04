@@ -23,6 +23,8 @@ export type BankProfile = {
   separator: Separator | Separator[];
   match: (string | string[])[]; // header names that identify the layout (a list: any one of them); [] with `headerless`
   bankInPreamble?: string[]; // the first of these names found above the table is the bank (shared layouts)
+  // The first of these names found in that column's cells is the bank (a shared layout whose rows name the bank).
+  bankInColumn?: { column: string; names: string[] };
   headerless?: { columnCount: number; ibanColumn?: number }; // rows of this width, with the account's IBAN there
   dateFormat: DateFormat | DateFormat[]; // the bank's documented formats, preferred when several read the column
   numberFormat: NumberFormat | "either"; // "either": the decimal mark changes between files of the same bank
@@ -108,6 +110,22 @@ export function profileDateAmbiguous(profile: BankProfile, rows: string[][], hea
   return choices.includes("DD/MM/YYYY") && choices.includes("MM/DD/YYYY");
 }
 
+// The bank whose file this is. A shared layout can say so: above the table (Postbank's files in Deutsche Bank's
+// layout) or in a column of its rows (a Sparda-Bank's files in the VR banks' layout). Otherwise the profile's bank.
+export function fileBank(profile: BankProfile, rows: string[][], headerRow: number): string {
+  const above = rows.slice(0, Math.max(headerRow, 0)).map((r) => r.join(" ").toLowerCase());
+  const inPreamble = profile.bankInPreamble?.find((n) => above.some((line) => line.includes(n.toLowerCase())));
+  if (inPreamble) return inPreamble;
+  const named = profile.bankInColumn;
+  if (named && headerRow >= 0) {
+    const column = rows[headerRow].findIndex((h) => headerKey(h) === headerKey(named.column));
+    const cells = column < 0 ? [] : rows.slice(headerRow + 1).map((r) => (r[column] ?? "").toLowerCase());
+    const inColumn = named.names.find((n) => cells.some((cell) => cell.includes(n.toLowerCase())));
+    if (inColumn) return inColumn;
+  }
+  return profile.bank;
+}
+
 // The profile as a layout for this file. Null when a column the reading needs is missing.
 export function profileLayout(profile: BankProfile, rows: string[][], headerRow: number, separator: Separator): CsvLayout | null {
   const header = headerRow >= 0 ? trimRow(rows[headerRow]) : [];
@@ -136,11 +154,9 @@ export function profileLayout(profile: BankProfile, rows: string[][], headerRow:
   const amountColumns = [columns.amount, columns.debit, columns.credit].filter((i): i is number => i !== undefined);
   const data = rows.slice(headerRow + 1).filter((r) => r.some((v) => v.trim() !== ""));
   const dateFormat = columnDateFormats(data.map((r) => r[columns.date] ?? ""), formats(profile))[0] ?? formats(profile)[0];
-  const above = rows.slice(0, Math.max(headerRow, 0)).map((r) => r.join(" ").toLowerCase());
-  const name = profile.bankInPreamble?.find((n) => above.some((line) => line.includes(n.toLowerCase()))) ?? profile.bank;
   return {
     version: 1,
-    name,
+    name: fileBank(profile, rows, headerRow),
     profile: profile.id,
     separator,
     header,
