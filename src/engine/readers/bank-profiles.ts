@@ -57,6 +57,8 @@ export const BANK_PROFILES: readonly BankProfile[] = [
     skipStatus: ["vorgemerkt"],
   },
   {
+    // The eleven Sparda-Banks run on the same platform (Atruvia) since their move, the last in October 2025, and
+    // export this layout too, with their own name in "Bankname Auftragskonto" ("Sparda-Bank West eG").
     id: "volksbank",
     bank: "VR Bank", // Volksbanken and Raiffeisenbanken, named as the server names them
     variant: "Atruvia CSV, since 2022",
@@ -65,9 +67,14 @@ export const BANK_PROFILES: readonly BankProfile[] = [
       `${GH}nicolettas-muggelbude/RechnungsFee/blob/main/vorlagen/bank-csv/vr-teilhaberbank.csv`,
       `${GH}Fjanks/beancount-importer-volksbank/blob/HEAD/beancount_importer_volksbank/__init__.py`,
       `${GH}firefly-iii/import-configurations/blob/main/de/raiffeisenbank/bonn-rhein-sieg/csv-giro.json`,
+      `${GH}nicolettas-muggelbude/RechnungsFee/blob/dd3db03ab5525a99651a09869754eba189286b42/vorlagen/bank-csv/sparda-bank-west.csv`,
+      `${GH}nicolettas-muggelbude/RechnungsFee/blob/dd3db03ab5525a99651a09869754eba189286b42/vorlagen/bank-csv/README.md`,
+      "https://www.it-finanzmagazin.de/systemumstellung-abgeschlossen-sparda-bank-west-vollendet-migration-auf-atruvia-kernbankverfahren-234291/",
     ],
+    unconfirmed: "Sparda-Banks: one bank's export is public (Sparda-Bank West, December 2025); the other ten are taken to export the same, on the same platform.",
     separator: ";",
     match: ["IBAN Auftragskonto", "Buchungstag", "Name Zahlungsbeteiligter", "Betrag"],
+    bankInColumn: { column: "Bankname Auftragskonto", names: ["Sparda-Bank"] },
     dateFormat: "DD.MM.YYYY",
     numberFormat: "de",
     columns: {

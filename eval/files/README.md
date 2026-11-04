@@ -4,7 +4,7 @@ This is a measurement set, not a reader fix. All payments, people, account detai
 Real bank headers come from the existing synthetic fixtures and their documented profile sources.
 Nothing reads a database, server or private export.
 
-The default seed, **78**, produces **228 cases**: 159 format-only derivatives of 43 existing files, 30 unknown
+The default seed, **78**, produces **231 cases**: 162 format-only derivatives of 44 existing files, 30 unknown
 bank layouts, six explicit encoding samples, 12 sign/amount conventions, three difficult purpose texts,
 16 files that must be refused, and two partial readings with an explicit skipped-row warning.
 CAMT and MT940 are included alongside the CSV banks. The case bytes and answer manifests are checked in.

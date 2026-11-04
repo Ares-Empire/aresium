@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "file": "volksbank.sparda--encoding.csv",
+  "seed": 78,
+  "bank": "volksbank",
+  "kind": "encoding-utf8-bom",
+  "situation": "A bank download or spreadsheet uses a different text encoding and line ending.",
+  "change": "utf8-bom; \"\\r\\n\" record endings; unchanged cells.",
+  "provenance": {
+    "method": "original",
+    "fixture": "volksbank.sparda.csv",
+    "reference": "volksbank.sparda.csv.expected.json",
+    "sha256": "d86d2bffc6b7d1cc48ddd66f681fa3fee659695eefb868241682cb0867177a8a"
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2025-12-12",
+        "amountCents": -499,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Streaming GmbH",
+        "text": "Abo Dezember 2025 Kundennr 4711"
+      },
+      {
+        "date": "2025-12-10",
+        "amountCents": -4195,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Markt",
+        "text": "Kartenzahlung girocard"
+      },
+      {
+        "date": "2025-12-09",
+        "amountCents": 215000,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Werke GmbH",
+        "text": "Gehalt Dezember 2025"
+      },
+      {
+        "date": "2025-12-08",
+        "amountCents": -320,
+        "currency": "EUR",
+        "counterparty": "Café Märchen",
+        "text": "Kartenzahlung girocard"
+      },
+      {
+        "date": "2025-12-05",
+        "amountCents": -65000,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Vermietung",
+        "text": "Miete Dezember"
+      },
+      {
+        "date": "2025-12-03",
+        "amountCents": -2233,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Mobilfunk GmbH",
+        "text": "Rechnung 12/2025 Vertrag 0815"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "970e33148014e419cf8469f3",
+      "313ed143a9038379c2919d07",
+      "1d63483b9d3b9ef0c4dd3a93",
+      "f7afefb302a9dc7142798e3c",
+      "6ef0c72343b7f80d882fbde6",
+      "1ad055da7f50211d16e6a25e"
+    ]
+  }
+}

@@ -11,7 +11,7 @@ import { findTableStart, guessCsvLayout } from "./guess.js";
 import { withOccurrences } from "./ids.js";
 import { readMt940 } from "./mt940.js";
 import { BANK_PROFILES, findProfile, profileDateAmbiguous, profileLayout, type BankProfile } from "./profiles.js";
-import { BankFileError, checkedCsvRows, findTable, readTable } from "./table.js";
+import { accountName, BankFileError, checkedCsvRows, findTable, readTable } from "./table.js";
 import { DATE_FORMATS, headerKey, normalizeIban, parseAmountStrict, parseDate } from "./values.js";
 import type { BankFile, BankTxn, ColumnInfo, CsvLayout, LayoutGuess } from "./types.js";
 
@@ -116,8 +116,9 @@ export function recordCounterpartyIban(record: unknown, profile: BankProfile): s
 // VR Bank CSV with its header on line 1: the server's reader, so ids stay what they were. Two changes on top,
 // both only where the server's reader went wrong: a second identical booking on the same day gets its own id
 // (it used to be lost as a duplicate), and a row without a booking date is skipped (it used to get today's date).
-// The other party's IBAN is added here (the server's reader leaves it in `raw`).
-function readVrBank(text: string, profile: BankProfile): BankFile {
+// The other party's IBAN is added here (the server's reader leaves it in `raw`). `bank` is the bank the file
+// names (a Sparda-Bank exports the same layout); the server's reader calls every such account "VR Bank".
+function readVrBank(text: string, profile: BankProfile, bank = profile.bank): BankFile {
   const parsed = parseVrBankCsv(text);
   const dateColumns = ["Buchungstag", "Buchung", "Buchungsdatum"];
   const kept = parsed.transactions.filter((t) => {
@@ -141,7 +142,8 @@ function readVrBank(text: string, profile: BankProfile): BankFile {
       ...(counterpartyIban ? { counterpartyIban } : {}),
     };
   });
-  const account = { name: parsed.account.name, currency: parsed.account.currency, ...(parsed.account.iban ? { iban: parsed.account.iban } : {}) };
+  const name = bank === profile.bank ? parsed.account.name : accountName(bank, parsed.account.iban);
+  const account = { name, currency: parsed.account.currency, ...(parsed.account.iban ? { iban: parsed.account.iban } : {}) };
   return {
     format: "csv",
     bank: { id: profile.id, name: bankName(profile) },
@@ -212,7 +214,7 @@ export function readBankText(text: string, savedLayouts: readonly CsvLayout[] = 
           ? kept
             .map((row) => row.map((v) => `"${v.replace(/"/g, '""')}"`).join(";")).join("\n")
           : text;
-        return { ...readVrBank(compatible, known), skipped: checked.skipped };
+        return { ...readVrBank(compatible, known, layout.name), skipped: checked.skipped };
       }
       if (layout) {
         const file = readTable(rows, detected.headerRow, layout);

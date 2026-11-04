@@ -155,5 +155,5 @@ test("existing bank fixtures through old and new sources and dashboards differ o
     assertBalanceOnlyChanges(input);
     checked++;
   }
-  assert.equal(checked, 45, "all 45 readable existing bank fixtures were compared");
+  assert.equal(checked, 46, "all 46 readable existing bank fixtures were compared");
 });

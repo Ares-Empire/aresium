@@ -1,0 +1,7 @@
+Bezeichnung Auftragskonto;IBAN Auftragskonto;BIC Auftragskonto;Bankname Auftragskonto;Buchungstag;Valutadatum;Name Zahlungsbeteiligter;IBAN Zahlungsbeteiligter;BIC (SWIFT-Code) Zahlungsbeteiligter;Buchungstext;Verwendungszweck;Betrag;Waehrung;Saldo nach Buchung;Bemerkung;Gekennzeichneter Umsatz;Glaeubiger ID;Mandatsreferenz
+SpardaGiro Online;DE89370400440532013000;GENODED1SPE;Sparda-Bank West eG;12.12.2025;12.12.2025;Fiktiv Streaming GmbH;;;Basislastschrift;Abo Dezember 2025 Kundennr 4711;-4,99;EUR;2427,53;;;DE98ZZZ09999999999;FICT-STREAM-0001
+SpardaGiro Online;DE89370400440532013000;GENODED1SPE;Sparda-Bank West eG;10.12.2025;10.12.2025;Fiktiv Markt;;;Kartenzahlung girocard;Kartenzahlung girocard;-41,95;EUR;2432,52;;;;
+SpardaGiro Online;DE89370400440532013000;GENODED1SPE;Sparda-Bank West eG;09.12.2025;09.12.2025;Fiktiv Werke GmbH;DE96100500000000123456;BELADEBEXXX;Überweisungsgutschr.;Gehalt Dezember 2025;2150;EUR;2474,47;;;;
+SpardaGiro Online;DE89370400440532013000;GENODED1SPE;Sparda-Bank West eG;08.12.2025;08.12.2025;Café Märchen;;;Kartenzahlung girocard;Kartenzahlung girocard;-3,2;EUR;324,47;;;;
+SpardaGiro Online;DE89370400440532013000;GENODED1SPE;Sparda-Bank West eG;05.12.2025;05.12.2025;Fiktiv Vermietung;DE34701500000000246810;SSKMDEMMXXX;Dauerauftragsbelast;Miete Dezember;-650;EUR;327,67;;;;
+SpardaGiro Online;DE89370400440532013000;GENODED1SPE;Sparda-Bank West eG;03.12.2025;03.12.2025;Fiktiv Mobilfunk GmbH;;;Basislastschrift;Rechnung 12/2025 Vertrag 0815;-22,33;EUR;977,67;;;DE98ZZZ09999999999;FICT-MOBIL-0815
