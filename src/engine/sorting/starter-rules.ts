@@ -1,5 +1,5 @@
 import type { SortingPayment } from "./merchant.js";
-import { associationPurpose, paymentPurpose } from "./payment-purpose.js";
+import { associationPurpose, cardVenuePurpose, paymentPurpose } from "./payment-purpose.js";
 import { compileShopList, type ShopFound, type ShopListData } from "./shop-matcher.js";
 import shopList from "./shops.de.json" with { type: "json" };
 
@@ -15,7 +15,7 @@ export const STARTER_RULES = matcher.rules;
 export function starterCategory(payment: SortingPayment, categories: readonly { id: string }[], towns?: readonly string[]): string | null {
   // Find the best matching rule before checking availability: a disabled specific
   // category must not fall through to a misleading broader rule (Uber Eats → Taxi).
-  const categoryId = paymentPurpose(payment) ?? matcher.match(payment, towns) ?? associationPurpose(payment);
+  const categoryId = paymentPurpose(payment) ?? matcher.match(payment, towns) ?? cardVenuePurpose(payment) ?? associationPurpose(payment);
   return categoryId !== null && categories.some((c) => c.id === categoryId) ? categoryId : null;
 }
 

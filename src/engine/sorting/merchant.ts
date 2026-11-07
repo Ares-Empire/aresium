@@ -31,6 +31,14 @@ export const BOOKING_TYPE = /^(?:(?:sepa[ -])?(?:basis[ -]?)?lastschrift|kartenz
 // Sorting uses this separately from merchantKey so existing learned identities remain stable.
 export const SHOP_PROCESSOR_PREFIX = /^(?:paypal|sumup|spc|sq|iz|izettle|zettle|stripe|adyen|klarna|nexi|worldline)\s*[*_]\s*/iu;
 
+/** Sorting-only recipient extraction. Keep merchantKey unchanged so existing learned identities stay stable. */
+export function sortingPayee(payment: SortingPayment): string {
+  // Require the full labelled bank envelope, not a shop mentioned in prose. A separate counterparty wins.
+  return payment.counterparty?.trim() || (payment.description || payment.bookingText || "").match(
+    /^\s*empfänger:\s*(\S[^\r\n]*?)\s+kto\/iban:\s*[a-z]{2}\d{2}[a-z0-9]+\s+buchungstext:/iu,
+  )?.[1] || payeeText(payment);
+}
+
 /** A correction groups merchant identities, not individual bookings. Empty keys are never learned. */
 export function merchantKey(payment: SortingPayment): string {
   let text = payeeText(payment);

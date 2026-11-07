@@ -118,6 +118,7 @@ export const OSM_CATEGORIES: Readonly<Record<string, string>> = {
   "brands/shop/games": "hobbies",
   "brands/shop/model": "hobbies",
   "brands/shop/fabric": "hobbies",
+  "brands/shop/bicycle": "hobbies",
   // Shopping
   "brands/shop/clothes": "clothes",
   "brands/shop/shoes": "clothes",
@@ -273,6 +274,8 @@ export const DENY: readonly string[] = [
   "lush", "kiko", "endlich ohne", "new style", "nyx", "m·a·c", "ayk", "qb",
   // hobbies
   "könig", "walther könig", "buchhandlung könig", "jokers", "rupprecht", "ruprecht", "pustet", "p&k",
+  // Bicycle brands from the pinned NSI: ordinary words/personal names and ambiguous aliases stay out.
+  "giant", "specialized", "stella", "trek", "treck", "bike gallery", "stadler",
   // clothes
   "adler", "aldo", "bench", "bench.", "bosco", "camper", "carter's", "cecil", "celine", "champion", "change",
   "chloé", "claire's", "clarks", "closed", "coach", "columbia", "comma", "converse", "diesel", "edwin", "falke",
@@ -402,7 +405,9 @@ export const RULES: readonly Block[] = [
     "kantine", "cafeteria", "grill", "grillhaus", "grillrestaurant", "schnellrestaurant", "burrito", "burritos",
     "veggie", "vegan", "ramen", "pho", "poke", "bowl", "bowls", "noodle", "noodles", "falafel",
     "chicken", "mezedes", "kimchi", "simit", "spanferkel", "ratskeller", "brasserie",
-    "burger", "onigiri", "street food", "thai food", "hot dog", "ocakbaşı", "ocakbasi", "banh mi"], "out"],
+    "burger", "onigiri", "street food", "thai food", "hot dog", "ocakbaşı", "ocakbasi", "banh mi",
+    // Meal-service phrases, not bare kitchen/wine (which can mean household goods or food shopping).
+    "kitchen & wine", "kitchen and wine", "wine & dine", "wine and dine", "plat du jour"], "out"],
   ["taxi-sharing", ["share now", "sharenow", "miles mobility", "cambio carsharing", "cambio mobilitätsservice",
     "nextbike", "call a bike", "blacklane", "moia", "clevershuttle", "sixt share", "we share", "weshare", "flinkster",
     "stadtmobil", "book-n-drive", "teilauto", "greenwheels", "zipcar", "lime bike", "limebike", "lime scooter",
@@ -560,6 +565,13 @@ export const RULES: readonly Block[] = [
   ["hobbies", ["musikhaus", "buchhandlung", "buchhaus", "modellbau", "books", "bookshop", "bücherladen"], "out"],
   ["health", ["docmorris", "shop apotheke", "medpex", "sanicare", "mycare", "aponeo", "eurapon", "apotal", "misterspex",
     "lensbest"], "both"],
+  // Reviewed German hospital operators from the pinned NSI (BSD-3-Clause):
+  // https://github.com/osmlab/name-suggestion-index/blob/main/data/operators/amenity/hospital.json
+  // Keep clinical names; omit universities, charities, personal names and bare Helios/Median/ATOS.
+  // Spending only: an operator may also be the person's employer.
+  ["health", ["agaplesion", "ameos", "asklepios kliniken", "atos kliniken", "bg kliniken", "celenus kliniken",
+    "gesundheitszentren rhein-neckar", "helios kliniken", "kmg kliniken", "median kliniken", "medical park",
+    "mediclin", "paracelsus-kliniken", "rhön-klinikum", "sana kliniken", "schön klinik", "vivantes"], "out"],
   ["health", ["apotheke", "arztpraxis", "gemeinschaftspraxis", "salzgrotte", "zahnarzt", "podolog", "physiotherapie", "klinik", "kontaktlinsen",
     "sanitätshaus", "brillen", "arzt", "ärztin", "ärzte", "hausarzt", "hausarztpraxis", "facharzt", "frauenarzt",
     "hautarzt", "augenarzt", "kinderarzt", "orthopäde", "orthopädie", "zahnärztin", "zahnarztpraxis",
