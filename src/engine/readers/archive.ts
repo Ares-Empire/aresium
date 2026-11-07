@@ -50,8 +50,12 @@ export function readArchive(texts: string[], read: (text: string) => BankFile): 
   for (const { file } of files) for (const txn of file.transactions) {
     const previous = payments.get(txn.externalId);
     if (previous) {
+      // The same booking in two overlapping statements is kept once. Bookings without a bank reference get ids from
+      // their fields, so two different payments that look alike can share one; a different balance after the booking
+      // shows they are not the same, and then nothing is merged silently.
+      const balances = previous.balance !== undefined && txn.balance !== undefined && previous.balance !== txn.balance;
       if (previous.bookingDate !== txn.bookingDate || previous.amount !== txn.amount || previous.currency !== txn.currency
-        || previous.description !== txn.description || previous.counterparty !== txn.counterparty) {
+        || previous.description !== txn.description || previous.counterparty !== txn.counterparty || balances) {
         throw new BankFileError("unknown", "Two statements give different payments with the same id. Import the statements separately and check them.");
       }
     } else payments.set(txn.externalId, txn);
