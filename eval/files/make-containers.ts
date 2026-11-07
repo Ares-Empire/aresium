@@ -9,7 +9,9 @@ import { cents, type FileCase, type Payment } from "./types.js";
 export function bankZip(entries: Record<string, string | Uint8Array>): Buffer {
   const files: Zippable = {};
   for (const [name, value] of Object.entries(entries)) files[name] = [typeof value === "string" ? strToU8(value) : value,
-    { mtime: new Date("1980-01-01T00:00:00Z") }];
+    // fflate writes the ZIP's DOS time from the local clock, so the date is built from local parts: the same bytes in
+    // every time zone (01:00 keeps the bytes first made in Berlin, where 00:00 UTC was 01:00).
+    { mtime: new Date(1980, 0, 1, 1, 0, 0) }];
   return Buffer.from(zipSync(files, { level: 6 }));
 }
 export function encryptedZip(bytes: Uint8Array, local = true, central = true): Buffer {
