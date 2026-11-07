@@ -1,8 +1,9 @@
 # Automatic import: research (2026-11-07)
 
 Today every payment reaches Aresium from a file exported by hand. This note collects what could make that
-automatic, on any platform. **Status:** research done; which route to build waits on Patrik (the board's
-"For you").
+automatic, on any platform. **Status (2026-11-07):** Patrik chose FinTS for the bank first, PayPal after. The
+product registration form is filled in and goes to the banking association; building can start while the number is
+on its way.
 
 ## In short
 
