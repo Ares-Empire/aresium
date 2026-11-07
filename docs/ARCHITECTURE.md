@@ -29,6 +29,9 @@ Everything is TypeScript against one Postgres database.
 File export sidesteps all of it: no signup, no business account, no 90-day
 reconsent. The tradeoff is it's semi-manual (you export periodically).
 
+Re-examined 2026-11-07 ([AUTO-IMPORT.md](AUTO-IMPORT.md)): FinTS straight to the bank needs
+neither an aggregator nor a business account, and Enable Banking now has a free mode for one's own accounts.
+
 ## Components
 
 | Path | Role |

@@ -37,7 +37,7 @@ The modern, stylish part. **Next.js + Tailwind + shadcn/ui + Tremor**.
 
 ## Phase 4 — Automation / ops
 
-- [ ] **FinTS** auto-sync for the bank (direct to VR Bank, no third party; periodic TAN)
+- [ ] **FinTS** auto-sync for the bank (direct to VR Bank, no third party; periodic TAN) — researched 2026-11-07, with PayPal: [AUTO-IMPORT.md](AUTO-IMPORT.md)
 - [ ] Backups of the Postgres volume
 - [ ] Multi-currency display conversion
 
