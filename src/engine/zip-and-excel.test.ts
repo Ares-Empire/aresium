@@ -217,3 +217,30 @@ test("Excel bounds the materialized grid even when sparse XML contains very few 
     Array.from({ length: 63 }, (_, i) => `<row r="${i + 3}"><c r="XFD${i + 3}" t="b"><v>1</v></c></row>`).join("") + "</sheetData>"));
   for (const reader of engines) assert.throws(() => reader.readBankFile(bytes), { code: "xlsx" });
 });
+
+test("Excel bounds the table text when one shared string is written into many cells", () => {
+  const base = bankWorkbook(unknownRows());
+  const shared = strFromU8(unzipSync(base)["xl/sharedStrings.xml"]);
+  const index = shared.split("<si>").length - 1;
+  let bytes = editWorkbook(base, "xl/sharedStrings.xml", (x) => x.replace("</sst>", `<si><t>${"x".repeat(20000)}</t></si></sst>`));
+  bytes = editWorkbook(bytes, "xl/worksheets/bookings.xml", (x) => x.replace("</sheetData>",
+    Array.from({ length: 2000 }, (_, i) => `<row r="${i + 3}"><c r="A${i + 3}" t="s"><v>${index}</v></c></row>`).join("") + "</sheetData>"));
+  assert.ok(bytes.length < 200_000);
+  for (const reader of engines) assert.throws(() => reader.readBankFile(bytes), { code: "xlsx" });
+});
+
+test("Excel counts a row's padding before making it, so many cells at column XFD are refused early", () => {
+  const bytes = editWorkbook(bankWorkbook(unknownRows()), "xl/worksheets/bookings.xml", (x) => x.replace("</sheetData>",
+    Array.from({ length: 5000 }, (_, i) => `<row r="${i + 3}"><c r="XFD${i + 3}" t="b"><v>1</v></c></row>`).join("") + "</sheetData>"));
+  for (const reader of engines) assert.throws(() => reader.readBankFile(bytes), { code: "xlsx" });
+});
+
+test("ZIP keeps a booking seen in two statements once, but refuses look-alikes whose balances differ", () => {
+  const header = "IBAN Auftragskonto;Buchungstag;Valutadatum;Name Zahlungsbeteiligter;Buchungstext;Verwendungszweck;Betrag;Währung;Soll/Haben;Saldo nach Buchung\n";
+  const row = (balance: string) => `DE02120300000000202051;03.02.2026;03.02.2026;Fiktiv Café;Kartenzahlung;Kaffee;3,20;EUR;S;${balance}\n`;
+  for (const reader of engines) {
+    const same = reader.readBankFile(bankZip({ "a.csv": header + row("100,00"), "b.csv": header + row("100,00") }));
+    assert.equal(same.transactions.length, 1);
+    assert.throws(() => reader.readBankFile(bankZip({ "a.csv": header + row("100,00"), "b.csv": header + row("96,80") })), { code: "unknown" });
+  }
+});

@@ -5,6 +5,13 @@ import { findProfile, profileLayout } from "./profiles.js";
 import { BankFileError } from "./table.js";
 
 const fail = (): never => { throw new BankFileError("xlsx", "This Excel workbook could not be read. Export it as CSV or save a new .xlsx file."); };
+// Bounds on what a sheet becomes, checked while it is built: the cells of the table, empty padding included, and the
+// characters of its text (quotes, separators and escaped quotes included). A shared string is stored once but written
+// once per cell that uses it, so a small file can ask for a huge table; the text budget matches the app's 25 MB file
+// limit, so a workbook can never become more than a CSV the app would take.
+export const XLSX_MAX_CELLS = 1_000_000;
+export const XLSX_MAX_TEXT = 25 * 1024 * 1024;
+const textCost = (value: string) => value.length + 3 + (value.match(/"/g)?.length ?? 0);
 const parser = new XMLParser({ ignoreAttributes: false, removeNSPrefix: true, parseTagValue: false,
   trimValues: false, processEntities: true });
 type Node = Record<string, any>;
@@ -53,6 +60,7 @@ export function xlsxTableText(files: Map<string, Uint8Array>, hasTable: (text: s
   if (!workbook) return fail();
   const rels = arr<Node>(xml(files, "xl/_rels/workbook.xml.rels").Relationships?.Relationship);
   const strings = files.has("xl/sharedStrings.xml") ? arr<Node>(xml(files, "xl/sharedStrings.xml").sst?.si).map(rich) : [];
+  const stringCosts = strings.map(textCost);
   const style = files.has("xl/styles.xml") ? xml(files, "xl/styles.xml").styleSheet : {};
   const formats = new Map(arr<Node>(style?.numFmts?.numFmt).map((f) => [Number(f["@_numFmtId"]), String(f["@_formatCode"])]));
   const styles = arr<Node>(style?.cellXfs?.xf).map((f) => ({ id: Number(f["@_numFmtId"] ?? 0), code: formats.get(Number(f["@_numFmtId"])) ?? "" }));
@@ -66,7 +74,8 @@ export function xlsxTableText(files: Map<string, Uint8Array>, hasTable: (text: s
     const data = xml(files, path).worksheet?.sheetData;
     const rows: string[][] = [];
     const numeric: { row: number; col: number; value: string; money: boolean }[] = [];
-    let width = 0, cells = 0;
+    let width = 0, cells = 0, grid = 0, chars = 0;
+    const spend = (n: number) => { chars += n; if (chars > XLSX_MAX_TEXT) fail(); };
     for (const row of arr<Node>(data?.row)) {
       const values: string[] = [];
       for (const cell of arr<Node>(row.c)) {
@@ -76,6 +85,11 @@ export function xlsxTableText(files: Map<string, Uint8Array>, hasTable: (text: s
         let col = values.length;
         if (ref) { col = 0; for (const c of ref[1]) col = col * 26 + c.charCodeAt(0) - 64; col--; }
         if (col >= 16384 || col < values.length) return fail();
+        // Count the padding before making it: one cell far to the right must not fill a row out to column XFD first.
+        const padding = col + 1 - values.length;
+        grid += padding;
+        if (grid > XLSX_MAX_CELLS) return fail();
+        spend(3 * padding);
         while (values.length <= col) values.push("");
         // Cached formulas and errors may be stale or hide a booking; refuse rather than trust them.
         if (cell.f !== undefined || cell["@_t"] === "e") return fail();
@@ -86,6 +100,7 @@ export function xlsxTableText(files: Map<string, Uint8Array>, hasTable: (text: s
         if (kind === "s") {
           if (!/^\d+$/.test(value) || strings[Number(value)] === undefined) return fail();
           values[col] = strings[Number(value)];
+          spend(stringCosts[Number(value)] - 3);
         } else if (kind === "inlineStr") values[col] = rich(cell.is);
         else if (kind === "b") { if (value !== "0" && value !== "1") return fail(); values[col] = value === "1" ? "true" : "false"; }
         else if (kind === "str" || kind === "d") values[col] = value;
@@ -98,12 +113,14 @@ export function xlsxTableText(files: Map<string, Uint8Array>, hasTable: (text: s
             numeric.push({ row: rows.length, col, value, money });
           }
         }
+        if (kind !== "s") spend(textCost(values[col]) - 3);
       }
       width = Math.max(width, values.length);
       rows.push(values);
     }
     // Excel omits empty trailing cells. Keep all rows at the table width for the existing completeness check.
-    if (rows.length * width > 1000000) return fail();
+    if (rows.length * width > XLSX_MAX_CELLS) return fail();
+    spend(3 * (rows.length * width - grid));
     rows.forEach((r) => { while (r.length < width) r.push(""); });
     const known = findProfile(rows);
     const layout = known ? profileLayout(known.profile, rows, known.headerRow, ";") : undefined;
