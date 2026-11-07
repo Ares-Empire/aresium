@@ -61,3 +61,20 @@ npm test && npm run typecheck
 `npm run web` needs a small owner file for the contact page (`$ARES_OWNER_FILE`, else
 `~/.config/ares-empire/owner.json`). More in [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md), the data API in
 [docs/API-DATA.md](docs/API-DATA.md) and the design in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+## Tests and CI
+
+GitHub Actions runs on every push, pull request and manual start, with public packages and invented data only.
+From a full-history clone (the money-review parity tests compile `MONEY_REVIEW_BASE` with `git show`):
+
+```sh
+npm ci
+npx prisma generate
+npm run typecheck
+npm test -- --test-concurrency=1
+npm run engine
+```
+
+The single test worker avoids CPU contention in the suite's timing assertions; every test, including parity, runs.
+No `.env`, database, owner file or personal configuration is needed. CI uses Node 24, the server's (v24.22.1 on
+2026-11-07).
