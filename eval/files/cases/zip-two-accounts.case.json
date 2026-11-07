@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "file": "zip-two-accounts.zip",
+  "seed": 78,
+  "bank": "container",
+  "kind": "container-refusal",
+  "situation": "Two bank accounts cannot be represented by one BankFile.",
+  "change": "zip-two-accounts",
+  "provenance": {
+    "method": "hand",
+    "reason": "Two bank accounts cannot be represented by one BankFile."
+  },
+  "expected": {
+    "outcome": "refuse",
+    "code": "zipAccounts",
+    "reason": "Two bank accounts cannot be represented by one BankFile."
+  }
+}

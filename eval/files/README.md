@@ -4,10 +4,11 @@ This is a measurement set, not a reader fix. All payments, people, account detai
 Real bank headers come from the existing synthetic fixtures and their documented profile sources.
 Nothing reads a database, server or private export.
 
-The default seed, **78**, produces **231 cases**: 162 format-only derivatives of 44 existing files, 30 unknown
-bank layouts, six explicit encoding samples, 12 sign/amount conventions, three difficult purpose texts,
-16 files that must be refused, and two partial readings with an explicit skipped-row warning.
-CAMT and MT940 are included alongside the CSV banks. The case bytes and answer manifests are checked in.
+The default seed, **78**, produces **246 cases**. The original 231 cases contain 162 format-only derivatives of
+44 existing files, 30 unknown bank layouts, six explicit encoding samples, 12 sign/amount conventions, three difficult purpose texts,
+16 files that must be refused, and two partial readings with an explicit skipped-row warning. The 15 ZIP and Excel
+cases added in brief 240 are described below. CAMT and MT940 are included alongside the CSV banks. The case bytes
+and answer manifests are checked in.
 
 ## Run
 
@@ -21,7 +22,7 @@ npx tsx --test eval/files/*.test.ts
 
 The score reads the checked-in cases; it does **not** regenerate their answers. `make.ts` imports no engine
 code. The generator uses the existing `csv-parse` package and native text decoding independently of the
-reader's CSV parser and decoder. No new packages are needed.
+reader's CSV parser and decoder. The container generator uses the pinned `fflate` dependency to write ZIPs and XLSX files.
 
 `make.ts --seed 78 --out eval/files/out/another-set` reproduces the same bytes in another directory. A different
 32-bit unsigned seed changes invented amounts and shuffled columns. Keep the default seed for comparable runs.
@@ -148,3 +149,49 @@ changes, swapped ids, layout confirmation, warnings, bundle loading, malformed i
 generation. `npm test` currently covers only `src/`; Claude will add `eval/` after merging both evaluation briefs.
 No server parity check is needed for this measurement-only change. Future reader or id fixes still need Claude's
 existing-import and real-data checks before replacing any legacy path.
+
+## ZIP and Excel cases (brief 240)
+
+The original 231 seed-78 cases and their answers are unchanged. `make-containers.ts` adds 15 cases (246 total):
+Sparkasse-style daily CAMT ZIPs with an overlapping booking, with and without macOS metadata; a single CSV and a
+single MT940 in ZIPs; different accounts, no bank file, nested containers, excessive unpacked bytes, excessive
+entry count and encryption; numeric/date-cell XLSX versions of N26, DKB and Sparkasse CSVs; an unknown Excel layout;
+and old binary Excel. The known-bank workbook cases inherit the original frozen answers and ids. DKB uses the 1904
+date system; the other workbooks use 1900. Shared strings, inline rich strings, sparse cells and booleans are covered.
+The unchanged `refuse-xlsx-renamed` case is a workbook containing only a budget title, with no payment table; it
+retains the `zip` refusal code required by its frozen answer.
+
+The engine allows at most **50 MiB (52,428,800 bytes) unpacked** and **2,000 entries**, counting hidden files and
+metadata too. Directory limits are checked before decompression, actual output is bounded during decompression,
+and sizes and CRCs are verified. Encrypted entries are refused, including hidden entries. No nested archive or
+workbook inside a plain ZIP is followed. Multi-file ZIP imports require a shared account identifier (IBAN or MT940
+account number); generic bank names alone cannot establish that two exports belong to the same account. An unknown
+layout in a multi-file ZIP must be imported and confirmed separately first. One unknown CSV in a ZIP and unknown
+workbooks use the usual readings and column confirmation, including re-reading the original bytes with a saved layout.
+Formulas, error cells, external worksheet relationships and malformed OOXML are refused rather than trusting cached
+spreadsheet values. Worksheets are capped at 1,000,000 cells (including the materialized rectangular grid) and
+16,384 columns. No formula evaluation or external access takes place.
+
+Excel numeric cells are expanded from decimal/exponent text without floating point arithmetic; money columns keep
+at least two decimals and sub-cent precision is never rounded away. Known-bank CSV ids stay on their existing path.
+The legacy VR reader hashes the lexical amount (for example `-3.2` and `-3.20` differ). Numeric Excel cells lose that
+original spelling: ordinary two-decimal VR exports can retain ids, but a numeric workbook cannot reconstruct an
+unusual original spelling. This is the same pre-existing limitation measured by the three Volksbank CSV rewrites;
+those existing ids and cases are unchanged.
+
+New error codes for app wording:
+
+| Code | English message |
+|---|---|
+| `zipLimit` | The ZIP archive exceeds 50 MB unpacked or 2,000 entries. |
+| `zipEncrypted` | Encrypted ZIP files cannot be read. Export an unencrypted bank file. |
+| `zipAccounts` | The ZIP archive contains different accounts or its files cannot be confirmed as one account. Export one account at a time. |
+| `zipNoBankFile` | The ZIP archive contains no CAMT, MT940 or CSV bank files. |
+| `zipLayout` | A bank file inside this ZIP needs its columns confirmed. Import that file separately first. |
+| `xlsx` | This Excel workbook could not be read. Export it as CSV or save a new .xlsx file. |
+| `xls` | Old Excel (.xls) files cannot be read. Export as CSV or save as .xlsx. |
+
+The existing `zip` code now also describes damaged/unsupported archives; its old instruction to unzip everything
+should be replaced in the app. The engine message for damaged archives is: "This ZIP archive is damaged or uses an
+unsupported ZIP format." For a workbook without a bank table it is: "No bank payment table was found in this Excel
+workbook. Export a bank statement as CSV or .xlsx."

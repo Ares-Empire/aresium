@@ -45,7 +45,7 @@ test("the committed corpus has provenance, valid source hashes, required coverag
   for (const kind of ["encoding-utf8", "encoding-utf8-bom", "encoding-windows1252", "encoding-latin1", "encoding-latin15", "encoding-utf16le",
     "separator-comma", "separator-semicolon", "separator-tab", "quotes-all", "quotes-minimal", "excel-short", "excel-iso", "excel-us",
     "preamble", "total-row", "empty-rows", "trailing-columns", "no-final-newline", "debit-credit", "s-h", "trailing-minus", "currency-in-cell",
-    "multiline-text", "embedded-quote", "long-text", "account-sections", "broken-quote", "cutoff", "partial-with-warning"]) assert.ok(kinds.has(kind), kind);
+    "multiline-text", "embedded-quote", "long-text", "account-sections", "broken-quote", "cutoff", "partial-with-warning", "zip-camt", "zip-bank-file", "xlsx-known-bank", "xlsx-unknown-bank", "container-refusal"]) assert.ok(kinds.has(kind), kind);
   assert.ok(cases.some((c) => c.expected.outcome === "refuse"));
   // Deutsche Bank writes unpadded dates; spreadsheet rewrites must change those too.
   assert.match(await readFile(resolve(folder, "deutsche-bank--excel-iso.csv"), "utf8"), /2026-02-06/);

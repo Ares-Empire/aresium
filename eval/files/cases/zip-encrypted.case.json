@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "file": "zip-encrypted.zip",
+  "seed": 78,
+  "bank": "container",
+  "kind": "container-refusal",
+  "situation": "An entry is marked encrypted and must never be inflated or imported.",
+  "change": "zip-encrypted",
+  "provenance": {
+    "method": "hand",
+    "reason": "An entry is marked encrypted and must never be inflated or imported."
+  },
+  "expected": {
+    "outcome": "refuse",
+    "code": "zipEncrypted",
+    "reason": "An entry is marked encrypted and must never be inflated or imported."
+  }
+}

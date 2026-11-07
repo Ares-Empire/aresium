@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "file": "zip-nested.zip",
+  "seed": 78,
+  "bank": "container",
+  "kind": "container-refusal",
+  "situation": "Nested ZIPs and workbooks inside ZIPs must not be followed.",
+  "change": "zip-nested",
+  "provenance": {
+    "method": "hand",
+    "reason": "Nested ZIPs and workbooks inside ZIPs must not be followed."
+  },
+  "expected": {
+    "outcome": "refuse",
+    "code": "zipNoBankFile",
+    "reason": "Nested ZIPs and workbooks inside ZIPs must not be followed."
+  }
+}
