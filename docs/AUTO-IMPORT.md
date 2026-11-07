@@ -44,7 +44,9 @@ URLSession. Alternatives: python-fints (most used), hbci4j (runs Hibiscus); HBCI
 - Banks accept only registered software since 2019. It is free.
 - A PDF form goes by email to registrierung@hbci-zka.de and the number comes in about 10–15 working days
   ([fints.org](https://www.fints.org/de/hersteller/produktregistrierung)). One number covers the product ("Aresium").
-- Private hobby projects report getting numbers, though the form asks for a company name.
+- Private people get numbers: GnuCash's developer in 2019, Home Assistant users in 2023 and 2024
+  ([thread](https://community.home-assistant.io/t/fints-access-needs-product-id/322464)), though the form asks for a
+  company name. One report has a single bank refusing a fresh number for a while (phpFinTS issue #599).
 - Keep the number out of the public repos (server secret, app build setting): if forks reused it, it could be
   blocked for every Aresium user.
 
@@ -68,6 +70,12 @@ existing import. About 3–5 days of work.
 **Open risk: Apple.** App Review guideline 5.1.1(ix) asks that banking and financial-services apps come from a
 legal entity, not an individual developer. External TestFlight's beta review could refuse a bank login in an app
 from a personal developer account. Patrik's own builds (internal TestFlight) are not reviewed.
+- Apple has enforced this on finance apps from individuals: "The account that submits the app must be enrolled in
+  the Apple Developer Program as an organization" ([forum](https://developer.apple.com/forums/thread/683829)). A
+  sole proprietor does not count; it takes a legal entity (in Germany a UG or GmbH) with a D-U-N-S number.
+- Today's Aresium passed beta review because it asks for nothing sensitive; a bank PIN changes that.
+- Next step before building the phone version: an App Review consultation (Meet with Apple, Webex). Apple does not
+  pre-approve there, but its reading decides whether this needs a company.
 
 ## Bank fallback: Enable Banking
 
