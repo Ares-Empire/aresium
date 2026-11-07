@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "file": "zip-camt.zip",
+  "seed": 78,
+  "bank": "sparkasse-camt",
+  "kind": "zip-camt",
+  "situation": "Sparkasse sends daily CAMT statements with overlapping .052 and .053 bookings in one ZIP.",
+  "change": "Daily XML entries with one account; overlap removed by bank reference.",
+  "provenance": {
+    "method": "construction",
+    "reason": "Three payments and their bank references are written before the XML and ZIP."
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2026-10-14",
+        "amountCents": -1230,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Herbstmarkt",
+        "text": "Invented purchase"
+      },
+      {
+        "date": "2026-10-15",
+        "amountCents": 3456,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Beispielwerke",
+        "text": "Invented refund"
+      },
+      {
+        "date": "2026-10-16",
+        "amountCents": -789,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Herbstmarkt",
+        "text": "Invented second purchase"
+      }
+    ]
+  },
+  "reimport": {
+    "originalIds": [
+      "ZIP-FICTION-1",
+      "ZIP-FICTION-2",
+      "ZIP-FICTION-3"
+    ]
+  }
+}

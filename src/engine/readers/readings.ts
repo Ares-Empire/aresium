@@ -7,9 +7,8 @@
 //
 // The changes the guess itself is unsure of come first (LayoutGuess.unsure); then the ones it has no proof against
 // (a credit card that lists purchases as positive amounts, say), so a confident wrong guess can still be corrected.
-import { decodeBankFile } from "./decode.js";
 import { analyseCsv, balanceFits, complementary, type AnalysedColumn } from "./guess.js";
-import { dateConfirmation, detectBankFile } from "./read.js";
+import { bankTableText, dateConfirmation, detectBankFile } from "./read.js";
 import { BankFileError, checkedCsvRows, findTable, readTable, signMark } from "./table.js";
 import { parseAmountStrict, type DateFormat } from "./values.js";
 import type { BankTxn, CsvLayout, LayoutGuess } from "./types.js";
@@ -181,5 +180,12 @@ export function readingsOfUnknownText(text: string, savedLayouts: readonly CsvLa
 // The readings of an unknown bank CSV from its bytes (see readingsOfUnknownText). Call it after readBankFile came back
 // with `needsLayout`; save the layout the person confirms (with a name) and read the file again with it.
 export function readingsOfUnknownFile(bytes: ArrayLike<number>, savedLayouts: readonly CsvLayout[] = []): FileReading[] {
-  return readingsOfUnknownText(decodeBankFile(bytes), savedLayouts);
+  let text: string;
+  try { text = bankTableText(bytes, savedLayouts); }
+  catch (error) {
+    // Readings are optional suggestions. The import reports any container error through readBankFile.
+    if (error instanceof BankFileError) return [];
+    throw error;
+  }
+  return readingsOfUnknownText(text, savedLayouts);
 }

@@ -5,6 +5,7 @@ import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { parse } from "csv-parse/sync";
+import { containerCases } from "./make-containers.js";
 import { cents, type FileCase, type Payment } from "./types.js";
 
 export const DEFAULT_SEED = 78;
@@ -318,6 +319,10 @@ export async function makeCases(folder: string, seed = DEFAULT_SEED): Promise<nu
       expected: { outcome: "read", payments, warning: { skipped: 1, reason: "One row cannot be read; the skipped count must make that visible." } } });
   }
 
+  for (const [name, entry] of await containerCases(fixtures, seed)) {
+    if (generated.has(name)) throw new Error(`Duplicate case ${name}`);
+    generated.set(name, entry);
+  }
   await mkdir(folder, { recursive: true });
   for (const [name, { bytes, spec }] of generated) {
     await writeFile(resolve(folder, spec.file), bytes);

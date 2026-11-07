@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "file": "zip-oversized.zip",
+  "seed": 78,
+  "bank": "container",
+  "kind": "container-refusal",
+  "situation": "The total unpacked size exceeds 50 MiB.",
+  "change": "zip-oversized",
+  "provenance": {
+    "method": "hand",
+    "reason": "The total unpacked size exceeds 50 MiB."
+  },
+  "expected": {
+    "outcome": "refuse",
+    "code": "zipLimit",
+    "reason": "The total unpacked size exceeds 50 MiB."
+  }
+}

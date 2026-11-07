@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "file": "zip-too-many-entries.zip",
+  "seed": 78,
+  "bank": "container",
+  "kind": "container-refusal",
+  "situation": "The archive exceeds 2,000 entries, even when entries are empty.",
+  "change": "zip-too-many-entries",
+  "provenance": {
+    "method": "hand",
+    "reason": "The archive exceeds 2,000 entries, even when entries are empty."
+  },
+  "expected": {
+    "outcome": "refuse",
+    "code": "zipLimit",
+    "reason": "The archive exceeds 2,000 entries, even when entries are empty."
+  }
+}

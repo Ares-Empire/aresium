@@ -10,7 +10,8 @@ import {
 import type { BankAccount, BankFile, BankTxn, CsvLayout } from "./types.js";
 
 // Errors carry a code; the app words them in its own language.
-export type BankFileErrorCode = "empty" | "noTable" | "headerMismatch" | "camt" | "mt940" | "zip" | "unknown";
+export type BankFileErrorCode = "empty" | "noTable" | "headerMismatch" | "camt" | "mt940" | "zip" | "unknown"
+  | "zipLimit" | "zipEncrypted" | "zipAccounts" | "zipNoBankFile" | "zipLayout" | "xlsx" | "xls";
 export class BankFileError extends Error {
   constructor(readonly code: BankFileErrorCode, message: string) {
     super(message);

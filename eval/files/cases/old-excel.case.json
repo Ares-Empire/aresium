@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "file": "old-excel.xls",
+  "seed": 78,
+  "bank": "container",
+  "kind": "container-refusal",
+  "situation": "Old binary Excel files must be exported as CSV or saved as .xlsx.",
+  "change": "old-excel",
+  "provenance": {
+    "method": "hand",
+    "reason": "Old binary Excel files must be exported as CSV or saved as .xlsx."
+  },
+  "expected": {
+    "outcome": "refuse",
+    "code": "xls",
+    "reason": "Old binary Excel files must be exported as CSV or saved as .xlsx."
+  }
+}

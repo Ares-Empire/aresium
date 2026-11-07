@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "file": "xlsx-unknown.xlsx",
+  "seed": 78,
+  "bank": "fictional-English",
+  "kind": "xlsx-unknown-bank",
+  "situation": "An unfamiliar bank provides an Excel table; its layout needs confirmation.",
+  "change": "Constructed payments with serial dates, numeric money, booleans and strings.",
+  "provenance": {
+    "method": "construction",
+    "reason": "The three integer-cent payments precede the workbook."
+  },
+  "expected": {
+    "outcome": "read",
+    "payments": [
+      {
+        "date": "2026-10-14",
+        "amountCents": -1230,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Herbstmarkt",
+        "text": "Invented purchase"
+      },
+      {
+        "date": "2026-10-15",
+        "amountCents": 3456,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Beispielwerke",
+        "text": "Invented refund"
+      },
+      {
+        "date": "2026-10-16",
+        "amountCents": -789,
+        "currency": "EUR",
+        "counterparty": "Fiktiv Herbstmarkt",
+        "text": "Invented second purchase"
+      }
+    ]
+  }
+}

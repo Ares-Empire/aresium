@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "file": "zip-no-bank.zip",
+  "seed": 78,
+  "bank": "container",
+  "kind": "container-refusal",
+  "situation": "A ZIP with no bank export must be refused.",
+  "change": "zip-no-bank",
+  "provenance": {
+    "method": "hand",
+    "reason": "A ZIP with no bank export must be refused."
+  },
+  "expected": {
+    "outcome": "refuse",
+    "code": "zipNoBankFile",
+    "reason": "A ZIP with no bank export must be refused."
+  }
+}

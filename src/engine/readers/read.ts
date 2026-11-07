@@ -1,6 +1,9 @@
 // One entry for any bank file: decode the bytes, find the format, read it.
 // Order: CAMT (XML), MT940, PayPal CSV, a layout the person confirmed before, a known bank layout, and last an
 // unknown CSV, whose guessed layout comes back for the person to confirm (nothing is imported until then).
+import { archiveBankTexts, readArchive } from "./archive.js";
+import { isZip, unzipBankFile } from "./zip.js";
+import { isXlsx, xlsxTableText } from "./xlsx.js";
 import { parsePaypalCsv } from "./paypal.js";
 import { parseVrBankCsv } from "../../import/vrbank-csv.js";
 import type { ParsedFile } from "../../import/types.js";
@@ -157,11 +160,32 @@ function readVrBank(text: string, profile: BankProfile, bank = profile.bank): Ba
 // An unknown CSV comes back with no transactions and `needsLayout`: show its preview, let the person confirm
 // or change the layout, save it, and call again with it (or call readCsv with the decoded text).
 export function readBankFile(bytes: ArrayLike<number>, savedLayouts: readonly CsvLayout[] = []): BankFile {
-  if (bytes[0] === 0x50 && bytes[1] === 0x4b && bytes[2] === 0x03 && bytes[3] === 0x04) {
-    throw new BankFileError("zip", "This is a ZIP archive; open it and import the files inside.");
+  if (bytes[0] === 0xd0 && bytes[1] === 0xcf && bytes[2] === 0x11 && bytes[3] === 0xe0) {
+    throw new BankFileError("xls", "Old Excel (.xls) files cannot be read. Export as CSV or save as .xlsx.");
+  }
+  if (isZip(bytes)) {
+    const files = unzipBankFile(bytes);
+    if (isXlsx(files)) return readBankText(xlsxText(files, savedLayouts), savedLayouts);
+    return readArchive(archiveBankTexts(files, isBankText), (text) => readBankText(text, savedLayouts));
   }
   const { text, encoding } = decodeBankFileWithEncoding(bytes);
   return { ...readBankText(text, savedLayouts), encoding };
+}
+
+const isBankText = (text: string) => detectBankFile(text).format !== "unknown";
+const xlsxText = (files: Map<string, Uint8Array>, saved: readonly CsvLayout[]) => xlsxTableText(files, (text) => {
+  const format = detectBankFile(text, saved).format;
+  return format === "csv" || format === "paypal";
+});
+
+// Use the same cells for preview alternatives and for the eventual confirmed import.
+export function bankTableText(bytes: ArrayLike<number>, saved: readonly CsvLayout[] = []): string {
+  if (!isZip(bytes)) return decodeBankFileWithEncoding(bytes).text;
+  const files = unzipBankFile(bytes);
+  if (isXlsx(files)) return xlsxText(files, saved);
+  const texts = archiveBankTexts(files, isBankText);
+  if (texts.length !== 1) throw new BankFileError("zipLayout", "A bank file inside this ZIP needs its columns confirmed. Import that file separately first.");
+  return texts[0];
 }
 
 // The same for text that is already decoded.
