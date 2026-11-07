@@ -1,4 +1,4 @@
-import { BOOKING_TYPE, cardMerchant, merchantKey, payeeText, SHOP_PROCESSOR_PREFIX, type SortingPayment } from "./merchant.js";
+import { BOOKING_TYPE, cardMerchant, merchantKey, payeeText, SHOP_PROCESSOR_PREFIX, sortingPayee, type SortingPayment } from "./merchant.js";
 import { SHOP_TOWNS, townMatches } from "./towns.js";
 import { businessFieldWords, businessWord, shopSpellings, shopWords, withoutShopReferences } from "./shop-words.js";
 
@@ -62,7 +62,8 @@ const branchNumber = /^(.+?[^\p{L}\p{N}])\d{2,6}(?![\p{L}\p{N}]|[.,:]\d)/u;
 // unchanged so stored learned keys still work. PayPal's bank prose/seller extraction remains merchantKey's job.
 function shopPayment(payment: SortingPayment): SortingPayment {
   const clean = (text: string) => text.toLowerCase().trim().replace(BOOKING_TYPE, "").replace(SHOP_PROCESSOR_PREFIX, "");
-  return { ...payment, counterparty: payment.counterparty ? clean(payment.counterparty) : payment.counterparty,
+  const recipient = sortingPayee(payment);
+  return { ...payment, counterparty: recipient ? clean(recipient) : payment.counterparty,
     description: payment.description ? clean(payment.description) : payment.description,
     bookingText: payment.bookingText ? clean(payment.bookingText) : payment.bookingText };
 }

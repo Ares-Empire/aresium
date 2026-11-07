@@ -439,7 +439,12 @@
         "hot dog",
         "ocakbaşı",
         "ocakbasi",
-        "banh mi"
+        "banh mi",
+        "kitchen & wine",
+        "kitchen and wine",
+        "wine & dine",
+        "wine and dine",
+        "plat du jour"
       ],
       "out"
     ],
@@ -1596,6 +1601,29 @@
         "lensbest"
       ],
       "both"
+    ],
+    [
+      "health",
+      [
+        "agaplesion",
+        "ameos",
+        "asklepios kliniken",
+        "atos kliniken",
+        "bg kliniken",
+        "celenus kliniken",
+        "gesundheitszentren rhein-neckar",
+        "helios kliniken",
+        "kmg kliniken",
+        "median kliniken",
+        "medical park",
+        "mediclin",
+        "paracelsus-kliniken",
+        "rhön-klinikum",
+        "sana kliniken",
+        "schön klinik",
+        "vivantes"
+      ],
+      "out"
     ],
     [
       "health",
@@ -3423,17 +3451,22 @@
       [
         "boesner",
         "bücher pustet",
+        "fahrrad xxl",
         "games workshop",
         "hugendubel",
+        "little john bikes",
         "lumas",
         "mayersche",
         "osiander",
         "readshop",
+        "tokyobike",
+        "trek bicycle",
         "tsutaya",
         "warhammer",
         "whsmith",
         "wolle rödel",
-        "yellowkorner"
+        "yellowkorner",
+        "zweirad-center stadler"
       ]
     ],
     [
