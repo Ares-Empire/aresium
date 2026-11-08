@@ -2,6 +2,7 @@
   "name": "aresium",
   "version": "0.1.0",
   "private": true,
+  "license": "PolyForm-Noncommercial-1.0.0",
   "type": "module",
   "description": "Personal finance tracker for VR Bank + PayPal (CSV/CAMT import)",
   "scripts": {

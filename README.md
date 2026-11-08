@@ -12,12 +12,15 @@ native iPhone app that keeps your data on the iPhone.
 
 ## What it does
 
-- **Reads bank exports.** CSV, CAMT and MT940 files from 25 German banks and PayPal. A layout it hasn't seen is read
-  once you confirm its columns. No bank login and no aggregator in between.
-- **Sorts by itself.** A rule engine with 2,815 known shops and local businesses from OpenStreetMap puts each payment
-  into a category, and learns from every correction.
-- **Shows where the money goes.** Spending and income by month and category, each day's payments, the monthly average
-  and the fixed costs (rent, subscriptions, insurance), found on their own.
+- **Reads bank exports.** CSV files from PayPal and 17 banks (Sparkasse, the Volksbanks and Sparda-Banks, ING, DKB,
+  comdirect, N26 and others), CAMT and MT940 files from any bank, Excel sheets (.xlsx) and ZIP files of statements. A
+  layout it hasn't seen is read once you confirm its columns. No bank login and no aggregator in between. The
+  website's own import reads fewer so far: VR Bank and PayPal CSV files and CAMT files.
+- **Sorts by itself.** A rule engine with 3,150 known shop names and words puts each payment into a category, and
+  learns from every correction. On the iPhone it also knows about 265,000 local shops, restaurants, practices and
+  other places from OpenStreetMap.
+- **Shows where the money goes.** Spending and income by month and category, each day's payments, a search by name,
+  the monthly average and the fixed costs (rent, subscriptions, insurance), found on their own.
 - **Makes fixing quick.** A quick sort for what's left, several payments selected at once as in Mail, a shop renamed
   once for all its payments, and money paid back linked to its expense so only your share counts.
 - **Keeps it private.** On the iPhone everything stays on the device: no account, no server, an optional Face ID lock,
@@ -40,11 +43,14 @@ native iPhone app that keeps your data on the iPhone.
 
 ## How it's built
 
-- **One engine.** Reading the files, sorting and counting live in TypeScript (`src/engine`). The server runs it, and
-  the iPhone app runs the same code bundled in JavaScriptCore, so both count alike.
+- **One engine.** Reading the files, sorting and counting live in TypeScript (`src/engine`). The iPhone app runs it
+  bundled in JavaScriptCore, and the server runs the same code for the dashboard's numbers, so both count alike. The
+  server's own import is older: it reads files with `src/import` and sorts new payments first by rules in the
+  database (`src/sync/categorize.ts`).
 - **The server.** Node serves the dashboard and the JSON API (`src/web`), PostgreSQL with Prisma stores the data, and
   the importers and helpers are npm scripts.
-- **The website.** Plain HTML, CSS and JavaScript in `web/public`, with no build step.
+- **The website.** React and JSX in `web/public`. React and Babel are served from the repository and Babel compiles the
+  JSX in the browser, so there is no build step.
 - **The iPhone app.** SwiftUI, in the [empire-ios](https://github.com/Ares-Empire/empire-ios) repository.
 
 ## Run it locally
@@ -65,7 +71,7 @@ npm test && npm run typecheck
 ## Tests and CI
 
 GitHub Actions runs on every push, pull request and manual start, with public packages and invented data only.
-From a full-history clone (the money-review parity tests compile `MONEY_REVIEW_BASE` with `git show`):
+Some tests compare with an older commit, so clone with full history:
 
 ```sh
 npm ci
@@ -75,6 +81,19 @@ npm test -- --test-concurrency=1
 npm run engine
 ```
 
-The single test worker avoids CPU contention in the suite's timing assertions; every test, including parity, runs.
-No `.env`, database, owner file or personal configuration is needed. CI uses Node 24, the server's (v24.22.1 on
-2026-11-07).
+Tests run one at a time so the speed tests don't slow each other. No `.env`, database, owner file or personal
+configuration is needed. CI uses Node 24, the server's (v24.22.1 on 2026-11-07).
+
+## License
+
+Free to use, change and share for non-commercial purposes, such as study, research, hobby projects, schools and
+charities, under the [PolyForm Noncommercial License 1.0.0](LICENSE.md). Commercial use, also inside a company, needs
+permission: [ares-empire.de/contact](https://www.ares-empire.de/contact).
+
+The licence covers the code. It does not cover the Ares names, the busts, the app icons or the screenshots. Parts from
+others keep their own licences: the local places list and the sorting test set are derived from OpenStreetMap and
+stay under the ODbL 1.0 ([data/local-places/LICENCE.md](data/local-places/LICENCE.md),
+[eval/sorting/sources/LICENCE.md](eval/sorting/sources/LICENCE.md)); the brand names from the name-suggestion-index
+are under BSD-3-Clause (in [src/engine/sorting/shops.de.json](src/engine/sorting/shops.de.json)); React, React DOM
+and Babel are under MIT and Lucide under ISC ([web/public/vendor/README.md](web/public/vendor/README.md)); the fonts
+Space Grotesk and JetBrains Mono are under the SIL Open Font License 1.1 ([web/public/fonts](web/public/fonts)).

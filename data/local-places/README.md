@@ -1,6 +1,7 @@
 # Optional German local places experiment (brief 86)
 
-Off by default. Neither generated list is imported into the engine bundle or enabled in the app.
+The iPhone app has used the packed list `de.places.bin.gz` since its build 13 (app brief 98): it ships the file next
+to the engine and loads it at start. The server never loads it, and neither list is part of the engine bundle.
 `de.json` is the full experimental list; `left-out.json` is its evaluation variant. The builder also produces
 deterministic `.json.gz` files. The candidate app asset is now `de.places.bin.gz` (brief 97), inflated by the native host into one byte block.
 The engine searches typed-array views on that block. The JSON assets and matching path remain available for
@@ -124,8 +125,8 @@ No private export has been requested, searched for or opened for this experiment
 
 ## Licence and redistribution
 
-**© OpenStreetMap contributors, ODbL.** This derived database is available under the
-[Open Database License 1.0](https://opendatacommons.org/licenses/odbl/1-0/).
+**© OpenStreetMap contributors, ODbL.** The short notice is [LICENCE.md](LICENCE.md). This derived database is
+available under the [Open Database License 1.0](https://opendatacommons.org/licenses/odbl/1-0/).
 Source: [Geofabrik Germany extract](https://download.geofabrik.de/europe/germany.html), from
 [OpenStreetMap](https://www.openstreetmap.org/copyright).
 Both JSON and packed files carry this attribution, source, licence link and the source replication timestamp themselves.

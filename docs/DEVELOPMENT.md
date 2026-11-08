@@ -34,9 +34,10 @@ Full export walkthrough: [`docs/SETUP-IMPORT.md`](SETUP-IMPORT.md).
 Design notes: [`docs/ARCHITECTURE.md`](ARCHITECTURE.md).
 Plan: [`docs/ROADMAP.md`](ROADMAP.md).
 
-The optional [German local places experiment](../data/local-places/README.md) derives a separately loaded database
-from OpenStreetMap via Geofabrik: © OpenStreetMap contributors, ODbL. Its README records sources, rebuilds,
-measurements and redistribution notices. It is off by default and is not part of the app bundle.
+The [German local places list](../data/local-places/README.md) is a separately loaded database derived from
+OpenStreetMap via Geofabrik: © OpenStreetMap contributors, ODbL ([LICENCE.md](../data/local-places/LICENCE.md)). Its
+README records sources, rebuilds, measurements and redistribution notices. The iPhone app ships the packed list and
+loads it next to the engine; the engine bundle and the server do not include it.
 
 ## Dashboard API and languages
 
