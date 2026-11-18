@@ -326,12 +326,12 @@
     const linked = D.paybackLinked(side, month);
     if (!linked)
       return null;
+    const euros = money(linked, true);
+    const german = window.AresiumLanguage.language === "de";
     return <div className="average-line payback-note">
-      {t(D.subtractPaybacks ? "Excludes" : "Includes")}
-      {" "}
-      {money(linked, true)}
-      {" "}
-      {t("money paid back")}
+      {D.subtractPaybacks
+        ? (german ? `Ohne ${euros} Rückzahlungen` : `Excludes ${euros} paid back`)
+        : (german ? `Mit ${euros} Rückzahlungen` : `Includes ${euros} paid back`)}
     </div>;
   }
   Object.assign(window.AresiumViews, {

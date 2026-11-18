@@ -45,6 +45,7 @@ The table above preserves the required before-implementation inventory. The fina
 |---|---|---|
 | Monthly averages, fixed costs and regular income | done | Shared engine port of briefs 208/216/217; both overview lines, three sections, next/last, correction and undo |
 | Money paid back, single and several | done | Engine eligibility/ranking/pouring, server preview and atomic storage, both payment ends, editable links, one undo |
+| Whether money paid back comes off the totals (brief 314) | done | Engine option, ledger setting, a checkbox beside Own names, the line beside each side's total |
 | Selection by sliding | not for the website | Desktop uses checkboxes and shift-click; phone uses taps, as explicitly settled |
 | Selecting and changing many payments | done | Shared list controls; switch/add/name; shop question; counts and money from engine; atomic undo |
 | Quick sort of unsorted names | done | Engine groups over all months, directions separate, largest first; offer after import and on Not sorted; skip and undo |
