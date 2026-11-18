@@ -84,6 +84,12 @@
     "No matching payments.": "Keine passenden Zahlungen.",
     "Rename": "Umbenennen",
     "Own names": "Eigene Namen",
+    "Take money paid back off the totals": "Rückzahlungen von den Summen abziehen",
+    "Counts in full as spent": "Zählt voll als Ausgabe",
+    "Counts in full as income": "Zählt voll als Einnahme",
+    "Excludes": "Ohne",
+    "Includes": "Mit",
+    "money paid back": "Rückzahlungen",
     "Only these payments": "Nur diese Zahlungen",
     "Also the shop’s other payments and future imports":
       "Auch die anderen Zahlungen dieses Namens und künftige Importe",

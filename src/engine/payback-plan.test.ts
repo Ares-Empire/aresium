@@ -1,11 +1,15 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { paybackChoices, planPaybacks, applyPlan, type PaybackPayment } from "./payback-plan.js";
+// `counted` as the engine gives it: the euros linked earlier are on the payment's own links.
+const earlier = (amount: number, counted?: number) => counted === undefined || counted === amount ? undefined
+  : [{ payment: "earlier", amount: Math.round((Math.abs(amount) - Math.abs(counted)) * 100) / 100 }];
 const p = (id: string, amount: number, date: string, counted?: number): PaybackPayment => ({
   id,
   amount,
   date,
   counted,
+  ...(amount < 0 ? { paidBackBy: earlier(amount, counted) } : { paysBack: earlier(amount, counted) }),
   day: 1,
   month: date.slice(0, 7),
   place: "Fictional " + id,
@@ -148,4 +152,13 @@ test(
     assert.ok(Object.hasOwn(links, "__proto__"));
     assert.equal(links.__proto__[0].payment, "constructor");
     assert.equal(Object.prototype.hasOwnProperty("payment"), false);
+  });
+test(
+  "what is free comes from the links, also while paybacks count as booked",
+  () => {
+    const booked = (payment: PaybackPayment): PaybackPayment => ({ ...payment, counted: undefined });
+    const d = { transactions: [booked(p("meal", -100, "2026-01-01", -60)), booked(p("in", 90, "2026-01-02", 50))] };
+    const plan = planPaybacks(d, ["meal"], ["in"]);
+    assert.deepEqual([plan.linked, plan.stillOpen, plan.staysIncome], [50, 10, 0]);
+    assert.throws(() => planPaybacks(d, ["meal"], ["in"], 51), /invalid-amount/);
   });

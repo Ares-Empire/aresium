@@ -10,7 +10,7 @@ import { dirname, join, normalize, extname, resolve } from "node:path";
 import { prisma } from "../lib/db.js";
 import { buildDashboard } from "../data/dashboard.js";
 import {
-  webDashboard, setNotFixed, undoLedger, paybackPreview, savePaybacks, editPayback, renamePayments,
+  webDashboard, setSubtractPaybacks, setNotFixed, undoLedger, paybackPreview, savePaybacks, editPayback, renamePayments,
   setOwnNames, previewSelection, changePayments, applyRememberedForImports, sortUnsortedGroup, editCategory,
   editCash, LedgerError
 } from "../data/web-ledger.js";
@@ -240,6 +240,7 @@ export async function handleRequest(req: IncomingMessage, res: ServerResponse): 
       "/api/paybacks/preview",
       "/api/paybacks",
       "/api/paybacks/link",
+      "/api/paybacks/counting",
       "/api/names",
       "/api/names/display",
       "/api/selection",
@@ -268,6 +269,7 @@ export async function handleRequest(req: IncomingMessage, res: ServerResponse): 
         "/api/paybacks/preview": paybackPreview,
         "/api/paybacks": savePaybacks,
         "/api/paybacks/link": editPayback,
+        "/api/paybacks/counting": setSubtractPaybacks,
         "/api/names": renamePayments,
         "/api/names/display": setOwnNames,
         "/api/selection": previewSelection,

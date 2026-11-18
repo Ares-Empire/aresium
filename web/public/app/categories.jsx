@@ -94,6 +94,9 @@
     const toggleOwnNames = (e) => mutate("/api/names/display", {
       enabled: e.target.checked
     });
+    const toggleSubtractPaybacks = (e) => mutate("/api/paybacks/counting", {
+      enabled: e.target.checked
+    });
     const renameCategory = async (e) => {
       e.preventDefault();
       if (await mutate(
@@ -204,6 +207,14 @@
           onChange={toggleOwnNames}
         />
         {t("Own names")}
+      </label>
+      <label className="payback-pick">
+        <input
+          type="checkbox"
+          checked={D.subtractPaybacks !== false}
+          onChange={toggleSubtractPaybacks}
+        />
+        {t("Take money paid back off the totals")}
       </label>
       <label className="page-field">
         {t("Home side")}

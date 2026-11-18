@@ -16,10 +16,9 @@ export const centAmount = (n: unknown): n is number => typeof n === "number" && 
   && Number.isSafeInteger(Math.round(n * 100))
   && Math.abs(n * 100 - Math.round(n * 100)) < 1e-7;
 const cents = (n: number) => Math.round(n * 100);
-export const remaining = (p: PaybackPayment) => Math.min(
-  cents(Math.abs(p.amount)),
-  cents(Math.abs(p.counted ?? p.amount)),
-);
+/** Euros not linked yet. Read from the links, since `counted` is absent while paybacks count as booked. */
+export const remaining = (p: PaybackPayment) => Math.max(0, cents(Math.abs(p.amount))
+  - [...(p.paidBackBy ?? []), ...(p.paysBack ?? [])].reduce((n, link) => n + cents(link.amount), 0));
 const compare = (a: PaybackPayment, b: PaybackPayment) =>
   a.date.localeCompare(b.date)
   || (a.ledgerSequence ?? 0) - (b.ledgerSequence ?? 0)

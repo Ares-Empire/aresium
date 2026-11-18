@@ -105,6 +105,7 @@ export function buildWebSample() {
     names: {},
     paymentNames: {},
     ownNames: true,
+    subtractPaybacks: true,
     revision: 0,
     cashEntries: [
       {

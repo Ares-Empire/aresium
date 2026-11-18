@@ -71,6 +71,7 @@ test(
       "/api/paybacks/preview",
       "/api/paybacks",
       "/api/paybacks/link",
+      "/api/paybacks/counting",
       "/api/names",
       "/api/names/display",
       "/api/selection",
@@ -1264,6 +1265,31 @@ test(
     assert.equal(state.settings.links.p.length, 2);
   });
 
+test("the paybacks switch counts linked payments as booked, keeps the links and refuses anything but a yes or no", async (t) => {
+  assert.equal((await request("/api/paybacks/counting", {}, jsonBody({ enabled: false }))).status, 401);
+  t.mock.method(globalThis, "fetch", async () => authResponse(200));
+  const state = fakeLedger(t, [
+    fictionalPayment("meal", "2026-01-02", -1000),
+    fictionalPayment("back", "2026-01-03", 1000),
+  ], [fictionalCategory]);
+  state.settings = { links: { back: [{ payment: "meal", amount: 1000 }] } };
+  const post = (body: object) => request("/api/paybacks/counting", languageHeaders("en"), jsonBody(body));
+  const data = async () => JSON.parse((await request("/api/data", languageHeaders("en"))).body);
+  const subtracted = await data();
+  assert.deepEqual([subtracted.total.expense, subtracted.total.income], [0, 0]);
+  assert.equal(subtracted.subtractPaybacks, undefined);
+  assert.equal((await post({ enabled: "no" })).status, 400);
+  assert.equal((await post({ enabled: false })).status, 200);
+  const booked = await data();
+  assert.deepEqual([booked.total.expense, booked.total.income], [1000, 1000]);
+  assert.equal(booked.subtractPaybacks, false);
+  const meal = booked.transactions.find((p: { id: string }) => p.id === "meal");
+  assert.equal(meal.counted, undefined);
+  assert.deepEqual(meal.paidBackBy, [{ payment: "back", amount: 1000 }]);
+  assert.equal((await post({ enabled: true })).status, 200);
+  assert.deepEqual([(await data()).total.expense, (await data()).total.income], [0, 0]);
+});
+
 test(
   "remembered names persist for future imports, payment names win, display toggle and undo preserve bank ids",
   async (t) => {
@@ -1679,6 +1705,7 @@ test(
       "/api/paybacks/preview",
       "/api/paybacks",
       "/api/paybacks/link",
+      "/api/paybacks/counting",
       "/api/names",
       "/api/names/display",
       "/api/selection",

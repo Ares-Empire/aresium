@@ -116,6 +116,13 @@
       raw: data,
       nameGroups: data.nameGroups || {},
       ownNames: data.ownNames,
+      subtractPaybacks: data.subtractPaybacks !== false,
+      // Euros linked as paid back on one side, in one month or (no key) in all of them.
+      paybackLinked: (side, key) => transactions.reduce((cents, t) => {
+        if (key && t.month !== key) return cents;
+        const links = side === "income" ? (t.amount > 0 ? t.paysBack : null) : (t.amount < 0 ? t.paidBackBy : null);
+        return cents + (links || []).reduce((n, link) => n + Math.round(link.amount * 100), 0);
+      }, 0) / 100,
       monthlyAverage: data.monthlyAverage,
       fixedCosts: data.fixedCosts,
       today: data.today,

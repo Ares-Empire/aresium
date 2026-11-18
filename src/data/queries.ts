@@ -248,7 +248,8 @@ export function dashboardInputFromRows(
   { transactions, categories }: SourceRows,
   now: Date,
   links: Record<string, import("./dashboard.js").PaymentLink[]> = {},
-  receipts?: import("../engine/source.js").SourceReceipt[]): DashboardSourceInput {
+  receipts?: import("../engine/source.js").SourceReceipt[],
+  subtractPaybacks = true): DashboardSourceInput {
   return {
     transactions: transactions.map(
       (t) => ({
@@ -291,6 +292,9 @@ export function dashboardInputFromRows(
     ...(receipts ? {
       receipts
     } : {}),
+    ...(subtractPaybacks ? {} : {
+      subtractPaybacks: false
+    }),
   };
 }
 
@@ -299,11 +303,12 @@ export function dashboardSourceFromRows(
   rows: SourceRows,
   now: Date,
   links: Record<string, import("./dashboard.js").PaymentLink[]> = {},
-  receipts?: import("../engine/source.js").SourceReceipt[]): {
+  receipts?: import("../engine/source.js").SourceReceipt[],
+  subtractPaybacks = true): {
     source: DashboardSource;
     unmatched: string[]
   } {
-  const input = dashboardInputFromRows(rows, now, links, receipts);
+  const input = dashboardInputFromRows(rows, now, links, receipts, subtractPaybacks);
   return {
     source: buildDashboardSource(input),
     unmatched: unmatchedPaypalConversions(input.transactions)

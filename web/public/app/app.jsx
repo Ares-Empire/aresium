@@ -104,6 +104,7 @@ function buildScreen(state, colors) {
         kicker: mo.label,
         expenseRows: D.categoryTotalsMonth(monthKey),
         incomeRows: D.incomeTotalsMonth(monthKey),
+        monthKey,
         expenseTotal: D.expenseTotal(monthKey),
         incomeTotal: D.incomeTotalPrimary(monthKey)
       },
@@ -281,7 +282,7 @@ function SidePanel({ view, dir, pickMonth, openTxn }) {
 }
 // One side list with its own header + total — used twice (Expenses, Income) on the
 // overview/month screens so both are visible at once.
-function SideListPanel({ title, cap, rows, total, onPick, dir, overview }) {
+function SideListPanel({ title, cap, rows, total, onPick, dir, overview, month }) {
   const [shown, setShown] = useS(false);
   useE(
     () => {
@@ -304,6 +305,7 @@ function SideListPanel({ title, cap, rows, total, onPick, dir, overview }) {
           </span>
         </div>
       </div>
+      <window.PaybackNote side={title === "Income" ? "income" : "expenses"} month={month} />
       {overview && <window.AverageLine side={title === "Income" ? "income" : "expenses"} />}
       <CategoryListPanel
         rows={rows}
@@ -863,6 +865,7 @@ function App() {
                   onPick={pickCategory}
                   dir={dir}
                   overview={state.screen === "overview"}
+                  month={view.panel.monthKey}
                 />
               </aside>
               <aside className="side-card side-income">
@@ -875,6 +878,7 @@ function App() {
                   onPick={pickIncome}
                   dir={dir}
                   overview={state.screen === "overview"}
+                  month={view.panel.monthKey}
                 />
               </aside>
             </React.Fragment>

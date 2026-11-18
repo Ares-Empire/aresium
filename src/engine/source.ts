@@ -85,6 +85,8 @@ export type DashboardSourceInput = {
    * with them (also none) the source gets the Cash page (`cash`) and its withdrawals are marked `cashWithdrawal`.
    */
   receipts?: readonly SourceReceipt[];
+  /** False: linked paybacks stay linked but come off no total; both payments count as booked. Default true. */
+  subtractPaybacks?: boolean;
 };
 
 /** The entry for payments without a category. The server's own look for the name follows it (CAT_META). */
@@ -117,7 +119,7 @@ export function buildDashboardSource(input: DashboardSourceInput): DashboardSour
   if (!today) throw new Error("today is not an ISO date (YYYY-MM-DD)");
   const ordered = checked(input.transactions);
   const stored = counted(ordered).rows;
-  const paybacks = countPaybacks(input.transactions, stored, input.categories);
+  const paybacks = countPaybacks(input.transactions, stored, input.categories, input.subtractPaybacks !== false);
   const storedPayments = new Set(stored);
   // Receipts and cash entries (the phone's; the server never sends them, so its source stays as it was).
   const fromReceipts = input.receipts ? countReceipts(stored, input.receipts, new Set(input.transactions.map((p) => p.id))) : null;

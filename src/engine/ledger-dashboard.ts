@@ -19,6 +19,8 @@ export interface LedgerSettings {
   links: Record<string, PaymentLink[]>;
   paymentNames: Record<string, string>;
   ownNames: boolean;
+  /** Whether linked paybacks come off spending and income; off, both payments count as booked. */
+  subtractPaybacks: boolean;
   revision: number;
   cashEntries: SourceReceipt[];
   learned: Record<string, {
@@ -32,6 +34,7 @@ export const emptyLedgerSettings = (): LedgerSettings => ({
   links: {},
   paymentNames: {},
   ownNames: true,
+  subtractPaybacks: true,
   revision: 0,
   cashEntries: [],
   learned: {}
@@ -235,6 +238,8 @@ export function buildLedgerDashboard(
     summedLists,
     quickSort: quickSortGroups(transactions, Object.fromEntries(payments.map((p) => [p.id, p.description || ""]))),
     ownNames: settings.ownNames,
+    // Only when switched off, so the default dashboard's JSON stays as it was.
+    ...(settings.subtractPaybacks === false ? { subtractPaybacks: false } : {}),
     monthlyAverage: {
       expenses: monthlyAverage(named, "expenses"),
       income: monthlyAverage(named, "income")

@@ -7,8 +7,10 @@ import type { SourceCategory, SourcePayment } from "./source.js";
 const cents = (amount: number) => Math.round(amount * 100);
 const compare = (a: string, b: string) => a < b ? -1 : a > b ? 1 : 0;
 
+/** `subtract` false keeps every link and its limits, but both payments count as the bank booked them (no `counted`). */
 export function countPaybacks(
   originals: readonly SourcePayment[], stored: readonly SourcePayment[], categories: readonly SourceCategory[],
+  subtract = true,
 ): { marks: Map<string, PaybackMarks>; ignored: PaybackIgnored[] } {
   const marks = new Map<string, PaybackMarks>();
   const ignored: PaybackIgnored[] = [];
@@ -52,11 +54,11 @@ export function countPaybacks(
       paid += applied;
       received.set(target.id, got + applied);
       const payerMarks = marks.get(original.id) ?? {};
-      payerMarks.counted = (cents(payer.amount) - paid) / 100;
+      if (subtract) payerMarks.counted = (cents(payer.amount) - paid) / 100;
       (payerMarks.paysBack ??= []).push({ payment: target.id, amount: applied / 100 });
       marks.set(original.id, payerMarks);
       const targetMarks = marks.get(target.id) ?? {};
-      targetMarks.counted = (cents(target.amount) + got + applied) / 100;
+      if (subtract) targetMarks.counted = (cents(target.amount) + got + applied) / 100;
       targetMarks.paidBack = (got + applied) / 100;
       (targetMarks.paidBackBy ??= []).push({ payment: original.id, amount: applied / 100 });
       marks.set(target.id, targetMarks);

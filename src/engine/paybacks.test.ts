@@ -278,3 +278,29 @@ test("without links the fictional sample dashboard stays byte-identical to befor
   const payments = [pay("shop", -20), pay("back", 10)];
   assert.deepEqual(build(payments.map((p) => ({ ...p, paysBack: [] }))), build(payments));
 });
+
+test("switched off, linked payments count as booked in every view while the links stay", () => {
+  const payments = [
+    pay("meal", -1000, "2026-01-02", { tags: ["Travel"] }),
+    pay("back", 1000, "2026-02-03", { category: "Friends", paysBack: [link("meal", 400)] }),
+  ];
+  const plain = build(payments.map(({ paysBack, ...p }) => p));
+  const d = buildDashboard(buildDashboardSource({ transactions: payments, categories, today: "2026-03-31", subtractPaybacks: false }));
+  assert.deepEqual([d.total, d.byMonth, d.spend, d.income, d.overview],
+    [plain.total, plain.byMonth, plain.spend, plain.income, plain.overview]);
+  assert.equal(txn(d, "meal").counted, undefined);
+  assert.equal(txn(d, "back").counted, undefined);
+  assert.equal(txn(d, "meal").paidBack, 400);
+  assert.deepEqual(txn(d, "meal").paidBackBy, [link("back", 400)]);
+  assert.deepEqual(txn(d, "back").paysBack, [link("meal", 400)]);
+});
+
+test("switched off, the limits of a link are the same as switched on", () => {
+  const payments = [
+    pay("meal", -50), pay("back", 80, "2026-01-03", { category: "Friends", paysBack: [link("meal", 70)] }),
+  ];
+  const on = buildDashboardSource({ transactions: payments, categories, today: "2026-03-31" });
+  const off = buildDashboardSource({ transactions: payments, categories, today: "2026-03-31", subtractPaybacks: false });
+  assert.deepEqual(off.paybacksIgnored, on.paybacksIgnored);
+  assert.deepEqual(off.transactions.find((p) => p.id === "back")?.paysBack, [link("meal", 50)]);
+});

@@ -53,7 +53,7 @@
   // One side's category wall (Expenses or Income) — header with the side total, then
   // the reused CategoryListPanel. Two of these live in the swipe track side-by-side.
 
-  function StartPage({ side, name, cap, rows, total, color, rangeLabel, onPick, overview }) {
+  function StartPage({ side, name, cap, rows, total, color, rangeLabel, onPick, overview, month }) {
     return (
       <div className="mob-page">
         <div className="mob-page-head">
@@ -77,6 +77,7 @@
             </span>
           </div>
         </div>
+        <window.PaybackNote side={side} month={month} />
         {overview && <window.AverageLine side={side} />}
         <CategoryListPanel
           rows={rows}
@@ -89,7 +90,7 @@
   // through to the list's native scroll (touch-action: pan-y + an axis-lock on first move).
 
   function StartSwipe(
-    { side, setSide, expRows, incRows, expTotal, incTotal, colors, rangeLabel, onPick, overview }) {
+    { side, setSide, expRows, incRows, expTotal, incTotal, colors, rangeLabel, onPick, overview, month }) {
     const wrapRef = useRef(null);
     const [pageW, setPageW] = useState(0);
     const [drag, setDrag] = useState(0);
@@ -186,6 +187,7 @@
             rangeLabel={rangeLabel}
             onPick={onPick}
             overview={overview}
+            month={month}
           />
           <StartPage
             side="income"
@@ -197,6 +199,7 @@
             rangeLabel={rangeLabel}
             onPick={onPick}
             overview={overview}
+            month={month}
           />
         </div>
       </div>
@@ -867,6 +870,7 @@
                   rangeLabel={rangeLabel}
                   onPick={pickFromStart}
                   overview={range === "overview"}
+                  month={range === "overview" ? null : curKey}
                 />
               </React.Fragment>
             )}

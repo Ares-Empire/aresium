@@ -131,6 +131,11 @@ keep exactly the same JSON.
   rows still show only totals above zero. Category sides without an explicit choice use the counted net.
   The expense carries `paidBack` and `paidBackBy`; the incoming payment's `paysBack` contains only the
   applied links. `counted` appears only when it differs from `amount`.
+  **The switch** (`subtractPaybacks` on the engine's input, default true; brief 314): false keeps every link, its
+  limits and these marks except `counted`, so both payments count as the bank booked them in every total, row and
+  series. What a payment still has free is its amount minus its links, never read from `counted`. The website keeps
+  the choice in its ledger settings (`POST /api/paybacks/counting {enabled}`), and its dashboard says
+  `subtractPaybacks: false` only while it is off.
   Both ends must be counted stored payments in euros, after PayPal's currency folding, and neither may be
   a transfer. The target must be money out and cannot be a cash withdrawal, receipt, cash entry or covered
   row. The payer must be money in; bank-funding and folded-away PayPal rows cannot pay back anything.

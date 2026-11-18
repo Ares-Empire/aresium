@@ -2,6 +2,9 @@
   const { useState, useEffect } = React;
   const D = window.AresiumData;
   const { t, money, shortDay, open, api } = window.AresiumPages;
+  // Euros of a payment not linked yet; `counted` is absent while paybacks count as booked.
+  const free = (p) => Math.round(Math.abs(p.amount) * 100)
+    - [...(p.paidBackBy || []), ...(p.paysBack || [])].reduce((n, link) => n + Math.round(link.amount * 100), 0);
 
   function PaybackPage({ ids, mutate, edit }) {
     const saveLinkAmount = () => mutate(
@@ -264,10 +267,14 @@
         {t("Original amount")}
         {": "}
         <span className="payback-amount">{money(p.amount, true)}</span>
-        {" · "}
-        {t(p.amount < 0 ? "Your share" : "stays income")}
-        {": "}
-        <span className="payback-amount">{money(p.counted ?? p.amount, true)}</span>
+        {links?.length && p.counted === undefined
+          ? <>{" · "}{t(p.amount < 0 ? "Counts in full as spent" : "Counts in full as income")}</>
+          : <>
+            {" · "}
+            {t(p.amount < 0 ? "Your share" : "stays income")}
+            {": "}
+            <span className="payback-amount">{money(p.counted ?? p.amount, true)}</span>
+          </>}
       </p>
       {(links || []).map(
         (link) => {
@@ -305,7 +312,7 @@
             </button>
           </div>);
         })}
-      {p.paybackEligible && (p.counted ?? p.amount) !== 0
+      {p.paybackEligible && free(p) > 0
         && <button
           className="md-edit"
           onClick={openPayment}
@@ -314,11 +321,25 @@
         </button>}
     </section>;
   }
+  // Beside a side's total: how much paid back the figure leaves out, or still holds. Nothing without a link.
+  function PaybackNote({ side, month }) {
+    const linked = D.paybackLinked(side, month);
+    if (!linked)
+      return null;
+    return <div className="average-line payback-note">
+      {t(D.subtractPaybacks ? "Excludes" : "Includes")}
+      {" "}
+      {money(linked, true)}
+      {" "}
+      {t("money paid back")}
+    </div>;
+  }
   Object.assign(window.AresiumViews, {
     PaybackPage,
     PaybackDetail
   });
   Object.assign(window, {
-    PaybackDetail
+    PaybackDetail,
+    PaybackNote
   });
 })();

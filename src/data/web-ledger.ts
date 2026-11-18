@@ -93,7 +93,7 @@ async function buildWebDashboard(db: DB, now: Date) {
   const { source } = dashboardSourceFromRows({
     transactions,
     categories
-  }, now, settings.links, settings.cashEntries);
+  }, now, settings.links, settings.cashEntries, settings.subtractPaybacks !== false);
   const importOrder = transactions.slice().sort((a, b) =>
     a.createdAt?.getTime() - b.createdAt?.getTime() || a.id.localeCompare(b.id));
   const sequence = new Map(importOrder.map((payment, index) => [payment.id, index]));
@@ -507,6 +507,14 @@ export async function setOwnNames(body: Record<string, unknown>) {
     throw new LedgerError(400, "Choose whether to show own names.", "Wähle, ob eigene Namen angezeigt werden.");
   return changeLedger(async (_db, settings) => {
     settings.ownNames = body.enabled as boolean;
+  });
+}
+export async function setSubtractPaybacks(body: Record<string, unknown>) {
+  if (typeof body.enabled !== "boolean")
+    throw new LedgerError(400, "Choose whether money paid back comes off the totals.",
+      "Wähle, ob Rückzahlungen von den Summen abgezogen werden.");
+  return changeLedger(async (_db, settings) => {
+    settings.subtractPaybacks = body.enabled as boolean;
   });
 }
 
