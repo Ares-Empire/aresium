@@ -71,6 +71,7 @@
     "Amount": "Betrag",
     "still open": "noch offen",
     "stays income": "bleibt Einnahme",
+    "not linked": "nicht verknüpft",
     "paid back": "zurückgezahlt",
     "Remove link": "Verknüpfung lösen",
     "Change amount": "Betrag ändern",

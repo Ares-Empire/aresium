@@ -227,7 +227,7 @@
                   <p>
                     {money(preview.plan.staysIncome, true)}
                     {" "}
-                    {t("stays income")}
+                    {t(D.subtractPaybacks ? "stays income" : "not linked")}
                   </p>
                 </section>}
               <button

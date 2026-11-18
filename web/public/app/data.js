@@ -335,7 +335,11 @@
       });
     Object.assign(window.AresiumData, built);
   }
+  // Answers can arrive out of order: one that started before the answer on screen is out of date and is dropped.
+  let startedRefreshes = 0;
+  let shownRefresh = 0;
   async function refresh() {
+    const request = ++startedRefreshes;
     const res = await fetch(
       "/api/data",
       {
@@ -346,7 +350,11 @@
       });
     if (!res.ok)
       throw new Error("data refresh failed (" + res.status + ")");
-    applyDashboard(await res.json());
+    const data = await res.json();
+    if (request < shownRefresh)
+      return;
+    shownRefresh = request;
+    applyDashboard(data);
     if (window.dispatchEvent)
       window.dispatchEvent(new Event("aresium:data"));
   }

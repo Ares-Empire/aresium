@@ -314,6 +314,31 @@ test("adapter refresh updates the captured object after edits", async () => {
   assert.equal(listed.length, 0, "a primary transfer has no spending list, even when tagged");
 });
 
+test("adapter refresh keeps the newest answer when an older one arrives last", async () => {
+  const source = fixture();
+  const window: Record<string, any> = { AresiumSample: buildDashboard(source) };
+  const answers: ((value: unknown) => void)[] = [];
+  const context = createContext({
+    location: { protocol: "file:" },
+    window,
+    fetch: () => new Promise((resolve) => answers.push(resolve)),
+  });
+  runInContext(await readFile(new URL("../../web/public/app/data.js", import.meta.url), "utf8"), context);
+  const reply = (dashboard: unknown) => ({ ok: true, json: async () => dashboard });
+  const older = buildDashboard(source);
+  source.transactions[0].categoryName = "Transfer";
+  const newer = buildDashboard(source);
+
+  const first = window.AresiumData.refresh();
+  const second = window.AresiumData.refresh();
+  answers[1](reply(newer));
+  await second;
+  assert.equal(window.AresiumData.expenseTotal(null), 2);
+  answers[0](reply(older));
+  await first;
+  assert.equal(window.AresiumData.expenseTotal(null), 2, "the older answer must not replace the newer one");
+});
+
 test("pick lists: spend rows then unused spend categories then transfers; income keeps its own row order", () => {
   const d = buildDashboard(fixture());
   assert.deepEqual(d.pick, {
