@@ -1,6 +1,7 @@
-import { build } from "esbuild";
+import { build, type Metafile } from "esbuild";
 import { builtinModules } from "node:module";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { buildSampleSource } from "../src/data/sample-source.js";
 import type { DashboardSource, Month, SourceTxn } from "../src/data/dashboard.js";
@@ -12,12 +13,23 @@ const root = new URL("../", import.meta.url);
 const dist = new URL("dist/", root);
 
 export async function bundleEngine(sourceOverrides: ReadonlyMap<string, string> = new Map()): Promise<string> {
+  return (await buildBundle(sourceOverrides)).text;
+}
+
+/** The bundle with esbuild's record of which files went into it (for `enginePackages`). */
+export async function bundleEngineWithMetafile(): Promise<{ text: string; metafile: Metafile }> {
+  const { text, metafile } = await buildBundle(new Map(), true);
+  return { text, metafile: metafile! };
+}
+
+async function buildBundle(sourceOverrides: ReadonlyMap<string, string>, metafile = false) {
   const builtins = new Set(builtinModules.map((name) => name.replace(/^node:/, "")));
   const result = await build({
     absWorkingDir: fileURLToPath(root),
     entryPoints: ["src/engine/index.ts"],
     bundle: true,
     write: false,
+    metafile,
     format: "iife",
     globalName: "__AresiumEngine",
     footer: { js: "globalThis.AresiumEngine = __AresiumEngine;" },
@@ -45,7 +57,68 @@ export async function bundleEngine(sourceOverrides: ReadonlyMap<string, string> 
       },
     }],
   });
-  return result.outputFiles[0].text;
+  return { text: result.outputFiles[0].text, metafile: result.metafile };
+}
+
+/** An outside package whose code is in the engine bundle, with the licence text it ships. The iPhone app shows these
+ * under Settings → About → Fonts & licences (empire-ios scripts/aresium-engine.sh copies dist/engine-licences.json). */
+export type EnginePackage = { name: string; version: string; licence: string; homepage: string; text: string };
+
+/** The outside packages that put code into the bundle, by esbuild's own record of it, so a new dependency shows up
+ * without anyone remembering to list it. Each bundled file belongs to the nearest folder above it whose package.json
+ * has a name: a package in node_modules or one linked from elsewhere (esbuild records a link's real path), and
+ * aresium's own code is the repo's. Copies of one package (nested versions) are one entry when their licences are the
+ * same, with all their versions. Fails when a file belongs to no package, a package ships no licence file or no plain
+ * licence name, or two copies of one package have different licences: the app must show every notice it includes. */
+export async function enginePackages(metafile: Metafile): Promise<EnginePackage[]> {
+  const own = resolve(fileURLToPath(root));
+  const folders = new Set<string>();
+  for (const output of Object.values(metafile.outputs)) {
+    for (const [input, { bytesInOutput }] of Object.entries(output.inputs)) {
+      if (bytesInOutput === 0) continue;
+      const folder = await packageFolder(input, own);
+      if (folder !== own) folders.add(folder);
+    }
+  }
+  const found = await Promise.all([...folders].map(readPackage));
+  const byName = new Map<string, EnginePackage>();
+  for (const p of found.sort((a, b) => a.version.localeCompare(b.version, "en", { numeric: true }))) {
+    const seen = byName.get(p.name);
+    if (!seen) {
+      byName.set(p.name, p);
+    } else if (seen.text !== p.text || seen.licence !== p.licence) {
+      throw new Error(`Engine package ${p.name} is bundled twice with different licences (${seen.version}, ${p.version})`);
+    } else if (!seen.version.split(", ").includes(p.version)) {
+      seen.version += `, ${p.version}`;
+    }
+  }
+  return [...byName.values()].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+async function packageFolder(input: string, own: string): Promise<string> {
+  // A file in one of esbuild's own namespaces ("(disabled):fs", "dataurl:…") has no folder to read a licence from.
+  if (input.startsWith("(") || /^[a-z][\w-]*:/i.test(input)) throw new Error(`Bundled code from outside a file: ${input}`);
+  for (let dir = dirname(resolve(own, input)); ; dir = dirname(dir)) {
+    const manifest = await readFile(join(dir, "package.json"), "utf8").catch((error: NodeJS.ErrnoException) => {
+      if (error.code === "ENOENT") return undefined;
+      throw error;
+    });
+    if (manifest !== undefined && typeof JSON.parse(manifest).name === "string") return dir;
+    if (dirname(dir) === dir) throw new Error(`Bundled file belongs to no package: ${input}`);
+  }
+}
+
+async function readPackage(dir: string): Promise<EnginePackage> {
+  const manifest = JSON.parse(await readFile(join(dir, "package.json"), "utf8"));
+  const file = (await readdir(dir)).find((name) => /^licen[cs]e(\.(md|txt))?$/i.test(name));
+  if (!file) throw new Error(`Engine package ${manifest.name} ships no licence file`);
+  if (typeof manifest.license !== "string" || !manifest.license) {
+    throw new Error(`Engine package ${manifest.name} names no licence in its package.json`);
+  }
+  const repository = typeof manifest.repository === "string" ? manifest.repository : manifest.repository?.url;
+  const homepage = String(manifest.homepage ?? repository ?? "").replace(/^git\+/, "").replace(/\.git$/, "");
+  const text = (await readFile(join(dir, file), "utf8")).replace(/\r\n/g, "\n").trim();
+  return { name: String(manifest.name), version: String(manifest.version), licence: manifest.license, homepage, text };
 }
 
 // Entirely fictional, stable input: 5,000 transactions spanning Jan 2024–Dec 2025.
@@ -81,8 +154,10 @@ export function buildTimingSource(): DashboardSource {
 
 export async function buildEngine(): Promise<void> {
   await mkdir(dist, { recursive: true });
-  const bundle = await bundleEngine();
+  const { text: bundle, metafile } = await bundleEngineWithMetafile();
   await writeFile(new URL("aresium-engine.js", dist), bundle);
+  const packages = await enginePackages(metafile);
+  await writeFile(new URL("engine-licences.json", dist), JSON.stringify(packages, null, 2) + "\n");
   const timing = buildTimingSource();
   for (const [name, source] of [["dashboard.sample-source.json", buildSampleSource()], ["timing-source-5000.json", timing]] as const) {
     await writeFile(new URL(name, dist), JSON.stringify(source) + "\n");
@@ -97,7 +172,8 @@ export async function buildEngine(): Promise<void> {
     const input = await readFile(file, "utf8");
     await writeFile(new URL(`${file.href}.expected.json`), JSON.stringify(parser(input), null, 2) + "\n");
   }
-  console.log(`Wrote dist/aresium-engine.js (${Buffer.byteLength(bundle)} bytes), sample source, timing sources and parser answers`);
+  console.log(`Wrote dist/aresium-engine.js (${Buffer.byteLength(bundle)} bytes), the licences of `
+    + `${packages.map((p) => p.name).join(", ")}, sample source, timing sources and parser answers`);
 }
 
 if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) await buildEngine();

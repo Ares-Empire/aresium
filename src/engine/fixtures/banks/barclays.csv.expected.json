@@ -130,7 +130,7 @@
   },
   "bank": {
     "id": "barclays",
-    "name": "Barclays (Excel export saved as CSV)"
+    "name": "Barclays (Excel export)"
   },
   "encoding": "utf-8"
 }

@@ -10,7 +10,7 @@
     "method": "original",
     "fixture": "barclays.csv",
     "reference": "barclays.csv.expected.json",
-    "sha256": "680736b42a3b68546092024aeb49c964a8cf8295ade4f9af4b4a436c5a18f7c7"
+    "sha256": "04e03f950f8825274d8d557e46993c8a48119f67ff1c978dc3bba26f2b500750"
   },
   "expected": {
     "outcome": "read",

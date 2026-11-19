@@ -200,6 +200,18 @@ test("Excel preserves normal two-decimal VR ids and exposes the legacy lexical-a
 });
 
 
+test("a Barclays Excel export is read as itself, with the same payments as the same table saved as CSV", async () => {
+  const source = await readFile(new URL("fixtures/banks/barclays.csv", import.meta.url), "utf8");
+  const rows = parse(source, { delimiter: ";", bom: true, relax_column_count: true }) as string[][];
+  const workbook = bankWorkbook(rows);
+  for (const reader of engines) {
+    const csv = reader.readBankText(source), excel = reader.readBankFile(workbook);
+    assert.deepEqual(json(excel.bank), { id: "barclays", name: "Barclays (Excel export)" });
+    assert.ok(excel.transactions.length > 0);
+    assert.deepEqual(json(excel.transactions), json(csv.transactions));
+  }
+});
+
 test("ZIP supports legacy filename bytes and reports damaged UTF-8 names with a bank error code", () => {
   const legacy = bankZip({ "bank.xml": bankCamt([0]) });
   const central = legacy.indexOf(Buffer.from([0x50, 0x4b, 0x01, 0x02]));
