@@ -1,6 +1,7 @@
 import { build, type Metafile } from "esbuild";
 import { builtinModules } from "node:module";
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { buildSampleSource } from "../src/data/sample-source.js";
 import type { DashboardSource, Month, SourceTxn } from "../src/data/dashboard.js";
@@ -63,32 +64,61 @@ async function buildBundle(sourceOverrides: ReadonlyMap<string, string>, metafil
  * under Settings → About → Fonts & licences (empire-ios scripts/aresium-engine.sh copies dist/engine-licences.json). */
 export type EnginePackage = { name: string; version: string; licence: string; homepage: string; text: string };
 
-/** The packages from node_modules that put code into the bundle, by esbuild's own record of it, so a new dependency
- * shows up without anyone remembering to list it. Fails when one ships no licence file or no plain licence name: the
- * app must show the licence of every package it includes. */
+/** The outside packages that put code into the bundle, by esbuild's own record of it, so a new dependency shows up
+ * without anyone remembering to list it. Each bundled file belongs to the nearest folder above it whose package.json
+ * has a name: a package in node_modules or one linked from elsewhere (esbuild records a link's real path), and
+ * aresium's own code is the repo's. Copies of one package (nested versions) are one entry when their licences are the
+ * same, with all their versions. Fails when a file belongs to no package, a package ships no licence file or no plain
+ * licence name, or two copies of one package have different licences: the app must show every notice it includes. */
 export async function enginePackages(metafile: Metafile): Promise<EnginePackage[]> {
+  const own = resolve(fileURLToPath(root));
   const folders = new Set<string>();
   for (const output of Object.values(metafile.outputs)) {
     for (const [input, { bytesInOutput }] of Object.entries(output.inputs)) {
-      // The last node_modules folder in the path is the package's own (nested copies included).
-      const match = /^(.*node_modules\/(?:@[^/]+\/)?[^/]+)\//.exec(input);
-      if (match && bytesInOutput > 0) folders.add(match[1]);
+      if (bytesInOutput === 0) continue;
+      const folder = await packageFolder(input, own);
+      if (folder !== own) folders.add(folder);
     }
   }
-  const packages = await Promise.all([...folders].map(async (folder) => {
-    const dir = new URL(`${folder}/`, root);
-    const manifest = JSON.parse(await readFile(new URL("package.json", dir), "utf8"));
-    const file = (await readdir(dir)).find((name) => /^licen[cs]e(\.(md|txt))?$/i.test(name));
-    if (!file) throw new Error(`Engine package ${manifest.name} ships no licence file`);
-    if (typeof manifest.license !== "string" || !manifest.license) {
-      throw new Error(`Engine package ${manifest.name} names no licence in its package.json`);
+  const found = await Promise.all([...folders].map(readPackage));
+  const byName = new Map<string, EnginePackage>();
+  for (const p of found.sort((a, b) => a.version.localeCompare(b.version, "en", { numeric: true }))) {
+    const seen = byName.get(p.name);
+    if (!seen) {
+      byName.set(p.name, p);
+    } else if (seen.text !== p.text || seen.licence !== p.licence) {
+      throw new Error(`Engine package ${p.name} is bundled twice with different licences (${seen.version}, ${p.version})`);
+    } else if (!seen.version.split(", ").includes(p.version)) {
+      seen.version += `, ${p.version}`;
     }
-    const repository = typeof manifest.repository === "string" ? manifest.repository : manifest.repository?.url;
-    const homepage = String(manifest.homepage ?? repository ?? "").replace(/^git\+/, "").replace(/\.git$/, "");
-    const text = (await readFile(new URL(file, dir), "utf8")).replace(/\r\n/g, "\n").trim();
-    return { name: String(manifest.name), version: String(manifest.version), licence: manifest.license, homepage, text };
-  }));
-  return packages.sort((a, b) => a.name.localeCompare(b.name));
+  }
+  return [...byName.values()].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+async function packageFolder(input: string, own: string): Promise<string> {
+  // A file in one of esbuild's own namespaces ("(disabled):fs", "dataurl:…") has no folder to read a licence from.
+  if (input.startsWith("(") || /^[a-z][\w-]*:/i.test(input)) throw new Error(`Bundled code from outside a file: ${input}`);
+  for (let dir = dirname(resolve(own, input)); ; dir = dirname(dir)) {
+    const manifest = await readFile(join(dir, "package.json"), "utf8").catch((error: NodeJS.ErrnoException) => {
+      if (error.code === "ENOENT") return undefined;
+      throw error;
+    });
+    if (manifest !== undefined && typeof JSON.parse(manifest).name === "string") return dir;
+    if (dirname(dir) === dir) throw new Error(`Bundled file belongs to no package: ${input}`);
+  }
+}
+
+async function readPackage(dir: string): Promise<EnginePackage> {
+  const manifest = JSON.parse(await readFile(join(dir, "package.json"), "utf8"));
+  const file = (await readdir(dir)).find((name) => /^licen[cs]e(\.(md|txt))?$/i.test(name));
+  if (!file) throw new Error(`Engine package ${manifest.name} ships no licence file`);
+  if (typeof manifest.license !== "string" || !manifest.license) {
+    throw new Error(`Engine package ${manifest.name} names no licence in its package.json`);
+  }
+  const repository = typeof manifest.repository === "string" ? manifest.repository : manifest.repository?.url;
+  const homepage = String(manifest.homepage ?? repository ?? "").replace(/^git\+/, "").replace(/\.git$/, "");
+  const text = (await readFile(join(dir, file), "utf8")).replace(/\r\n/g, "\n").trim();
+  return { name: String(manifest.name), version: String(manifest.version), licence: manifest.license, homepage, text };
 }
 
 // Entirely fictional, stable input: 5,000 transactions spanning Jan 2024–Dec 2025.

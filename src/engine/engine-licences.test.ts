@@ -48,3 +48,47 @@ test("a package needs a licence file and a licence name; code left out of the bu
     await rm(dir, { recursive: true, force: true });
   }
 });
+
+/** A made-up package folder with a licence: its index.js as the bundle's record names it. */
+async function fictionalPackage(folder: string, manifest: object, licence: string): Promise<string> {
+  await mkdir(join(folder, "lib"), { recursive: true });
+  await writeFile(join(folder, "package.json"), JSON.stringify({ license: "MIT", ...manifest }));
+  await writeFile(join(folder, "lib", "package.json"), JSON.stringify({ type: "module" })); // a nameless one inside
+  await writeFile(join(folder, "LICENSE"), licence);
+  return join(folder, "lib", "index.js");
+}
+
+test("a package linked from outside node_modules is listed like any other", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "engine-licences-"));
+  try {
+    // esbuild records a linked package by its real path, which has no node_modules in it.
+    const file = await fictionalPackage(join(dir, "packages", "fictional-linked"),
+      { name: "@fictional/linked", version: "0.1.0" }, "Copyright (c) 2026 Fictional Author");
+    assert.deepEqual((await enginePackages(record({ [file]: 1 }))).map((p) => [p.name, p.version]),
+      [["@fictional/linked", "0.1.0"]]);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("two copies of a package are one entry with both versions, or stop the build when their licences differ", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "engine-licences-"));
+  try {
+    const licence = "Copyright (c) 2026 Fictional Author";
+    const first = await fictionalPackage(join(dir, "node_modules", "fictional-copy"),
+      { name: "fictional-copy", version: "1.10.0" }, licence);
+    const nested = join(dir, "node_modules", "fictional-user", "node_modules", "fictional-copy");
+    const second = await fictionalPackage(nested, { name: "fictional-copy", version: "1.9.0" }, licence);
+    const both = record({ [first]: 1, [second]: 1 });
+    assert.deepEqual((await enginePackages(both)).map((p) => [p.name, p.version]), [["fictional-copy", "1.9.0, 1.10.0"]]);
+    await writeFile(join(nested, "LICENSE"), "Copyright (c) 2025 Another Fictional Author");
+    await assert.rejects(enginePackages(both), /fictional-copy is bundled twice with different licences/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("code from one of esbuild's namespaces, which has no folder, stops the build", async () => {
+  await assert.rejects(enginePackages(record({ "(disabled):fs": 12 })), /Bundled code from outside a file/);
+  assert.deepEqual(await enginePackages(record({ "(disabled):fs": 0 })), []);
+});
