@@ -14,7 +14,7 @@
 //                         it answers every approved account with the service.
 //   APP_SERVER_MODE_USERS optional, comma-separated ids from EMPIRE_ALLOWED_USERS whose iPhone app shows
 //                         the server's data (GET /api/mode → "server"). Every other account, the owner's
-//                         too, gets "phone": its data stays on its iPhone. Empty by default, since Patrik
+//                         too, gets "phone": its data stays on its iPhone. Empty by default, since the owner
 //                         moved his data to the phone (2026-10-31); the website is not affected.
 //   EMPIRE_AUTH_URL       optional, default http://127.0.0.1:8090 (same server, no TLS hop).
 import { createHash } from "node:crypto";

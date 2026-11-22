@@ -209,7 +209,7 @@ test("equal amounts alone do not pair: an unrelated 20.00 purchase and a friend'
 });
 
 test("a Girokonto → Tagesgeld move pairs when one side names the other account's IBAN, either way round", () => {
-  const out = ibanLine("2026-03-01", -500, "giro", GIRO, "Patrik Tagesgeld", "Sparen", TAGESGELD);
+  const out = ibanLine("2026-03-01", -500, "giro", GIRO, "Alex Tagesgeld", "Sparen", TAGESGELD);
   const into = ibanLine("2026-03-02", 500, "tagesgeld", TAGESGELD, "Girokonto", "Gutschrift");
   const groceries = ibanLine("2026-03-02", -42.5, "giro", GIRO, "REWE Markt GmbH", "");
   assert.deepEqual(ownTransfers([out, into, groceries]), [{ rule: "accounts", pairedWith: 1 }, { rule: "accounts", pairedWith: 0 }, null]);

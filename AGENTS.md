@@ -1,6 +1,6 @@
 # AGENTS.md: for coding agents (Claude agents, Codex)
 
-Aresium is Patrik's finance dashboard (this repo: the server, aresium.de, and the **engine** that the iPhone app also
+Aresium is the owner's finance dashboard (this repo: the server, aresium.de, and the **engine** that the iPhone app also
 runs). Claude (the lead) plans the work, writes your brief and checks, commits and merges what you build.
 
 ## Read first

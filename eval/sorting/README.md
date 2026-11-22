@@ -3,7 +3,7 @@
 **30% is held back. Later sorting-improvement briefs must not open `cases.heldback.jsonl`,
 `labels.heldback.jsonl`, held-back disputes, or the original blind batches.** Run the scorer to see aggregate
 held-back results only. Do not use held-back failures to tune the engine, rules, names or category guide.
-Only Claude/Patrik and the independent baseline judges may inspect held-back cases during initial adjudication.
+Only Claude, the owner and the independent baseline judges may inspect held-back cases during initial adjudication.
 
 This is a frozen, invented-payment benchmark of first-use sorting in Germany. It measures the engine; it changes
 neither the engine nor its shops, rules or learning bench. Local businesses and chain brands supply independent
@@ -135,7 +135,7 @@ independent judging occurred.
 npx tsx eval/sorting/own-data.ts /outside/all/repos/Aresium-export.json
 ```
 
-Claude runs this with Patrik's export; a coding agent must never request, locate or open that data. The tool refuses
+Claude runs this with the owner's export; a coding agent must never request, locate or open that data. The tool refuses
 paths inside this worktree, symlinks into it and multiply linked files. Keep exports outside all repositories.
 It reads the `LedgerExport` schema 1–6 shapes (`text`, `bookingDate`, chosen categories and account IBANs), ignores
 stored learned rules, and sorts with the chosen list. Schema 4 display names do not affect sorting. It validates

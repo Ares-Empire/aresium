@@ -82,7 +82,7 @@ export function loginUnavailablePage(): string {
 }
 
 /** /login — the start screen: one button, plus a small sign-up link. */
-// The front page for visitors: only Patrik can log in to Aresium, so it offers the app and the demo instead. He logs
+// The front page for visitors: only the owner can log in to Aresium, so it offers the app and the demo instead. He logs
 // in from the Empire hub (its hand-off, /sso) or at /login/email, which stays reachable but is not linked here.
 export function welcomePage(error = ""): string {
   return page(`<p class="sub">Personal finance, understood.</p>

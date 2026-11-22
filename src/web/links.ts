@@ -12,7 +12,7 @@ export const LEGAL: Record<PageLanguage, { privacy: string; imprint: string }> =
 // Aresium's own contact form, one page per language (contact-page.ts).
 export const CONTACT_PATHS: Record<PageLanguage, string> = { en: "/contact", de: "/kontakt" };
 
-// Where visitors ask for the iPhone app: the contact form with "Get the app" chosen (Patrik, 2026-10-30: each app gets
+// Where visitors ask for the iPhone app: the contact form with "Get the app" chosen (owner, 2026-10-30: each app gets
 // its own form instead of the hub's). The same address is in the demo's band (web/public/app/data.js, GET_APP), on
 // patrikbreeck.com's apps page (ares content/apps.json, "request") and in the hub's demo (ares-empire
 // tools/empire_samples.py, ARESIUM_REQUEST).

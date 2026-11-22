@@ -1,7 +1,7 @@
 # Automatic import: research (2026-11-07)
 
 Today every payment reaches Aresium from a file exported by hand. This note collects what could make that
-automatic, on any platform. **Status (2026-11-07):** Patrik chose FinTS for the bank first, PayPal after. The
+automatic, on any platform. **Status (2026-11-07):** The owner chose FinTS for the bank first, PayPal after. The
 product registration form is filled in and goes to the banking association; building can start while the number is
 on its way.
 
@@ -9,7 +9,7 @@ on its way.
 
 - **Bank:** automatic is possible through **FinTS**, the German banks' own interface for banking software, with no
   company in between. It needs a free product registration (2–3 weeks) and an approval in SecureGo plus now and
-  then. The same TypeScript code can run on the server (Patrik) and inside the iPhone app (phone mode).
+  then. The same TypeScript code can run on the owner's server and inside the iPhone app (phone mode).
 - **PayPal:** has no FinTS. The best private route reads PayPal's receipt emails. The bank's text already names the
   shop for PayPal payments paid from the bank ("Ihr Einkauf bei …"), but payments paid from PayPal balance never
   reach the bank.
@@ -50,7 +50,7 @@ URLSession. Alternatives: python-fints (most used), hbci4j (runs Hibiscus); HBCI
 - Keep the number out of the public repos (server secret, app build setting): if forks reused it, it could be
   blocked for every Aresium user.
 
-**Patrik's server.** Nightly job, the PIN stored encrypted with the server's secrets, the report through the
+**The owner's server.** Nightly job, the PIN stored encrypted with the server's secrets, the report through the
 existing import. About 3–5 days of work.
 
 **Phone mode.**
@@ -60,7 +60,7 @@ existing import. About 3–5 days of work.
   Others are not verified. N26, Trade Republic and Revolut have no FinTS.
 
 **Legal.**
-- Patrik's own accounts: allowed. The bank's terms only forbid keeping the PIN unprotected.
+- The owner's own accounts: allowed. The bank's terms only forbid keeping the PIN unprotected.
 - Phone mode: BaFin's guidance on the ZAG says software that runs only on the user's own device is not an account
   information service, so no licence is needed
   ([BaFin](https://www.bafin.de/SharedDocs/Veroeffentlichungen/DE/Merkblatt/mb_111222_zag.html)). That holds only
@@ -69,7 +69,7 @@ existing import. About 3–5 days of work.
 
 **Open risk: Apple.** App Review guideline 5.1.1(ix) asks that banking and financial-services apps come from a
 legal entity, not an individual developer. External TestFlight's beta review could refuse a bank login in an app
-from a personal developer account. Patrik's own builds (internal TestFlight) are not reviewed.
+from a personal developer account. The owner's own builds (internal TestFlight) are not reviewed.
 - Apple has enforced this on finance apps from individuals: "The account that submits the app must be enrolled in
   the Apple Developer Program as an organization" ([forum](https://developer.apple.com/forums/thread/683829)). A
   sole proprietor does not count; it takes a legal entity (in Germany a UG or GmbH) with a D-U-N-S number.
@@ -86,7 +86,7 @@ from a personal developer account. Patrik's own builds (internal TestFlight) are
   free; the price is not stated on that page.
 - **Setup:** an app key and a redirect URL on aresium.de. Consent lasts up to 180 days, set per bank; the Volksbank
   value is not verified. Many banks allow about 4 background fetches a day.
-- **Against it:** a company sees the payments, and NetKey and PIN are typed on its page. It is for Patrik's own
+- **Against it:** a company sees the payments, and NetKey and PIN are typed on its page. It is for the owner's own
   accounts only: other people's accounts would need a contract.
 - GoCardless Bank Account Data takes no new sign-ups since July 2025. Tink, TrueLayer, Yapily, Plaid, Salt Edge and
   finAPI are for businesses.

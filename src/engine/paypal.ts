@@ -11,7 +11,7 @@
 //   a conversion out of euros          EUR  −95.07   (same type, related code X)  ← what it really cost
 // The dashboard counts the purchase at its euro cost (keeping its category, tags and place) and leaves both
 // conversion rows out. If the euro row is missing, the rows stay as they are and the code is reported, so a
-// gap is visible instead of silently dropping spending. Decided with Patrik 2026-10-24.
+// gap is visible instead of silently dropping spending (owner, 2026-10-24).
 
 // PayPal's English names for money arriving in PayPal from the person's own bank account or card (checked
 // 2026-10-27). The activity download writes "Bank Deposit to PP Account" (often with a trailing space) for a bank

@@ -235,7 +235,7 @@ Added 2026-10-27 (`empire-ios/prompts/12-engine-source-transfers.md`; plan: `are
 
 | Answer | For |
 |---|---|
-| `200 {"mode":"server"}` | an account in `EMPIRE_ALLOWED_USERS` that is also in `APP_SERVER_MODE_USERS`: the server holds the data, the app uses the routes above. The list is empty since 2026-10-31 (Patrik moved his data to the phone) |
+| `200 {"mode":"server"}` | an account in `EMPIRE_ALLOWED_USERS` that is also in `APP_SERVER_MODE_USERS`: the server holds the data, the app uses the routes above. The list is empty since 2026-10-31 (the owner moved his data to the phone) |
 | `200 {"mode":"phone"}` | any other approved account with the `aresium` service, the owner's too: the data stays on the iPhone and the engine computes there; every other route refuses an account outside `EMPIRE_ALLOWED_USERS` (403) |
 | `401 {error, code: "unauthorized"}` | no token, or the Empire rejects it |
 | `403 {error, code: "no_access"}` | the account is not approved or lacks the `aresium` service |
