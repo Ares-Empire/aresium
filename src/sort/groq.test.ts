@@ -1,24 +1,46 @@
 import assert from "node:assert/strict";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { test } from "node:test";
+import { loadOwner } from "../web/owner.js";
 import { autoSort, type AutoPayment } from "./groq.js";
 const payments = (count: number): AutoPayment[] => Array.from({ length: count }, (_, i) => ({ reference: `r${i}`, date: "2025-01-01", amount: -20, description: `MARKED_${i}`, counterparty: "Example" }));
 const response = (results: unknown, usage: unknown = { prompt_tokens: 100, completion_tokens: 20 }) => new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify({ results }) } }], usage }));
 
-test("Groq batches at 25, uses selected model/JSON/temperature, whitelists fields, and reports usage", async () => {
+test("Groq batches at 25, uses selected model/JSON/temperature, whitelists fields, and reports usage", async (t) => {
+  const ownerDirectory = mkdtempSync(join(process.cwd(), ".test-owner-groq-"));
+  const ownerFile = join(ownerDirectory, "owner.json");
+  const previousOwnerFile = process.env.ARES_OWNER_FILE;
+  t.after(() => {
+    if (previousOwnerFile === undefined) delete process.env.ARES_OWNER_FILE;
+    else process.env.ARES_OWNER_FILE = previousOwnerFile;
+    rmSync(ownerDirectory, { recursive: true, force: true });
+  });
+  writeFileSync(ownerFile, JSON.stringify({
+    name: "Alex Mustermann", street: "Example Street 1", city: "Example City", email: "owner@example.org",
+  }));
+  process.env.ARES_OWNER_FILE = ownerFile;
+  const { name: ownerName } = loadOwner();
+
   const sizes: number[] = [];
+  const requests: string[] = [];
   const fake: typeof fetch = async (_, init) => {
-    const body = JSON.parse(String(init?.body));
+    const request = String(init?.body);
+    requests.push(request);
+    const body = JSON.parse(request);
     assert.equal(body.model, "comparison-model"); assert.equal(body.temperature, 0);
     assert.deepEqual(body.response_format, { type: "json_object" });
-    assert.ok(!body.messages[0].content.includes("Patrik"));
     const user = JSON.parse(body.messages[1].content);
     sizes.push(user.payments.length);
     assert.deepEqual(Object.keys(user.payments[0]).sort(), ["amount", "counterparty", "date", "description", "reference"]);
     return response(user.payments.map((p: AutoPayment) => ({ reference: p.reference, category: "Chosen" })));
   };
-  const input = payments(51).map((p) => ({ ...p, trueCategory: "SECRET", databaseId: "SECRET" }));
+  const input = payments(51).map((p) => ({ ...p, trueCategory: "SECRET", databaseId: "SECRET", ownerName }));
   const result = await autoSort(["Chosen"], input, { apiKey: "fake", model: "comparison-model", fetch: fake });
   assert.deepEqual(sizes, [25, 25, 1]); assert.equal(result.results.length, 51);
+  for (const request of requests) {
+    for (const part of ownerName.split(" ")) assert.ok(!request.toLowerCase().includes(part.toLowerCase()), "Groq received part of the owner's name");
+  }
   assert.ok(result.results.every((r) => r.category === "Chosen"));
   assert.ok(result.batches.every((b) => b.inputTokens === 100 && b.outputTokens === 20 && b.requests === 1 && b.seconds >= 0 && !b.error));
 });

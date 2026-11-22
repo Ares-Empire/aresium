@@ -3,7 +3,7 @@
 The list is a useful candidate for a further private-data check. It adds 250 correct sorts in the fresh 500-place
 sample, with zero new disagreements against OSM kinds. Both the left-out benchmark and the separate full-list
 false-match check are unchanged. A gzip asset fits the size and standalone simulator timing targets.
-Keep the feature off until Claude has checked Patrik's counts and decided whether to integrate it into the app.
+Keep the feature off until Claude has checked the owner's counts and decided whether to integrate it into the app.
 
 These results do not establish independent accuracy for local names. The known-place sample measures the list's
 agreement with its own source, without judges. The frozen judged benchmark supplies the evidence about harm on

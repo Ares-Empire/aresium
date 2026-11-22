@@ -160,7 +160,7 @@ test("other-side choices follow all home choices and transfers, in their own row
 });
 
 // Money moved between one's own accounts (a transfer category) counts as neither spending nor income
-// (Patrik, 2026-10-27); a transfer tag on an income payment does not make a Transfer income row either.
+// (owner, 2026-10-27); a transfer tag on an income payment does not make a Transfer income row either.
 test("uncategorised money in is income under Uncategorised; transfers count as neither spending nor income", () => {
   const d = buildDashboard(fixture());
   assert.deepEqual(d.transactions[1].incomeBuckets, ["Income", "Tax"]);
@@ -177,7 +177,7 @@ test("uncategorised money in is income under Uncategorised; transfers count as n
   assert.equal(d.incomeBuckets.find((c) => c.name === "Uncategorised")?.icon, "Tag");
 });
 
-// "Not sorted" (Uncategorised) counts money out only; unsorted money in is income under the same "Uncategorised" (Patrik, 2026-10-27; named so since 2026-11-01).
+// "Not sorted" (Uncategorised) counts money out only; unsorted money in is income under the same "Uncategorised" (owner, 2026-10-27; named so since 2026-11-01).
 // Before, the 150 below lowered Not sorted's spending to -130, so the month vanished from its list ("No activity
 // recorded"). Run through buildDashboardSource, as the server and the phone do.
 test("unsorted money in is income under Uncategorised only; Not sorted shows the money out; refunds leave spending unchanged", () => {

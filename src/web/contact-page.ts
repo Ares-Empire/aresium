@@ -1,5 +1,5 @@
 // Aresium's contact form, aresium.de/contact (English) and /kontakt (German), open to everyone: one form to ask for the
-// iPhone app or to write about a question, a problem or an idea (Patrik, 2026-10-30: each app gets its own form in its
+// iPhone app or to write about a question, a problem or an idea (owner, 2026-10-30: each app gets its own form in its
 // own look instead of the hub's). It mirrors the iPhone apps' Contact & support (empire-ios Shared/Support): Topic,
 // Message, Answer to, Send, then a calm "it's arrived".
 //
@@ -45,7 +45,7 @@ type Words = {
 };
 
 // English is the source, German its translation. The words address no one: no "you" and no "du" or du-imperatives
-// (Patrik, 2026-10-31), so they read the same to anyone.
+// (owner, 2026-10-31), so they read the same to anyone.
 // %s in sentApp is the address the visitor gave; %1 and %2 in counter are the length and the limit; %e is the
 // owner's email address, written as a mailto link.
 const WORDS: Record<PageLanguage, Words> = {

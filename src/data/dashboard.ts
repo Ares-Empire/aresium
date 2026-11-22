@@ -115,7 +115,7 @@ export interface Dashboard {
 
 const money = (n: number) => Math.round(n * 100) / 100;
 // Payments without a category ("Not sorted" in the apps; engine/source.ts names them so). Their money in counts as
-// income only, never as negative spending (Patrik, 2026-10-27), under the same "Uncategorised" on the income side as
+// income only, never as negative spending (owner, 2026-10-27), under the same "Uncategorised" on the income side as
 // their money out on the spending side (2026-11-01: the income side's old name "Other" showed untranslated in the
 // app and shared its row with the default category called "Other" in English).
 const UNSORTED = "Uncategorised";

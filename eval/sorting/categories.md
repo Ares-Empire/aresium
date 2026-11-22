@@ -78,7 +78,7 @@ flag. Do not use `other` as a replacement for uncertainty. A category's purpose 
   supplies no category. Money from a person: personal/unclear; friends, parents-family, salary or selling-things only
   with corresponding evidence. No category is accepted simply because a hidden author knows the purpose.
 - Positive refund from a shop or service: the original spending category (a clothes shop's refund: clothes), since
-  Aresium books money in under its own category as it happened (Patrik, 2026-11-01); other-income is also right. Not
+  Aresium books money in under its own category as it happened (owner, 2026-11-01); other-income is also right. Not
   personal: the shop says where it belongs. Positive Vinted/eBay proceeds explicitly labelled sale: selling-things; a platform name alone
   is unclear/personal. Positive salary is salary, never work. Negative repayment of a grant needs context.
 - ATM withdrawal: cash. Cash deposit: personal/unclear unless ownership or income purpose is explicit.

@@ -43,7 +43,7 @@ iPhone app and the website can rely on the server's answers. Nothing visible cha
 
 ## Out of scope
 
-- PayPal currency handling (waits for Patrik), the "current month" question, UI changes beyond the 503 page.
+- PayPal currency handling (waits for the owner), the "current month" question, UI changes beyond the 503 page.
 - `.env`, `config/personal.json`, `prisma/`.
 
 ## Rules (no sandbox: these are rules, not walls)

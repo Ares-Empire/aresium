@@ -32,7 +32,7 @@ The modern, stylish part. **Next.js + Tailwind + shadcn/ui + Tremor**.
 - [ ] **Forecast** end-of-month balance from recurring items
 - [ ] **Anomaly flags** — unusually large spend for a category
 - [x] ~~**Telegram weekly summary**~~ dropped: the Telegram bot (`aresium-bot.service`, its `current` command) was
-  stopped and disabled on the server 2026-10-30 (Patrik); the reminder timer was already off. Aresium's messages
+  stopped and disabled on the server (owner, 2026-10-30); the reminder timer was already off. Aresium's messages
   come from the iPhone app from now on (empire-ios). The code in `src/bot/` stays until the app's messages are live.
 
 ## Phase 4 — Automation / ops

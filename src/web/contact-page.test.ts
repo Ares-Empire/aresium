@@ -23,9 +23,9 @@ const ownerDirectory = mkdtempSync(join(process.cwd(), ".test-owner-contact-"));
 after(() => rmSync(ownerDirectory, { recursive: true, force: true }));
 process.env.ARES_OWNER_FILE = join(ownerDirectory, "owner.json");
 writeFileSync(process.env.ARES_OWNER_FILE, JSON.stringify({
-  name: "Example Owner", street: "Example Street 1", city: "Example City", email: "owner@example.org",
+  name: "Alex Mustermann", street: "Example Street 1", city: "Example City", email: "owner@example.org",
 }));
-const ownerEmail = loadOwner().email;
+const { name: ownerName, email: ownerEmail } = loadOwner();
 const pages = { en: contactPage("en", ownerEmail), de: contactPage("de", ownerEmail) };
 const count = (text: string, part: string) => text.split(part).length - 1;
 const visibleText = (html: string) => html.replace(/<(script|style)[\s\S]*?<\/\1>/g, "").replace(/<[^>]+>/g, " ")
@@ -42,10 +42,10 @@ test("the paths name the language: /contact English, /kontakt German", () => {
 });
 
 test("the pages name no one: the owner's name is only on the legal pages", () => {
-  // Patrik, 2026-11-02: a search for his name brought up the contact pages.
+  // A search for the owner's name brought up the contact pages (owner, 2026-11-02).
   for (const page of Object.values(pages)) {
-    assert.ok(!page.includes(loadOwner().name));
-    assert.doesNotMatch(page, /Breeck|Messages go to|Nachrichten gehen per E-Mail an/);
+    for (const part of ownerName.split(" ")) assert.ok(!page.toLowerCase().includes(part.toLowerCase()));
+    assert.doesNotMatch(page, /Messages go to|Nachrichten gehen per E-Mail an/);
   }
 });
 
@@ -146,7 +146,7 @@ test("the configured email is escaped in the link and its text", () => {
   assert.equal(count(html, 'href="mailto:owner&quot;&lt;&amp;&#39;@example.org">owner&quot;&lt;&amp;&#39;@example.org</a>'), 2);
 });
 
-test("the words address no one: no you or your, no du, dein or du-imperatives (Patrik, 2026-10-31)", () => {
+test("the words address no one: no you or your, no du, dein or du-imperatives (owner, 2026-10-31)", () => {
   // Every word on the page, also the placeholders, notes and problems the script swaps in from data attributes.
   for (const topic of TOPICS) {
     assert.doesNotMatch(contactPage("en", ownerEmail, topic), /\b(you|your|yours|you're)\b/i);
