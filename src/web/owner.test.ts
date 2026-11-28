@@ -3,7 +3,6 @@ import { spawnSync } from "node:child_process";
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { after, test } from "node:test";
-import { fileURLToPath } from "node:url";
 import { loadOwner } from "./owner.js";
 
 const directory = mkdtempSync(join(process.cwd(), ".test-owner-loader-"));
@@ -66,22 +65,16 @@ test("missing and unreadable owner files and malformed JSON report only the path
   assert.throws(loadOwner, { message: `Owner file ${path}: invalid JSON` });
 });
 
-test("the web server fails before listening when the owner file is missing or invalid", () => {
-  const cases = [
-    { content: undefined, problem: "cannot read file (ENOENT)" },
-    { content: '{"email":"private-test-value",', problem: "invalid JSON" },
-    { content: JSON.stringify({ ...owner, secret: "private-test-value" }), problem: "expected exactly the keys name, street, city and email" },
-    { content: JSON.stringify({ ...owner, street: " " }), problem: "street must be a non-empty string" },
-  ];
-  for (const { content, problem } of cases) {
+test("the web server loads without reading an owner file", () => {
+  for (const content of [undefined, '{"email":"private-test-value",']) {
     rmSync(path, { force: true });
     if (content !== undefined) writeFileSync(path, content);
-    const result = spawnSync(process.execPath, ["--import", "tsx", fileURLToPath(new URL("./server.ts", import.meta.url))], {
+    const result = spawnSync(process.execPath, ["--import", "tsx", "--input-type=module", "--eval",
+      `import ${JSON.stringify(new URL("./server.ts", import.meta.url).href)};`,
+    ], {
       env: { ...process.env, ARES_OWNER_FILE: path }, encoding: "utf8", timeout: 10_000,
     });
     assert.ifError(result.error);
-    assert.equal(result.status, 1, result.stderr);
-    assert.ok(result.stderr.includes(`Owner file ${path}: ${problem}`));
-    assert.doesNotMatch(result.stdout + result.stderr, /private-test-value|Example Owner|Example Street|Example City|owner@example\.org|Aresium dashboard/);
+    assert.equal(result.status, 0, result.stderr);
   }
 });

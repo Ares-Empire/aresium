@@ -12,14 +12,15 @@ process.env.APP_SERVER_MODE_USERS = "test-server-user";
 const ownerDirectory = mkdtempSync(join(process.cwd(), ".test-owner-server-"));
 after(() => rmSync(ownerDirectory, { recursive: true, force: true }));
 process.env.ARES_OWNER_FILE = join(ownerDirectory, "owner.json");
-writeFileSync(process.env.ARES_OWNER_FILE, JSON.stringify({
+const owner = {
   name: "Example Owner", street: "Example Street 1", city: "Example City", email: "owner@example.org",
-}));
+};
+writeFileSync(process.env.ARES_OWNER_FILE, JSON.stringify(owner));
 const { handleRequest } = await import("./server.js");
-// Requests must use the configuration loaded at startup, without reading the file again.
 rmSync(process.env.ARES_OWNER_FILE);
 const approved = { id: "test-server-user", approved: true, services: ["aresium"] };
 const authResponse = (status: number, record: unknown = approved) => new Response(JSON.stringify({ record }), { status });
+const NOINDEX_IN_HEAD = /<head>.*<meta name="robots" content="noindex, follow" \/>.*<\/head>/s;
 
 // Exercise Node's real HTTP request/response streams and serialization entirely in memory.
 // No listening sockets, external requests, imports or database access.
@@ -129,6 +130,7 @@ test(
         path === "/sso" ? [Buffer.from(`token=${token}`)] : undefined);
       assert.equal(result.status, 503);
       assert.match(result.body, /Login service unavailable, try again in a minute/);
+      assert.match(result.body, NOINDEX_IN_HEAD);
       assert.doesNotMatch(result.body, /<form/);
       assert.equal(result.headers["set-cookie"], undefined);
     }
@@ -160,6 +162,7 @@ test("login POST also returns the 503 page during an outage or rate limit", asyn
     const result = await request("/login", {}, [Buffer.from("email=sample%40example.invalid&password=test-password")]);
     assert.equal(result.status, 503);
     assert.match(result.body, /Login service unavailable, try again in a minute/);
+    assert.match(result.body, NOINDEX_IN_HEAD);
     assert.doesNotMatch(result.body, /<form/);
     assert.equal(result.headers["set-cookie"], undefined);
     fetch.mock.restore();
@@ -602,12 +605,26 @@ test("unexpected API failures return a translated JSON sentence", async (t) => {
   }
 });
 
-test("login pages link the privacy policy and imprint on the hub", async () => {
+test("login pages ask search engines to skip them and link the privacy policy and imprint on the hub", async () => {
   for (const path of ["/login", "/login/email"]) {
     const result = await request(path);
     assert.equal(result.status, 200);
+    assert.match(result.body, NOINDEX_IN_HEAD, path);
     assert.ok(result.body.includes('<a href="https://www.ares-empire.de/privacy">Privacy</a>'), path);
     assert.ok(result.body.includes('<a href="https://www.ares-empire.de/imprint">Imprint</a>'), path);
+  }
+});
+
+test("rejected login and SSO submissions return noindex pages", async (t) => {
+  t.mock.method(globalThis, "fetch", async (url: unknown) =>
+    authResponse(String(url).endsWith("auth-with-password") ? 400 : 401));
+  for (const [path, form] of [
+    ["/login", "email=sample%40example.invalid&password=test-password"],
+    ["/sso", "token=test-sso-rejected"],
+  ]) {
+    const result = await request(path, {}, [Buffer.from(form)]);
+    assert.equal(result.status, 401, path);
+    assert.match(result.body, NOINDEX_IN_HEAD, path);
   }
 });
 
@@ -626,6 +643,7 @@ test("the demo and the page's files are public; the dashboard and the API stay b
   assert.equal(demo.status, 200);
   assert.match(String(demo.headers["content-type"]), /text\/html/);
   assert.match(demo.body, /app\/data\.js/);
+  assert.doesNotMatch(demo.body, /<meta\b[^>]*\bnoindex\b/i);
   const slash = await request("/demo/");
   assert.equal(slash.status, 303);
   assert.equal(slash.headers.location, "/demo");
@@ -676,7 +694,10 @@ test("the front page offers the app and the demo, not a login; the login form st
 
 test("the contact form is open to everyone, in its language, with its own policy, and never asks the account server", async (t) => {
   const fetch = t.mock.method(globalThis, "fetch", async () => { throw new Error("the contact page must not ask the account server"); });
-  for (const [path, language, title] of [["/contact", "en", "Contact"], ["/kontakt", "de", "Kontakt"]] as const) {
+  for (const [path, language, title, imprintLink] of [
+    ["/contact", "en", "Contact", '<a href="https://www.ares-empire.de/imprint">imprint</a>'],
+    ["/kontakt", "de", "Kontakt", '<a href="https://www.ares-empire.de/impressum">Impressum</a>'],
+  ] as const) {
     for (const headers of [{}, { cookie: "aresium_session=test-contact" }, { "accept-language": language === "en" ? "de" : "en" }]) {
       const page = await request(path, headers);
       assert.equal(page.status, 200, path);
@@ -686,7 +707,12 @@ test("the contact form is open to everyone, in its language, with its own policy
       assert.match(String(page.headers["content-security-policy"]), /^default-src 'none';.*connect-src https:\/\/auth\.ares-empire\.de;/);
       assert.equal(page.headers["set-cookie"], undefined);
       assert.match(page.body, new RegExp(`<html lang="${language}" data-theme="dark">[\\s\\S]*<h1>${title}</h1>`));
-      assert.equal(page.body.split('href="mailto:owner@example.org">owner@example.org</a>').length - 1, 2);
+      assert.match(page.body, NOINDEX_IN_HEAD, path);
+      for (const value of [owner.email, ...owner.name.split(" ")]) {
+        assert.ok(!page.body.toLowerCase().includes(value.toLowerCase()), path);
+      }
+      assert.ok(page.body.match(/data-problem="failed" hidden>(.*?)<\/p>/)?.[1].includes(imprintLink), path);
+      assert.ok(page.body.match(/<noscript>(.*?)<\/noscript>/)?.[1].includes(imprintLink), path);
     }
   }
   for (const path of ["/forms/contact.css", "/forms/contact-form.css", "/forms/contact-form.js", "/fonts/fonts.css", "/fonts/SpaceGrotesk-Variable.ttf", "/brand/hermes.png"]) {

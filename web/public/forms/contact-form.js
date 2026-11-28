@@ -25,7 +25,7 @@
 (function () {
   "use strict";
   const form = document.querySelector("form[data-contact-form]");
-  if (!form || !window.fetch) return;   // the page's <noscript> names the email address instead
+  if (!form || !window.fetch) return;   // the page's <noscript> links to the imprint
 
   const field = (name) => form.elements.namedItem(name);
   const topic = field("kind");

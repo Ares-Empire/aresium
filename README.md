@@ -64,9 +64,8 @@ npm run web                            # http://127.0.0.1:5173
 npm test && npm run typecheck
 ```
 
-`npm run web` needs a small owner file for the contact page (`$ARES_OWNER_FILE`, else
-`~/.config/ares-empire/owner.json`). More in [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md), the data API in
-[docs/API-DATA.md](docs/API-DATA.md) and the design in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for setup, [docs/API-DATA.md](docs/API-DATA.md) for the data API
+and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the design.
 
 ## Tests and CI
 

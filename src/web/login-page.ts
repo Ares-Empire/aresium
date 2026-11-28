@@ -13,6 +13,7 @@ function page(content: string): string {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Aresium — Log in</title>
+<meta name="robots" content="noindex, follow" />
 <style>
   :root { color-scheme: dark; }
   * { box-sizing: border-box; }
