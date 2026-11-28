@@ -7,7 +7,7 @@
 Personal finance from your bank's own exports: import, sort and understand where the money goes. A web dashboard and a
 native iPhone app that keeps your data on the iPhone.
 
-**[Try the demo](https://aresium.de/demo)** · [The iPhone app](https://patrikbreeck.com/en/apps/#aresium) ·
+**[Try the demo](https://aresium.de/demo)** · [Get the iPhone app](https://aresium.de/contact?topic=access) ·
 [Its code](https://github.com/Ares-Empire/empire-ios)
 
 ## What it does
