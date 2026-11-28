@@ -49,9 +49,8 @@ The contact form has dedicated language routes (`/contact` English, `/kontakt` G
 
 ## Brief 218: local demo, without a database
 
-`npm ci`, `npx prisma generate`, `npm run sample`, then create an **invented** owner record in `build/218-owner.json`:
-`{"name":"Example Owner","street":"Example Street 1","city":"Example City","email":"owner@example.org"}`.
-Run `ARES_OWNER_FILE="$PWD/build/218-owner.json" HOST=127.0.0.1 PORT=5188 npm run web` and open
+`npm ci`, `npx prisma generate`, then `npm run sample`.
+Run `HOST=127.0.0.1 PORT=5188 npm run web` and open
 `http://127.0.0.1:5188/demo` (or `/demo?tour=1`). This path reads only generated invented data, needs no
 login/database and refuses writes locally. The language button switches English/German; display preferences
 stay in this browser. Both desktop and phone widths use the server-generated sample calculations.

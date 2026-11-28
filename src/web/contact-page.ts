@@ -38,7 +38,7 @@ type Words = {
   pageTitle: string; description: string; title: string; lead: string; otherLanguage: string;
   topic: string; message: string; answerTo: string; optional: string;
   topics: Record<Topic, string>; placeholders: Record<Topic, string>; noteApp: string; noteAnswer: string;
-  email: string; name: string; privacyLead: string; privacy: string; imprint: string;
+  email: string; name: string; privacyLead: string; privacy: string; imprint: string; imprintInline: string;
   problems: { empty: string; long: string; noemail: string; email: string; many: string; offline: string; failed: string };
   send: string; sending: string; again: string; counter: string; noscript: string;
   sentTitle: string; sentApp: string; sentAnswer: string; back: string;
@@ -46,8 +46,8 @@ type Words = {
 
 // English is the source, German its translation. The words address no one: no "you" and no "du" or du-imperatives
 // (owner, 2026-10-31), so they read the same to anyone.
-// %s in sentApp is the address the visitor gave; %1 and %2 in counter are the length and the limit; %e is the
-// owner's email address, written as a mailto link.
+// %s in sentApp is the address the visitor gave, and %1 and %2 in counter are the length and the limit.
+// %i in the failed send and noscript notes is a link to the imprint in the page's language.
 const WORDS: Record<PageLanguage, Words> = {
   en: {
     pageTitle: "Contact · Aresium",
@@ -67,7 +67,7 @@ const WORDS: Record<PageLanguage, Words> = {
     noteApp: "Aresium is an iPhone app (iOS 26 or later). The install link comes by email, to this address.",
     noteAnswer: "The answer comes by email, to this address.",
     email: "Email", name: "Name (optional)",
-    privacyLead: "How the data is used:", privacy: "Privacy policy", imprint: "Imprint",
+    privacyLead: "How the data is used:", privacy: "Privacy policy", imprint: "Imprint", imprintInline: "imprint",
     problems: {
       empty: "Please write a message.",
       long: "The message is too long: at most 5,000 characters.",
@@ -75,10 +75,10 @@ const WORDS: Record<PageLanguage, Words> = {
       email: "This doesn't look like an email address.",
       many: "Too many messages for now. Please try again later.",
       offline: "No connection. Please send it again later.",
-      failed: "It didn't go through. Please try again, or write to %e.",
+      failed: "It didn't go through. Please try again, or write to the email address in the %i.",
     },
     send: "Send", sending: "Sending…", again: "Send again", counter: "%1 of %2 characters",
-    noscript: "This form needs JavaScript. Messages by email go to %e.",
+    noscript: "This form needs JavaScript. The email address for messages is in the %i.",
     sentTitle: "Thanks, it's arrived.",
     sentApp: "The install link comes by email, to %s.",
     sentAnswer: "If it needs an answer, it comes by email.",
@@ -102,7 +102,7 @@ const WORDS: Record<PageLanguage, Words> = {
     noteApp: "Aresium ist eine iPhone-App (ab iOS 26). Der Installationslink kommt per E-Mail an diese Adresse.",
     noteAnswer: "Die Antwort kommt per E-Mail an diese Adresse.",
     email: "E-Mail", name: "Name (optional)",
-    privacyLead: "Wie die Daten verarbeitet werden:", privacy: "Datenschutzerklärung", imprint: "Impressum",
+    privacyLead: "Wie die Daten verarbeitet werden:", privacy: "Datenschutzerklärung", imprint: "Impressum", imprintInline: "Impressum",
     problems: {
       empty: "Bitte eine Nachricht schreiben.",
       long: "Die Nachricht ist zu lang: höchstens 5.000 Zeichen.",
@@ -110,10 +110,10 @@ const WORDS: Record<PageLanguage, Words> = {
       email: "Das sieht nicht nach einer E-Mail-Adresse aus.",
       many: "Zu viele Nachrichten. Bitte später noch mal.",
       offline: "Keine Verbindung. Bitte später noch mal senden.",
-      failed: "Das hat nicht geklappt. Bitte noch mal versuchen oder an %e schreiben.",
+      failed: "Das hat nicht geklappt. Bitte noch mal versuchen oder an die E-Mail-Adresse im %i schreiben.",
     },
     send: "Senden", sending: "Wird gesendet…", again: "Erneut senden", counter: "%1 von %2 Zeichen",
-    noscript: "Das Formular braucht JavaScript. Nachrichten per E-Mail gehen an %e.",
+    noscript: "Das Formular braucht JavaScript. Die E-Mail-Adresse für Nachrichten steht im %i.",
     sentTitle: "Danke, ist angekommen.",
     sentApp: "Der Installationslink kommt per E-Mail an %s.",
     sentAnswer: "Braucht es eine Antwort, kommt sie per E-Mail.",
@@ -141,16 +141,11 @@ function icon(name: keyof typeof ICON_PATHS, attributes = "", className = "icon"
     `stroke-linejoin="round" aria-hidden="true" focusable="false"${attributes}>${ICON_PATHS[name]}</svg>`;
 }
 
-/** A sentence, with the owner's address as a mailto link in place of %e if it has one. */
-function withEmail(sentence: string, ownerEmail: string): string {
-  if (!sentence.includes("%e")) return esc(sentence);
-  const [before, after] = sentence.split("%e");
-  return `${esc(before)}<a href="mailto:${esc(ownerEmail)}">${esc(ownerEmail)}</a>${esc(after)}`;
-}
-
 /** The contact page in `language`, with `topic` chosen (from `?topic=`; the menu can change it). */
-export function contactPage(language: PageLanguage, ownerEmail: string, topic: Topic = DEFAULT_TOPIC): string {
+export function contactPage(language: PageLanguage, topic: Topic = DEFAULT_TOPIC): string {
   const w = WORDS[language];
+  const imprintLink = `<a href="${LEGAL[language].imprint}">${esc(w.imprintInline)}</a>`;
+  const withImprint = (sentence: string) => esc(sentence).replace("%i", imprintLink);
   const other: PageLanguage = language === "en" ? "de" : "en";
   const optional = topic === "access";
   const options = TOPICS.map((t) => `<option value="${t}"${t === topic ? " selected" : ""} ` +
@@ -158,7 +153,7 @@ export function contactPage(language: PageLanguage, ownerEmail: string, topic: T
     `${t === "access" ? " data-optional" : ""}>${esc(w.topics[t])}</option>`).join("\n              ");
   const icons = TOPICS.map((t) => icon(t, ` data-topic-icon="${t}"${t === topic ? "" : " hidden"}`)).join("");
   const problems = (Object.keys(w.problems) as (keyof Words["problems"])[]).map((name) =>
-    `<p class="problem" data-problem="${name}" hidden>${icon("alert")}<span>${withEmail(w.problems[name], ownerEmail)}</span></p>`)
+    `<p class="problem" data-problem="${name}" hidden>${icon("alert")}<span>${withImprint(w.problems[name])}</span></p>`)
     .join("\n          ");
   // The band's letters: spread across the width by the stylesheet, as the iPhone app's WordmarkBand.
   const band = [..."ARESIUM"].map((letter) => `<span>${letter}</span>`).join("");
@@ -171,6 +166,7 @@ export function contactPage(language: PageLanguage, ownerEmail: string, topic: T
 <script src="/app/appearance.js"></script>
 <title>${esc(w.pageTitle)}</title>
 <meta name="description" content="${esc(w.description)}" />
+<meta name="robots" content="noindex, follow" />
 <link rel="icon" type="image/png" href="/brand/hermes.png" />
 <link rel="apple-touch-icon" href="/brand/hermes.png" />
 <link rel="alternate" hreflang="${other}" href="${CONTACT_PATHS[other]}" />
@@ -234,7 +230,7 @@ export function contactPage(language: PageLanguage, ownerEmail: string, topic: T
           <button type="submit" data-sending="${esc(w.sending)}" data-again="${esc(w.again)}">
             <span class="spinner" aria-hidden="true"></span><span data-label>${esc(w.send)}</span>
           </button>
-          <noscript><p class="note">${withEmail(w.noscript, ownerEmail)}</p></noscript>
+          <noscript><p class="note">${withImprint(w.noscript)}</p></noscript>
         </form>
       </section>
 

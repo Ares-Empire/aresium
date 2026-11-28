@@ -17,7 +17,7 @@ const LOOK = readFileSync(new URL("contact.css", FORMS), "utf8");
 // made there, then copied here with the new hashes (ares-empire web/shared/forms/README.md).
 const SHARED_FORM_SHA256: Record<string, string> = {
   "contact-form.css": "f3f79bb613a5d103897c5a478664b2a5086529a081863a9d18bc1da604db9a92",
-  "contact-form.js": "c50fa7cb8ea3437fb95fcf2c5b0dda65f7ab4dc9704c7cbfdae8067740876822",
+  "contact-form.js": "7f37f44fa970b08bd89c89fb2ac61a3a4cd3c6f9f980cb379cc99a5088a49333",
 };
 const ownerDirectory = mkdtempSync(join(process.cwd(), ".test-owner-contact-"));
 after(() => rmSync(ownerDirectory, { recursive: true, force: true }));
@@ -26,7 +26,7 @@ writeFileSync(process.env.ARES_OWNER_FILE, JSON.stringify({
   name: "Alex Mustermann", street: "Example Street 1", city: "Example City", email: "owner@example.org",
 }));
 const { name: ownerName, email: ownerEmail } = loadOwner();
-const pages = { en: contactPage("en", ownerEmail), de: contactPage("de", ownerEmail) };
+const pages = { en: contactPage("en"), de: contactPage("de") };
 const count = (text: string, part: string) => text.split(part).length - 1;
 const visibleText = (html: string) => html.replace(/<(script|style)[\s\S]*?<\/\1>/g, "").replace(/<[^>]+>/g, " ")
   .replace(/\s+/g, " ");
@@ -41,11 +41,12 @@ test("the paths name the language: /contact English, /kontakt German", () => {
   assert.match(pages.de, /href="\/contact\?topic=question"[^>]*>English</);
 });
 
-test("the pages name no one: the owner's name is only on the legal pages", () => {
-  // A search for the owner's name brought up the contact pages (owner, 2026-11-02).
+test("both contact pages ask search engines to skip them and omit the owner's name and email", () => {
   for (const page of Object.values(pages)) {
+    assert.match(page, /<head>.*<meta name="robots" content="noindex, follow" \/>.*<\/head>/s);
     for (const part of ownerName.split(" ")) assert.ok(!page.toLowerCase().includes(part.toLowerCase()));
-    assert.doesNotMatch(page, /Messages go to|Nachrichten gehen per E-Mail an/);
+    assert.ok(!page.toLowerCase().includes(ownerEmail.toLowerCase()));
+    assert.doesNotMatch(page, /mailto:/i);
   }
 });
 
@@ -53,12 +54,12 @@ test("?topic= picks the topic; anything else is a question", () => {
   assert.equal(topicFrom("access"), "access");
   assert.equal(topicFrom("problem"), "problem");
   for (const value of [null, "", "bogus", "ACCESS", "access "]) assert.equal(topicFrom(value), "question", String(value));
-  const app = contactPage("en", ownerEmail, "access");
+  const app = contactPage("en", "access");
   assert.match(app, /<option value="access" selected [^>]*data-optional>Get the app<\/option>/);
   assert.match(app, /<textarea id="contact-message"[^>]*placeholder="Anything to add\? \(optional\)"\s+aria-describedby/);
   assert.match(app, /data-optional-mark>\(optional\)</);
   assert.match(app, /The install link comes by email, to this address\./);
-  const question = contactPage("de", ownerEmail, "question");
+  const question = contactPage("de", "question");
   assert.match(question, /<option value="question" selected [^>]*>Frage<\/option>/);
   assert.match(question, /placeholder="Was ist die Frage\?" required/);
   assert.match(question, /data-optional-mark hidden>/);
@@ -128,29 +129,28 @@ test("the page loads nothing from other hosts and its policy allows only this se
   assert.doesNotMatch(SCRIPT, /https?:\/\//);   // the script takes its address from the page
 });
 
-test("the privacy policy, imprint and the email fallback are linked in the page's language", () => {
+test("the privacy policy, footer and both fallbacks link to the right language", () => {
   assert.match(pages.en, /href="https:\/\/www\.ares-empire\.de\/privacy">Privacy policy</);
   assert.match(pages.en, /href="https:\/\/www\.ares-empire\.de\/imprint">Imprint</);
   assert.match(pages.de, /href="https:\/\/www\.ares-empire\.de\/datenschutz">Datenschutzerklärung</);
   assert.match(pages.de, /href="https:\/\/www\.ares-empire\.de\/impressum">Impressum</);
-  for (const html of Object.values(pages)) {
-    // The failed send and <noscript> name the address; no other problem does.
-    assert.equal(count(html, 'href="mailto:owner@example.org">owner@example.org</a>'), 2);
-    assert.match(html, /data-problem="failed" hidden>[\s\S]*?mailto:owner@example\.org[\s\S]*?<\/p>/);
-    assert.doesNotMatch(html, /data-problem="empty" hidden>[^\n]*mailto/);
+  for (const [html, imprintLink] of [
+    [pages.en, '<a href="https://www.ares-empire.de/imprint">imprint</a>'],
+    [pages.de, '<a href="https://www.ares-empire.de/impressum">Impressum</a>'],
+  ]) {
+    const failed = html.match(/data-problem="failed" hidden>(.*?)<\/p>/);
+    const noscript = html.match(/<noscript>(.*?)<\/noscript>/);
+    assert.ok(failed?.[1].includes(imprintLink));
+    assert.ok(noscript?.[1].includes(imprintLink));
+    assert.doesNotMatch(html, /%i/);
   }
-});
-
-test("the configured email is escaped in the link and its text", () => {
-  const html = contactPage("en", 'owner"<&\'@example.org');
-  assert.equal(count(html, 'href="mailto:owner&quot;&lt;&amp;&#39;@example.org">owner&quot;&lt;&amp;&#39;@example.org</a>'), 2);
 });
 
 test("the words address no one: no you or your, no du, dein or du-imperatives (owner, 2026-10-31)", () => {
   // Every word on the page, also the placeholders, notes and problems the script swaps in from data attributes.
   for (const topic of TOPICS) {
-    assert.doesNotMatch(contactPage("en", ownerEmail, topic), /\b(you|your|yours|you're)\b/i);
-    assert.doesNotMatch(contactPage("de", ownerEmail, topic), /\b(du|dich|dir|dein\w*|frag|schreib|gib|versuch|sende)\b/i);
+    assert.doesNotMatch(contactPage("en", topic), /\b(you|your|yours|you're)\b/i);
+    assert.doesNotMatch(contactPage("de", topic), /\b(du|dich|dir|dein\w*|frag|schreib|gib|versuch|sende)\b/i);
   }
 });
 
